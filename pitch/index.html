@@ -1,0 +1,4265 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Senergy</title>
+    <link rel="icon" href="logo-icon.png" type="image/png">
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      :root {
+        --primary: #35c1ae;
+        --primary-alt: #ff6f61;
+        --secondary: #ededed;
+        --background: #fafafa;
+        --card-bg: #ffffff;
+        --header-text: #1e1e2f;
+        --body-text: #222831;
+        --body-text-alt: #4b4b4b;
+        --input-bg: #ffffff;
+        --input-border: #b8bcc7;
+        --highlight: #fec260;
+        --shadow: rgba(30, 30, 47, 0.1);
+        --success: #51cf66;
+        --danger: #ff6b6b;
+        --info: #667eea;
+        --rating-low: #35c1ae;
+        --rating-high: #ff6f61;
+        --transition: all 0.3s ease;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", "Inter", -apple-system, BlinkMacSystemFont,
+          sans-serif;
+        background: var(--background);
+        min-height: 100vh;
+        color: var(--body-text);
+        line-height: 1.6;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+      }
+
+      /* Modern navbar */
+      .navbar {
+        background: var(--card-bg);
+        padding: 1.2rem 2rem;
+        margin: 2rem 0;
+        border-radius: 16px;
+        box-shadow: 0 8px 24px var(--shadow);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 20px;
+        z-index: 100;
+      }
+
+      .logo {
+        font-size: 1.8rem;
+        font-weight: 800;
+
+        background: linear-gradient(
+          90deg,
+          #54c3f1,
+          #50e3c2,
+          #8ccafd,
+          #f58fcb,
+          #ffad76
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+      }
+    
+
+      .nav-links {
+        display: flex;
+        gap: 1.5rem;
+        list-style: none;
+      }
+
+      .nav-links a {
+        text-decoration: none;
+        color: var(--header-text);
+        font-weight: 500;
+        transition: var(--transition);
+        position: relative;
+        padding: 8px 0;
+        font-size: 1rem;
+      }
+
+      .nav-links a:hover {
+        color: var(--primary);
+      }
+
+      .nav-links a.active {
+        color: var(--primary);
+        font-weight: 600;
+      }
+
+      .nav-links a.active::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--primary), var(--primary-alt));
+        border-radius: 3px;
+      }
+
+      /* Card styling */
+      .card {
+        background: var(--card-bg);
+        border-radius: 20px;
+        padding: 2.5rem;
+        margin-bottom: 2.5rem;
+        box-shadow: 0 8px 32px var(--shadow);
+        transition: var(--transition);
+      }
+
+      .card:hover {
+        box-shadow: 0 12px 40px rgba(30, 30, 47, 0.15);
+      }
+
+      .card-header {
+        margin-bottom: 1.5rem;
+        text-align: center;
+      }
+
+      .card-header h2 {
+        font-size: 1.8rem;
+        color: var(--header-text);
+        margin-bottom: 0.5rem;
+        background-color: var(--header-text);
+        
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .card-header p {
+        color: var(--body-text-alt);
+        max-width: 700px;
+        margin: 0 auto;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      /* Buttons */
+      .btn {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 14px 28px;
+        border-radius: 50px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 600;
+        transition: var(--transition);
+        margin: 0.5rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        box-shadow: 0 4px 12px rgba(53, 193, 174, 0.25);
+      }
+
+      .btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 7px 20px rgba(53, 193, 174, 0.4);
+        background: #2db09d;
+      }
+
+      .btn:active {
+        transform: translateY(1px);
+      }
+
+      .btn:disabled {
+        background: #b8bcc7;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+
+      .btn-secondary {
+        background: var(--secondary);
+        color: var(--header-text);
+        border: 2px solid var(--input-border);
+        box-shadow: none;
+      }
+
+      .btn-secondary:hover {
+        background: #e0e0e0;
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      .btn-danger {
+        background: linear-gradient(135deg, var(--danger) 0%, #ee5a24 100%);
+        color: white;
+      }
+
+      .btn-success {
+        background: linear-gradient(135deg, var(--success) 0%, #40c057 100%);
+        color: white;
+      }
+
+      .btn-info {
+        background: linear-gradient(135deg, var(--info) 0%, #764ba2 100%);
+        color: white;
+      }
+
+      /* Personality assessment */
+      .question-container {
+        margin-bottom: 2.5rem;
+        padding: 1.5rem;
+        border-radius: 16px;
+        background: rgba(245, 245, 245, 0.5);
+      }
+
+      .question-text {
+        font-size: 1.3rem;
+        margin-bottom: 1.5rem;
+        font-weight: 600;
+        color: var(--header-text);
+        text-align: center;
+      }
+
+      .scale-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 1.5rem 0;
+      }
+
+      .scale-labels {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        font-size: 0.95rem;
+        color: var(--body-text-alt);
+        margin-bottom: 1rem;
+        font-weight: 500;
+      }
+
+      .radio-group {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        max-width: 500px;
+        margin: 0 auto;
+      }
+
+      .radio-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        cursor: pointer;
+        transition: var(--transition);
+        padding: 10px;
+        border-radius: 12px;
+      }
+
+      .radio-item:hover {
+        background: rgba(53, 193, 174, 0.1);
+        transform: translateY(-5px);
+      }
+
+      .radio-item input[type="radio"] {
+        appearance: none;
+        width: 24px;
+        height: 24px;
+        border: 2px solid var(--primary);
+        border-radius: 50%;
+        position: relative;
+        cursor: pointer;
+        transition: var(--transition);
+      }
+
+      .radio-item input[type="radio"]:checked {
+        background: var(--primary);
+      }
+
+      .radio-item input[type="radio"]:checked::after {
+        content: "";
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: white;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+
+      .radio-item label {
+        margin-top: 0.8rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--primary);
+      }
+
+      .progress-container {
+        margin: 2rem 0;
+        padding: 0 1rem;
+      }
+
+      .progress-bar {
+        width: 100%;
+        height: 10px;
+        background: rgba(53, 193, 174, 0.2);
+        border-radius: 5px;
+        overflow: hidden;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--primary), var(--primary-alt));
+        border-radius: 5px;
+        transition: width 0.5s ease;
+      }
+
+      .progress-info {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 0.5rem;
+        font-size: 0.9rem;
+        color: var(--body-text-alt);
+        font-weight: 500;
+      }
+
+      /* Results page */
+      .personality-result {
+        text-align: center;
+        padding: 2rem;
+      }
+
+      .personality-score {
+        font-size: 4rem;
+        font-weight: 800;
+        margin: 1.5rem 0;
+        background: linear-gradient(
+          135deg,
+          var(--rating-low) 0%,
+          var(--rating-high) 100%
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .personality-type {
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+        font-weight: 700;
+        color: var(--header-text);
+      }
+
+      .personality-description {
+        max-width: 600px;
+        margin: 0 auto 2rem;
+        font-size: 1.1rem;
+        color: var(--body-text-alt);
+        line-height: 1.7;
+      }
+
+      /* Activity cards */
+      .activity-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.8rem;
+        margin-top: 2rem;
+      }
+
+      .activity-card {
+        background: var(--card-bg);
+        border-radius: 18px;
+        padding: 1.8rem;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        transition: var(--transition);
+        cursor: pointer;
+        border: 1px solid rgba(184, 188, 199, 0.2);
+        display: flex;
+        flex-direction: column;
+      }
+
+      .activity-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+        border-color: rgba(53, 193, 174, 0.3);
+      }
+
+      .activity-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: var(--header-text);
+      }
+
+      .activity-category {
+        color: var(--primary);
+        font-size: 0.95rem;
+        margin-bottom: 1rem;
+        text-transform: uppercase;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+      }
+
+      .activity-details {
+        margin-bottom: 1.2rem;
+        color: var(--body-text-alt);
+        flex-grow: 1;
+      }
+
+      .rating-section {
+        border-top: 1px solid rgba(184, 188, 199, 0.3);
+        padding-top: 1.2rem;
+        margin-top: 1.2rem;
+      }
+
+      .rating-questions {
+        margin-bottom: 1.2rem;
+      }
+
+      .rating-question {
+        margin-bottom: 1.5rem;
+      }
+
+      .rating-question label {
+        display: block;
+        margin-bottom: 0.8rem;
+        font-weight: 500;
+        color: var(--header-text);
+      }
+
+      .rating-slider {
+        width: 100%;
+        height: 8px;
+        border-radius: 4px;
+        background: #e0e0e0;
+        outline: none;
+        appearance: none;
+      }
+
+      .rating-slider::-webkit-slider-thumb {
+        appearance: none;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: linear-gradient(
+          135deg,
+          var(--primary) 0%,
+          var(--primary-alt) 100%
+        );
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(53, 193, 174, 0.4);
+        border: 2px solid white;
+      }
+
+      .rating-slider::-moz-range-thumb {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: linear-gradient(
+          135deg,
+          var(--primary) 0%,
+          var(--primary-alt) 100%
+        );
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(53, 193, 174, 0.4);
+        border: 2px solid white;
+      }
+
+      .slider-value {
+        text-align: center;
+        font-weight: 700;
+        color: var(--primary);
+        margin-top: 0.8rem;
+        font-size: 1.1rem;
+      }
+
+      .final-score {
+        font-size: 1.3rem;
+        font-weight: 700;
+        text-align: center;
+        padding: 1.2rem;
+        background: linear-gradient(
+          135deg,
+          var(--primary) 0%,
+          var(--primary-alt) 100%
+        );
+        color: white;
+        border-radius: 12px;
+        margin-top: 1.5rem;
+        box-shadow: 0 4px 12px rgba(53, 193, 174, 0.3);
+      }
+
+      /* User info */
+      .user-info {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        margin-bottom: 2.5rem;
+        background: rgba(245, 245, 245, 0.7);
+        padding: 1.5rem;
+        border-radius: 16px;
+      }
+
+      .avatar {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        background: linear-gradient(
+          135deg,
+          var(--primary) 0%,
+          var(--primary-alt) 100%
+        );
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.8rem;
+        font-weight: 700;
+        box-shadow: 0 5px 15px rgba(53, 193, 174, 0.3);
+      }
+
+      .welcome-text {
+        font-size: 1.3rem;
+        color: var(--header-text);
+        font-weight: 500;
+      }
+
+      .welcome-text strong {
+        font-weight: 700;
+        color: var(--primary);
+      }
+
+      /* Forms */
+      .form-group {
+        margin-bottom: 1.8rem;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 0.8rem;
+        font-weight: 600;
+        color: var(--header-text);
+      }
+
+      .form-control {
+        width: 100%;
+        padding: 14px 18px;
+        border: 2px solid var(--input-border);
+        border-radius: 12px;
+        font-size: 1rem;
+        transition: var(--transition);
+        background: var(--input-bg);
+        color: var(--body-text);
+        font-family: inherit;
+      }
+
+      .form-control:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(53, 193, 174, 0.2);
+      }
+
+      .form-control::placeholder {
+        color: #a0a4b0;
+      }
+
+      .form-control select {
+        cursor: pointer;
+      }
+
+      textarea.form-control {
+        resize: vertical;
+        min-height: 120px;
+      }
+
+      /* Feed items */
+      .feed-item {
+        background: var(--card-bg);
+        border-radius: 18px;
+        padding: 1.8rem;
+        margin-bottom: 1.8rem;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        transition: var(--transition);
+        border: 1px solid rgba(184, 188, 199, 0.2);
+      }
+
+      .feed-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+      }
+
+      .feed-header {
+        display: flex;
+        align-items: center;
+        gap: 1.2rem;
+        margin-bottom: 1.2rem;
+      }
+
+      .feed-avatar {
+        width: 55px;
+        height: 55px;
+        border-radius: 50%;
+        background: linear-gradient(
+          135deg,
+          var(--primary) 0%,
+          var(--primary-alt) 100%
+        );
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.3rem;
+        font-weight: 700;
+        flex-shrink: 0;
+      }
+
+      .feed-user-info h4 {
+        margin: 0;
+        color: var(--header-text);
+        font-size: 1.1rem;
+      }
+
+      .feed-user-info .personality-type {
+        font-size: 0.85rem;
+        color: var(--primary);
+        margin: 0.3rem 0 0;
+        font-weight: 600;
+      }
+
+      .feed-timestamp {
+        font-size: 0.8rem;
+        color: var(--body-text-alt);
+        margin-top: 0.2rem;
+      }
+
+      .feed-content {
+        margin-bottom: 1.2rem;
+      }
+
+      .feed-rating {
+        display: inline-block;
+        background: linear-gradient(
+          135deg,
+          var(--primary) 0%,
+          var(--primary-alt) 100%
+        );
+        color: white;
+        padding: 0.6rem 1.2rem;
+        border-radius: 50px;
+        font-weight: 700;
+        margin-bottom: 1.2rem;
+        font-size: 0.95rem;
+      }
+
+      .similar-users-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+      }
+
+      .similar-user-card {
+        background: var(--card-bg);
+        border-radius: 16px;
+        padding: 1.8rem;
+        text-align: center;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+        transition: var(--transition);
+        border: 1px solid rgba(184, 188, 199, 0.2);
+      }
+
+      .similar-user-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      }
+
+      .similarity-score {
+        background: linear-gradient(135deg, var(--success) 0%, #40c057 100%);
+        color: white;
+        padding: 0.4rem 1rem;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        margin-top: 1rem;
+        display: inline-block;
+      }
+
+      .group-card {
+        background: var(--card-bg);
+        border-radius: 18px;
+        padding: 1.8rem;
+        margin-bottom: 1.8rem;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(184, 188, 199, 0.2);
+      }
+
+      .group-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.2rem;
+      }
+
+      .group-members {
+        display: flex;
+        gap: 0.8rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.2rem;
+      }
+      .group-members > div:last-child {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+
+      /* Voting system styles */
+      .voting-section {
+        margin-top: 1.5rem;
+        padding: 1.5rem;
+        background: rgba(245, 245, 245, 0.7);
+        border-radius: 12px;
+      }
+
+      .vote-button {
+        background: #e0e0e0;
+        color: #333;
+        border: 2px solid transparent;
+        padding: 8px 16px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        margin: 0 0.5rem 0.5rem 0;
+      }
+
+      .vote-button:hover {
+        background: #d0d0d0;
+        transform: translateY(-2px);
+      }
+
+      .vote-button.voted {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+      }
+
+      .most-voted {
+        border: 3px solid #ff4444 !important;
+        background: rgba(255, 68, 68, 0.1) !important;
+        position: relative;
+      }
+
+      .most-voted::before {
+        content: "🏆 MOST VOTED";
+        position: absolute;
+        top: -10px;
+        left: 10px;
+        background: #ff4444;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: bold;
+      }
+
+      .vote-count {
+        font-size: 0.8rem;
+        color: #666;
+        margin-top: 0.5rem;
+        font-weight: bold;
+      }
+
+      .edit-group-btn {
+        background: var(--info);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-right: 0.5rem;
+      }
+
+      .edit-group-btn:hover {
+        background: #5a67d8;
+        transform: translateY(-2px);
+      }
+
+      .member-tag {
+        background: rgba(53, 193, 174, 0.1);
+        color: var(--primary);
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 600;
+      }
+
+      .prediction-card {
+        background: rgba(53, 193, 174, 0.08);
+        border: 2px solid rgba(53, 193, 174, 0.15);
+        border-radius: 14px;
+        padding: 1.2rem;
+        margin: 1.2rem 0;
+      }
+
+      .prediction-score {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--primary);
+        text-align: center;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(
+          135deg,
+          var(--primary) 0%,
+          var(--primary-alt) 100%
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .prediction-confidence {
+        text-align: center;
+        font-size: 0.95rem;
+        color: var(--body-text-alt);
+      }
+
+      /* Stats */
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.5rem;
+        margin: 1.5rem 0;
+      }
+
+      .stat-card {
+        text-align: center;
+        padding: 1.5rem;
+        background: rgba(53, 193, 174, 0.08);
+        border-radius: 14px;
+        transition: var(--transition);
+      }
+
+      .stat-card:hover {
+        transform: translateY(-5px);
+        background: rgba(53, 193, 174, 0.15);
+      }
+
+      .stat-value {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: var(--primary);
+        margin-bottom: 0.5rem;
+      }
+
+      .stat-label {
+        font-size: 0.95rem;
+        color: var(--body-text-alt);
+      }
+
+      /* Search */
+      .search-box {
+        position: relative;
+        margin-bottom: 2rem;
+      }
+
+      .search-input {
+        width: 100%;
+        padding: 14px 50px 14px 20px;
+        border: 2px solid var(--input-border);
+        border-radius: 50px;
+        font-size: 1rem;
+        background: var(--input-bg);
+        color: var(--body-text);
+        transition: var(--transition);
+        font-family: inherit;
+      }
+
+      .search-input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(53, 193, 174, 0.2);
+      }
+
+      .search-icon {
+        position: absolute;
+        right: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--primary);
+        font-size: 1.2rem;
+      }
+
+      .filter-tabs {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+      }
+
+      .filter-tab {
+        padding: 0.9rem 1.8rem;
+        border: 2px solid var(--primary);
+        border-radius: 50px;
+        background: transparent;
+        color: var(--primary);
+        cursor: pointer;
+        font-weight: 600;
+        transition: var(--transition);
+        font-size: 0.95rem;
+      }
+
+      .filter-tab.active {
+        background: var(--primary);
+        color: white;
+      }
+
+      .filter-tab:hover:not(.active) {
+        background: rgba(53, 193, 174, 0.1);
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: var(--body-text-alt);
+      }
+
+      .empty-state h3 {
+        margin-bottom: 1rem;
+        color: var(--header-text);
+        font-size: 1.5rem;
+      }
+
+      .empty-state p {
+        max-width: 500px;
+        margin: 0 auto 1.5rem;
+      }
+
+      .centered {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 1.5rem;
+        flex-wrap: wrap;
+      }
+
+      /* GROUPS */
+      .modal {
+        display: flex;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.3s ease;
+      }
+
+      .modal-content {
+        background: var(--card-bg);
+        border-radius: 20px;
+        padding: 0;
+        width: 90%;
+        max-width: 600px;
+        max-height: 90vh;
+        overflow-y: auto;
+        position: relative;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        animation: slideUp 0.3s ease;
+      }
+
+      .modal-header {
+        padding: 2rem 2rem 1rem 2rem;
+        border-bottom: 1px solid #eee;
+      }
+
+      .modal-header h2 {
+        margin: 0;
+        color: var(--header-text);
+        font-size: 1.8rem;
+      }
+
+      .modal-body {
+        padding: 2rem;
+      }
+
+      .modal-close {
+        position: absolute;
+        top: 20px;
+        right: 25px;
+        color: #999;
+        font-size: 35px;
+        font-weight: bold;
+        background: none;
+        border: none;
+        cursor: pointer;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: all 0.3s ease;
+      }
+
+      .modal-close:hover {
+        color: #333;
+        background: rgba(0, 0, 0, 0.1);
+        transform: rotate(90deg);
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px) scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      /* Responsive */
+      @media (max-width: 1200px) {
+        .stats-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .activity-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
+      @media (max-width: 992px) {
+        .navbar {
+          flex-direction: column;
+          gap: 1.2rem;
+          padding: 1.5rem;
+        }
+
+        .nav-links {
+          flex-wrap: wrap;
+          justify-content: center;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          padding: 0 15px;
+        }
+
+        .card {
+          padding: 1.8rem;
+        }
+
+        .radio-group {
+          flex-wrap: wrap;
+          gap: 10px;
+          justify-content: center;
+        }
+
+        .activity-grid,
+        .stats-grid,
+        .similar-users-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .user-info {
+          flex-direction: column;
+          text-align: center;
+        }
+
+        .group-header {
+          flex-direction: column;
+          gap: 1rem;
+          text-align: center;
+        }
+
+        .action-buttons {
+          flex-direction: column;
+          align-items: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <nav class="navbar">
+        <div class="logo">
+          <img
+            src="logo-icon.png"
+            alt="Social Energy"
+            style="width: 50px; height: 50px; border-radius: 6px"
+          />
+          Senergy
+        </div>
+        <ul class="nav-links">
+          <li>
+            <a href="#" onclick="showPage('dashboard')" id="nav-dashboard"
+              >Dashboard</a
+            >
+          </li>
+          <li>
+            <a href="#" onclick="showPage('assessment')" id="nav-assessment"
+              >Assessment</a
+            >
+          </li>
+          <li>
+            <a href="#" onclick="showPage('activities')" id="nav-activities"
+              >Add Experience</a
+            >
+          </li>
+          <li>
+            <a href="#" onclick="showPage('feed')" id="nav-feed">Community</a>
+          </li>
+          <li>
+            <a href="#" onclick="showPage('groups')" id="nav-groups">Groups</a>
+          </li>
+          <li>
+            <a href="#" onclick="showPage('profile')" id="nav-profile"
+              >Profile</a
+            >
+          </li>
+        </ul>
+      </nav>
+
+      <!-- Dashboard Page -->
+      <div id="dashboard" class="page">
+        <div class="card">
+          <div class="user-info">
+            <div class="avatar" id="user-avatar">?</div>
+            <div>
+              <div class="welcome-text" id="welcome-message">
+                Welcome! Take the personality assessment to get started.
+              </div>
+            </div>
+          </div>
+
+          <div id="dashboard-content" class="centered">
+            <h2>Discover Your Perfect Social Experiences</h2>
+            <p>
+              Find activities that match your energy preferences and connect
+              with like-minded people.
+            </p>
+            <button class="btn" onclick="showPage('assessment')">
+              <i class="fas fa-play-circle"></i> Start Assessment
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Personality Assessment Page -->
+      <div id="assessment" class="page hidden">
+        <div class="card">
+          <div class="card-header">
+            <h2>Personality Assessment</h2>
+            <p>
+              Answer these questions to help us understand your social energy
+              preferences.
+            </p>
+          </div>
+
+          <div class="progress-container">
+            <div class="progress-bar">
+              <div
+                class="progress-fill"
+                id="progress-fill"
+                style="width: 0%"
+              ></div>
+            </div>
+            <div class="progress-info">
+              <span id="progress-text">Question 1 of 10</span>
+              <span>Understanding your energy</span>
+            </div>
+          </div>
+
+          <div id="question-container">
+            <!-- Questions will be dynamically inserted here -->
+          </div>
+
+          <div class="centered">
+            <button class="btn" id="next-btn" onclick="nextQuestion()" disabled>
+              Next Question <i class="fas fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Assessment Results -->
+      <div id="results" class="page hidden">
+        <div class="card">
+          <div class="personality-result">
+            <h2>Your Personality Profile</h2>
+            <div class="personality-score" id="personality-score">0.0</div>
+            <div class="personality-type" id="personality-type">Ambivert</div>
+            <p class="personality-description" id="personality-description">
+              You have a balanced approach to social energy.
+            </p>
+            <button class="btn" onclick="completeAssessment()">
+              <i class="fas fa-tachometer-alt"></i> Continue to Dashboard
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activities Page -->
+      <div id="activities" class="page hidden">
+        <div class="card">
+          <div class="card-header">
+            <h2>Add Your Experience</h2>
+            <p>
+              Share a recent social experience and rate how it affected your
+              energy levels.
+            </p>
+          </div>
+
+          <form
+            id="activity-form"
+            onsubmit="ActivitySystem.submitNewExperience(event)"
+          >
+            <div class="form-group">
+              <label for="activity-name"
+                ><i class="fas fa-map-marker-alt"></i> Place/Activity Name
+                *</label
+              >
+              <input
+                type="text"
+                id="activity-name"
+                class="form-control"
+                placeholder="e.g., The Coffee Bean, Central Park, Downtown Nightclub"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="activity-category"
+                ><i class="fas fa-tag"></i> Category *</label
+              >
+              <select id="activity-category" class="form-control" required>
+                <option value="">Select category...</option>
+                <option value="Restaurant">Restaurant</option>
+                <option value="Bar/Pub">Bar/Pub</option>
+                <option value="Nightclub">Nightclub</option>
+                <option value="Cafe">Cafe</option>
+                <option value="Park/Outdoor">Park/Outdoor</option>
+                <option value="Museum/Gallery">Museum/Gallery</option>
+                <option value="Shopping">Shopping</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="Sports/Fitness">Sports/Fitness</option>
+                <option value="Library/Study">Library/Study</option>
+                <option value="Event/Party">Event/Party</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="activity-location"
+                ><i class="fas fa-location-dot"></i> Location</label
+              >
+              <input
+                type="text"
+                id="activity-location"
+                class="form-control"
+                placeholder="e.g., Downtown, Brooklyn, Central Mall"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="activity-description"
+                ><i class="fas fa-align-left"></i> Description (Optional)</label
+              >
+              <textarea
+                id="activity-description"
+                class="form-control"
+                placeholder="Describe the atmosphere, what you did, who you were with..."
+              ></textarea>
+            </div>
+
+            <div class="form-group">
+              <label><i class="fas fa-star"></i> Rate Your Experience:</label>
+              <div class="rating-questions" id="new-activity-rating">
+                <div class="rating-question">
+                  <label>How energized did you feel? (40% weight)</label>
+                  <input
+                    type="range"
+                    class="rating-slider"
+                    min="1"
+                    max="10"
+                    value="5"
+                    oninput="updateSliderValue(this, 'slider-energy')"
+                    id="rating-energy"
+                  />
+                  <div class="slider-value" id="slider-energy">5</div>
+                </div>
+                <div class="rating-question">
+                  <label
+                    >How satisfied were you with the social interaction? (25%
+                    weight)</label
+                  >
+                  <input
+                    type="range"
+                    class="rating-slider"
+                    min="1"
+                    max="10"
+                    value="5"
+                    oninput="updateSliderValue(this, 'slider-social')"
+                    id="rating-social"
+                  />
+                  <div class="slider-value" id="slider-social">5</div>
+                </div>
+                <div class="rating-question">
+                  <label
+                    >How comfortable did you feel in this environment? (20%
+                    weight)</label
+                  >
+                  <input
+                    type="range"
+                    class="rating-slider"
+                    min="1"
+                    max="10"
+                    value="5"
+                    oninput="updateSliderValue(this, 'slider-comfort')"
+                    id="rating-comfort"
+                  />
+                  <div class="slider-value" id="slider-comfort">5</div>
+                </div>
+                <div class="rating-question">
+                  <label
+                    >How overwhelming was the environment? (10% weight - higher
+                    = more overwhelming)</label
+                  >
+                  <input
+                    type="range"
+                    class="rating-slider"
+                    min="1"
+                    max="10"
+                    value="5"
+                    oninput="updateSliderValue(this, 'slider-overwhelm')"
+                    id="rating-overwhelm"
+                  />
+                  <div class="slider-value" id="slider-overwhelm">5</div>
+                </div>
+                <div class="rating-question">
+                  <label>How likely are you to return? (5% weight)</label>
+                  <input
+                    type="range"
+                    class="rating-slider"
+                    min="1"
+                    max="10"
+                    value="5"
+                    oninput="updateSliderValue(this, 'slider-return')"
+                    id="rating-return"
+                  />
+                  <div class="slider-value" id="slider-return">5</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="action-buttons">
+              <button type="submit" class="btn">
+                <i class="fas fa-plus-circle"></i> Add Experience
+              </button>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                onclick="resetActivityForm()"
+              >
+                <i class="fas fa-eraser"></i> Clear Form
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Community Feed Page -->
+      <div id="feed" class="page hidden">
+        <div class="card">
+          <div class="card-header">
+            <h2>Community Activity Feed</h2>
+            <p>
+              See what others in the community are experiencing and discover new
+              places.
+            </p>
+          </div>
+
+          <div class="search-box">
+            <input
+              type="text"
+              class="search-input"
+              id="feed-search"
+              placeholder="Search activities, places, or users..."
+              onkeyup="FeedSystem.filterFeed()"
+            />
+            <span class="search-icon"><i class="fas fa-search"></i></span>
+          </div>
+
+          <div class="filter-tabs">
+            <button
+              class="filter-tab active"
+              onclick="FeedSystem.setFilter('all')"
+            >
+              All Activities
+            </button>
+            <button
+              class="filter-tab"
+              onclick="FeedSystem.setFilter('similar')"
+            >
+              Similar Users
+            </button>
+            <button
+              class="filter-tab"
+              onclick="FeedSystem.setFilter('high-rated')"
+            >
+              Top Rated
+            </button>
+            <button class="filter-tab" onclick="FeedSystem.setFilter('recent')">
+              Recent
+            </button>
+          </div>
+
+          <div id="feed-content">
+            <!-- Feed items will be dynamically inserted here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Groups Page -->
+      <div id="groups" class="page hidden">
+        <div class="card">
+          <div class="card-header">
+            <h2>Group Planning</h2>
+            <p>
+              Create groups with friends and find activities that work for
+              everyone's energy preferences.
+            </p>
+          </div>
+
+          <div class="centered">
+            <button class="btn" onclick="showCreateGroupModal()">
+              <i class="fas fa-users"></i> Create New Group
+            </button>
+          </div>
+
+          <div id="groups-content">
+            <!-- Groups will be dynamically inserted here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile Page -->
+      <div id="profile" class="page hidden">
+        <div class="card">
+          <div class="card-header">
+            <h2>Your Profile</h2>
+          </div>
+          <div id="profile-content">
+            <!-- Profile content will be dynamically inserted here -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- JavaScript remains unchanged -->
+    <script>
+      // Function to handle rating a place from the community feed
+      function ratePlace(name, category, location, description) {
+        // Pre-fill the activity form
+        document.getElementById("activity-name").value = name;
+        document.getElementById("activity-category").value = category;
+        document.getElementById("activity-location").value = location;
+        document.getElementById("activity-description").value = description;
+
+        // Switch to the activities page
+        showPage("activities");
+
+        // Scroll to the form
+        document
+          .getElementById("activity-form")
+          .scrollIntoView({ behavior: "smooth" });
+      }
+
+      // In-memory data storage (replaces localStorage)
+      let appData = {
+        personalityScore: null,
+        personalityType: null,
+        userExperiences: [],
+        groups: [],
+        friends: [], // Add friends array
+        currentUser: {
+          id: "user-main",
+          username: "you",
+          displayName: "You",
+          avatar: "Y",
+        },
+      };
+
+      const FriendsSystem = {
+        addFriend: (userId) => {
+          const user = DemoUsers.users[userId];
+          if (!user) return false;
+
+          const friends = DataLayer.load("friends", []);
+          if (friends.some((friend) => friend.id === userId)) {
+            NotificationSystem.show(
+              "Already friends with this user!",
+              "warning"
+            );
+            return false;
+          }
+
+          const friendData = {
+            id: userId,
+            username: user.username,
+            displayName: user.displayName,
+            personalityType: user.personalityType,
+            adjustmentFactor: user.adjustmentFactor,
+            avatar: user.avatar,
+            addedAt: new Date().toISOString(),
+          };
+
+          DataLayer.push("friends", friendData);
+          NotificationSystem.show(
+            `Added ${user.displayName} as a friend!`,
+            "success"
+          );
+
+          // Refresh current page to show updated recommendations
+          const currentPage = document.querySelector(".page:not(.hidden)").id;
+          if (currentPage === "dashboard" || currentPage === "profile") {
+            showPage(currentPage);
+          }
+
+          return true;
+        },
+
+        getFriends: () => {
+          return DataLayer.load("friends", []);
+        },
+
+        getFriendIds: () => {
+          return FriendsSystem.getFriends().map((friend) => friend.id);
+        },
+
+        isFriend: (userId) => {
+          return FriendsSystem.getFriendIds().includes(userId);
+        },
+      };
+
+      // Data layer - handles in-memory storage operations
+      const DataLayer = {
+        save: (key, data) => {
+          appData[key] = JSON.parse(JSON.stringify(data));
+        },
+
+        load: (key, defaultValue = null) => {
+          return appData[key] !== undefined
+            ? JSON.parse(JSON.stringify(appData[key]))
+            : defaultValue;
+        },
+
+        exists: (key) => {
+          return appData[key] !== undefined && appData[key] !== null;
+        },
+
+        push: (key, item) => {
+          if (!appData[key]) appData[key] = [];
+          appData[key].push(JSON.parse(JSON.stringify(item)));
+        },
+
+        remove: (key, predicate) => {
+          if (appData[key] && Array.isArray(appData[key])) {
+            appData[key] = appData[key].filter((item) => !predicate(item));
+          }
+        },
+      };
+
+      // Personality assessment system
+      const PersonalityAssessment = {
+        questions: [
+          { text: "Large parties energize me", weight: 3 },
+          {
+            text: "I prefer quiet, intimate gatherings",
+            weight: 3,
+            reverse: true,
+          },
+          {
+            text: "I need alone time after social events",
+            weight: 2,
+            reverse: true,
+          },
+          { text: "I'm comfortable being the center of attention", weight: 2 },
+          {
+            text: "I prefer deep conversations over small talk",
+            weight: 2,
+            reverse: true,
+          },
+          { text: "I enjoy spontaneous social activities", weight: 1 },
+          { text: "I recharge by being around people", weight: 3 },
+          { text: "I think out loud when making decisions", weight: 1 },
+          { text: "I'm energized by new social environments", weight: 2 },
+          { text: "I prefer working in teams vs alone", weight: 1 },
+        ],
+
+        currentQuestion: 0,
+        responses: [],
+
+        init: () => {
+          PersonalityAssessment.currentQuestion = 0;
+          PersonalityAssessment.responses = [];
+          PersonalityAssessment.displayQuestion();
+        },
+
+        displayQuestion: () => {
+          const container = document.getElementById("question-container");
+          const question =
+            PersonalityAssessment.questions[
+              PersonalityAssessment.currentQuestion
+            ];
+
+          container.innerHTML = `
+      <div class="question-container">
+        <div class="question-text">${question.text}</div>
+        <div class="scale-labels">
+          <span>Strongly Disagree</span>
+          <span>Strongly Agree</span>
+        </div>
+        <div class="radio-group">
+          ${[1, 2, 3, 4, 5]
+            .map(
+              (value) => `
+              <div class="radio-item">
+                <input type="radio" name="question" value="${value}" id="q${value}" onchange="PersonalityAssessment.selectAnswer(${value})">
+                <label for="q${value}">${value}</label>
+              </div>
+            `
+            )
+            .join("")}
+        </div>
+      </div>
+    `;
+
+          // Update progress
+          const progress =
+            ((PersonalityAssessment.currentQuestion + 1) /
+              PersonalityAssessment.questions.length) *
+            100;
+          document.getElementById("progress-fill").style.width = `${progress}%`;
+          document.getElementById("progress-text").textContent = `Question ${
+            PersonalityAssessment.currentQuestion + 1
+          } of ${PersonalityAssessment.questions.length}`;
+        },
+
+        selectAnswer: (value) => {
+          PersonalityAssessment.responses[
+            PersonalityAssessment.currentQuestion
+          ] = value;
+          document.getElementById("next-btn").disabled = false;
+        },
+
+        calculateScore: () => {
+          let weightedSum = 0;
+          let totalWeight = 0;
+
+          PersonalityAssessment.questions.forEach((question, index) => {
+            let response = PersonalityAssessment.responses[index];
+            if (question.reverse) {
+              response = 6 - response;
+            }
+            weightedSum += response * question.weight;
+            totalWeight += question.weight;
+          });
+
+          const rawScore = weightedSum / totalWeight;
+          const adjustmentFactor = Math.max(
+            -1,
+            Math.min(1, (rawScore - 2.5) / 2.5)
+          );
+
+          return {
+            rawScore,
+            adjustmentFactor,
+          };
+        },
+
+        getPersonalityType: (adjustmentFactor) => {
+          if (adjustmentFactor <= -0.6)
+            return {
+              type: "Strong Introvert",
+              description:
+                "You recharge through solitude and prefer quieter, more intimate social settings.",
+            };
+          if (adjustmentFactor <= -0.2)
+            return {
+              type: "Moderate Introvert",
+              description:
+                "You enjoy social interaction but need quiet time to recharge your energy.",
+            };
+          if (adjustmentFactor <= 0.2)
+            return {
+              type: "Ambivert",
+              description:
+                "You have a balanced approach to social energy and can adapt to various situations.",
+            };
+          if (adjustmentFactor <= 0.6)
+            return {
+              type: "Moderate Extrovert",
+              description:
+                "You're energized by social interaction and enjoy group activities.",
+            };
+          return {
+            type: "Strong Extrovert",
+            description:
+              "You thrive in social situations and gain energy from being around others.",
+          };
+        },
+
+        showResults: () => {
+          const scores = PersonalityAssessment.calculateScore();
+          const personality = PersonalityAssessment.getPersonalityType(
+            scores.adjustmentFactor
+          );
+
+          document.getElementById("personality-score").textContent =
+            scores.adjustmentFactor.toFixed(1);
+          document.getElementById("personality-type").textContent =
+            personality.type;
+          document.getElementById("personality-description").textContent =
+            personality.description;
+
+          // Save results
+          DataLayer.save("personalityScore", scores);
+          DataLayer.save("personalityType", personality);
+
+          // Update current user
+          let currentUser = DataLayer.load("currentUser");
+          if (!currentUser) {
+            currentUser = {
+              id: "user-main",
+              username: "you",
+              displayName: "You",
+            };
+          }
+
+          currentUser.adjustmentFactor = scores.adjustmentFactor;
+          currentUser.personalityType = personality.type;
+          currentUser.avatar = personality.type.charAt(0);
+          DataLayer.save("currentUser", currentUser);
+
+          // Hide the assessment tab
+          const assessmentTab = document.querySelector(
+            "[onclick=\"showPage('assessment')\"]"
+          );
+          if (assessmentTab) {
+            assessmentTab.style.display = "none";
+          }
+
+          showPage("results");
+        },
+      };
+
+      // Demo users with sample data
+      const DemoUsers = {
+        users: {
+          1: {
+            id: 1,
+            username: "alex_chen",
+            displayName: "Alex Chen",
+            adjustmentFactor: 0.8,
+            personalityType: "Strong Extrovert",
+            bio: "Love meeting new people and trying exciting venues!",
+            avatar: "AC",
+          },
+          2: {
+            id: 2,
+            username: "sam_rivera",
+            displayName: "Sam Rivera",
+            adjustmentFactor: 0.3,
+            personalityType: "Moderate Extrovert",
+            bio: "Enjoy good company in comfortable settings.",
+            avatar: "SR",
+          },
+          3: {
+            id: 3,
+            username: "jordan_park",
+            displayName: "Jordan Park",
+            adjustmentFactor: -0.2,
+            personalityType: "Slight Introvert",
+            bio: "Quality over quantity when it comes to social time.",
+            avatar: "JP",
+          },
+          4: {
+            id: 4,
+            username: "riley_thompson",
+            displayName: "Riley Thompson",
+            adjustmentFactor: -0.5,
+            personalityType: "Moderate Introvert",
+            bio: "Love peaceful places and meaningful conversations.",
+            avatar: "RT",
+          },
+          5: {
+            id: 5,
+            username: "casey_wu",
+            displayName: "Casey Wu",
+            adjustmentFactor: -0.9,
+            personalityType: "Strong Introvert",
+            bio: "Finding energy in quiet, contemplative spaces.",
+            avatar: "CW",
+          },
+          6: {
+            id: 6,
+            username: "taylor_kim",
+            displayName: "Taylor Kim",
+            adjustmentFactor: 0.0,
+            personalityType: "Ambivert",
+            bio: "Adaptable to different social situations and moods.",
+            avatar: "TK",
+          },
+        },
+
+        // Sample experiences from demo users
+        experiences: [
+          {
+            id: 1,
+            userId: 1,
+            name: "Rooftop Lounge 21",
+            category: "Bar/Pub",
+            location: "Downtown",
+            description:
+              "Amazing rooftop bar with live DJ and city views. Great crowd, everyone was dancing!",
+            responses: {
+              energy: 9,
+              social: 8,
+              comfort: 8,
+              overwhelm: 3,
+              return: 9,
+            },
+            rawScore: 8.4,
+            adjustedScore: 9.6,
+            timestamp: "2024-01-15T20:00:00Z",
+            socialIntensity: 8.5,
+            noiseLevel: 7.5,
+            crowdSize: 8.0,
+          },
+          {
+            id: 2,
+            userId: 2,
+            name: "The Coffee Corner",
+            category: "Cafe",
+            location: "University District",
+            description:
+              "Cozy cafe with great atmosphere for studying and casual meetings. Perfect background music.",
+            responses: {
+              energy: 7,
+              social: 7,
+              comfort: 8,
+              overwhelm: 2,
+              return: 8,
+            },
+            rawScore: 7.2,
+            adjustedScore: 7.8,
+            timestamp: "2024-01-16T14:00:00Z",
+            socialIntensity: 3.5,
+            noiseLevel: 2.5,
+            crowdSize: 4.0,
+          },
+          {
+            id: 3,
+            userId: 3,
+            name: "Modern Art Museum",
+            category: "Museum/Gallery",
+            location: "Arts District",
+            description:
+              "Beautiful contemporary art exhibition. Peaceful environment, perfect for reflection.",
+            responses: {
+              energy: 8,
+              social: 6,
+              comfort: 9,
+              overwhelm: 1,
+              return: 8,
+            },
+            rawScore: 8.0,
+            adjustedScore: 7.6,
+            timestamp: "2024-01-17T11:00:00Z",
+            socialIntensity: 2.0,
+            noiseLevel: 1.5,
+            crowdSize: 3.0,
+          },
+          {
+            id: 4,
+            userId: 4,
+            name: "Quiet Garden Restaurant",
+            category: "Restaurant",
+            location: "Suburbs",
+            description:
+              "Intimate restaurant with outdoor seating. Perfect for deep conversations with close friends.",
+            responses: {
+              energy: 8,
+              social: 9,
+              comfort: 9,
+              overwhelm: 1,
+              return: 9,
+            },
+            rawScore: 8.8,
+            adjustedScore: 7.8,
+            timestamp: "2024-01-18T18:00:00Z",
+            socialIntensity: 4.0,
+            noiseLevel: 2.0,
+            crowdSize: 3.5,
+          },
+          {
+            id: 5,
+            userId: 5,
+            name: "Central Library",
+            category: "Library/Study",
+            location: "Downtown",
+            description:
+              "Peaceful reading space with beautiful architecture. Perfect for solo work and reflection.",
+            responses: {
+              energy: 9,
+              social: 5,
+              comfort: 10,
+              overwhelm: 1,
+              return: 10,
+            },
+            rawScore: 8.4,
+            adjustedScore: 6.6,
+            timestamp: "2024-01-19T10:00:00Z",
+            socialIntensity: 1.0,
+            noiseLevel: 1.0,
+            crowdSize: 2.0,
+          },
+          {
+            id: 6,
+            userId: 6,
+            name: "Sports Bar Central",
+            category: "Bar/Pub",
+            location: "Entertainment District",
+            description:
+              "Lively sports bar with big screens and enthusiastic crowd. Great game night atmosphere!",
+            responses: {
+              energy: 7,
+              social: 7,
+              comfort: 6,
+              overwhelm: 6,
+              return: 7,
+            },
+            rawScore: 6.5,
+            adjustedScore: 6.5,
+            timestamp: "2024-01-20T19:00:00Z",
+            socialIntensity: 7.0,
+            noiseLevel: 8.0,
+            crowdSize: 7.5,
+          },
+          {
+            id: 7,
+            userId: 1,
+            name: "Underground Dance Club",
+            category: "Nightclub",
+            location: "City Center",
+            description:
+              "High-energy club with amazing sound system and packed dance floor. Pure energy!",
+            responses: {
+              energy: 10,
+              social: 9,
+              comfort: 7,
+              overwhelm: 4,
+              return: 10,
+            },
+            rawScore: 8.8,
+            adjustedScore: 10.0,
+            timestamp: "2024-01-21T23:00:00Z",
+            socialIntensity: 10.0,
+            noiseLevel: 9.5,
+            crowdSize: 9.0,
+          },
+          {
+            id: 8,
+            userId: 5,
+            name: "Botanical Garden",
+            category: "Park/Outdoor",
+            location: "North Side",
+            description:
+              "Serene garden with beautiful flowers and quiet walking paths. So peaceful and restorative.",
+            responses: {
+              energy: 9,
+              social: 4,
+              comfort: 10,
+              overwhelm: 1,
+              return: 10,
+            },
+            rawScore: 8.2,
+            adjustedScore: 6.4,
+            timestamp: "2024-01-22T15:00:00Z",
+            socialIntensity: 1.5,
+            noiseLevel: 1.0,
+            crowdSize: 2.5,
+          },
+        ],
+      };
+
+      // Helper functions for edit modal
+      function closeEditModal() {
+        const modal = document.getElementById("edit-group-modal");
+        if (modal) modal.remove();
+      }
+
+      function handleEditGroup(event, groupId) {
+        event.preventDefault();
+
+        const groups = DataLayer.load("groups", []);
+        const groupIndex = groups.findIndex((g) => g.id === groupId);
+        if (groupIndex === -1) return;
+
+        const name = document.getElementById("edit-group-name").value.trim();
+        const description = document
+          .getElementById("edit-group-description")
+          .value.trim();
+
+        // Update basic info
+        groups[groupIndex].name = name;
+        groups[groupIndex].description = description;
+
+        // Update members
+        const currentUser = DataLayer.load("currentUser");
+        const personalityData = DataLayer.load("personalityScore");
+
+        let newMembers = [
+          {
+            userId: currentUser.id,
+            displayName: currentUser.displayName,
+            personalityType: currentUser.personalityType,
+            adjustmentFactor: personalityData.adjustmentFactor,
+            avatar: currentUser.avatar,
+            importance: 1.0,
+          },
+        ];
+
+        // Keep existing members that are checked
+        groups[groupIndex].members.forEach((member) => {
+          if (member.userId !== currentUser.id) {
+            const keepCheckbox = document.getElementById(
+              `keep-member-${member.userId}`
+            );
+            if (keepCheckbox && keepCheckbox.checked) {
+              newMembers.push(member);
+            }
+          }
+        });
+
+        // Add new members that are checked
+        const friends = FriendsSystem.getFriends();
+        friends.forEach((friend) => {
+          const addCheckbox = document.getElementById(
+            `add-member-${friend.id}`
+          );
+          if (addCheckbox && addCheckbox.checked) {
+            newMembers.push({
+              userId: friend.id,
+              displayName: friend.displayName,
+              personalityType: friend.personalityType,
+              adjustmentFactor: friend.adjustmentFactor,
+              avatar: friend.avatar,
+              importance: 1.0,
+            });
+          }
+        });
+
+        groups[groupIndex].members = newMembers;
+        DataLayer.save("groups", groups);
+
+        closeEditModal();
+        GroupsSystem.displayGroups();
+        NotificationSystem.show("Group updated successfully!", "success");
+      }
+
+      // Activity system
+      const ActivitySystem = {
+        // Predefined activity categories
+        categories: [
+          {
+            id: "restaurant",
+            name: "Restaurant/Café",
+            description: "Dining establishments, cafes, food courts",
+          },
+          {
+            id: "nightlife",
+            name: "Nightlife",
+            description: "Bars, clubs, lounges",
+          },
+          {
+            id: "outdoor",
+            name: "Park/Outdoor",
+            description: "Parks, gardens, hiking trails",
+          },
+          {
+            id: "entertainment",
+            name: "Entertainment",
+            description: "Movies, theaters, concerts",
+          },
+          {
+            id: "shopping",
+            name: "Shopping",
+            description: "Malls, markets, retail stores",
+          },
+          {
+            id: "sports",
+            name: "Sports/Recreation",
+            description: "Gyms, sports venues, recreational facilities",
+          },
+          {
+            id: "cultural",
+            name: "Cultural",
+            description: "Museums, galleries, historical sites",
+          },
+          {
+            id: "social",
+            name: "Social Venue",
+            description: "Community centers, meet-up spaces",
+          },
+          {
+            id: "wellness",
+            name: "Wellness/Relaxation",
+            description: "Spas, yoga studios, meditation centers",
+          },
+        ],
+
+        // Rating questions for activity experiences
+        ratingQuestions: [
+          { id: "energy", text: "How energized did you feel?", weight: 0.4 },
+          {
+            id: "social",
+            text: "How satisfied were you with the social interaction?",
+            weight: 0.25,
+          },
+          {
+            id: "comfort",
+            text: "How comfortable did you feel in this environment?",
+            weight: 0.2,
+          },
+          {
+            id: "overwhelm",
+            text: "How overwhelming was the environment?",
+            weight: 0.1,
+            reverse: true,
+          },
+          { id: "return", text: "How likely are you to return?", weight: 0.05 },
+        ],
+
+        submitNewExperience: (event) => {
+          event.preventDefault();
+
+          const personalityData = DataLayer.load("personalityScore");
+          if (!personalityData) {
+            NotificationSystem.show(
+              "Please complete the personality assessment first!",
+              "warning"
+            );
+            showPage("assessment");
+            return;
+          }
+
+          // Get form data
+          const name = document.getElementById("activity-name").value.trim();
+          const category = document.getElementById("activity-category").value;
+          const location = document
+            .getElementById("activity-location")
+            .value.trim();
+          const description = document
+            .getElementById("activity-description")
+            .value.trim();
+
+          if (!name || !category) {
+            NotificationSystem.show(
+              "Please fill in all required fields.",
+              "warning"
+            );
+            return;
+          }
+
+          // Get ratings
+          const responses = {};
+          let rawScore = 0;
+
+          ActivitySystem.ratingQuestions.forEach((question) => {
+            let value = parseInt(
+              document.getElementById(`rating-${question.id}`).value
+            );
+
+            if (question.reverse) {
+              value = 11 - value; // Reverse score for overwhelming
+            }
+
+            responses[question.id] = value;
+            rawScore += value * question.weight;
+          });
+
+          // Apply personality adjustment
+          const adjustedScore = Math.max(
+            1,
+            Math.min(10, rawScore + personalityData.adjustmentFactor * 2)
+          );
+
+          // Estimate social characteristics based on category and user ratings
+          const socialIntensity = ActivitySystem.estimateSocialIntensity(
+            category,
+            responses
+          );
+          const noiseLevel = ActivitySystem.estimateNoiseLevel(
+            category,
+            responses
+          );
+          const crowdSize = ActivitySystem.estimateCrowdSize(
+            category,
+            responses
+          );
+
+          const experience = {
+            id: Date.now(),
+            userId: "user-main",
+            name,
+            category,
+            location: location || "Not specified",
+            description: description || "",
+            responses,
+            rawScore: parseFloat(rawScore.toFixed(1)),
+            adjustedScore: parseFloat(adjustedScore.toFixed(1)),
+            timestamp: new Date().toISOString(),
+            socialIntensity,
+            noiseLevel,
+            crowdSize,
+          };
+
+          // Save experience
+          DataLayer.push("userExperiences", experience);
+
+          // Show success message
+          NotificationSystem.show(
+            "Experience added successfully!",
+            "success"
+          );
+
+          // Reset form and redirect
+          resetActivityForm();
+          showPage("profile");
+        },
+
+        estimateSocialIntensity: (category, responses) => {
+          const baseValues = {
+            Nightclub: 9.5,
+            "Bar/Pub": 7.0,
+            Restaurant: 5.5,
+            "Event/Party": 8.5,
+            "Sports/Fitness": 6.0,
+            Cafe: 3.5,
+            Shopping: 5.0,
+            Entertainment: 7.5,
+            "Museum/Gallery": 2.0,
+            "Library/Study": 1.0,
+            "Park/Outdoor": 2.5,
+            Other: 5.0,
+          };
+
+          const base = baseValues[category] || 5.0;
+          const socialFactor = (responses.social - 5) * 0.5;
+          return Math.max(1, Math.min(10, base + socialFactor));
+        },
+
+        estimateNoiseLevel: (category, responses) => {
+          const baseValues = {
+            Nightclub: 9.0,
+            "Bar/Pub": 7.5,
+            Restaurant: 4.0,
+            "Event/Party": 8.0,
+            "Sports/Fitness": 6.5,
+            Cafe: 2.5,
+            Shopping: 6.0,
+            Entertainment: 8.5,
+            "Museum/Gallery": 1.5,
+            "Library/Study": 1.0,
+            "Park/Outdoor": 2.0,
+            Other: 5.0,
+          };
+
+          const base = baseValues[category] || 5.0;
+          const overwhelmFactor = (responses.overwhelm - 5) * 0.3;
+          return Math.max(1, Math.min(10, base + overwhelmFactor));
+        },
+
+        estimateCrowdSize: (category, responses) => {
+          const baseValues = {
+            Nightclub: 9.0,
+            "Bar/Pub": 7.0,
+            Restaurant: 6.0,
+            "Event/Party": 8.5,
+            "Sports/Fitness": 6.5,
+            Cafe: 4.0,
+            Shopping: 7.5,
+            Entertainment: 8.0,
+            "Museum/Gallery": 3.0,
+            "Library/Study": 2.0,
+            "Park/Outdoor": 4.5,
+            Other: 5.0,
+          };
+
+          const base = baseValues[category] || 5.0;
+          const overwhelmFactor = (responses.overwhelm - 5) * 0.2;
+          const comfortFactor = (5 - responses.comfort) * 0.1; // Lower comfort might mean more crowded
+          return Math.max(
+            1,
+            Math.min(10, base + overwhelmFactor + comfortFactor)
+          );
+        },
+
+        // Prediction Algorithm - Exact implementation from plan
+        predictRating: (
+          userAdjustmentFactor,
+          experience,
+          ratingUserAdjustmentFactor,
+          ratingScore
+        ) => {
+          const basePrediction = parseFloat(ratingScore);
+          const personalityDifference = Math.abs(
+            ratingUserAdjustmentFactor - userAdjustmentFactor
+          );
+          const confidenceFactor = Math.max(0.1, 1 - personalityDifference / 2);
+
+          let prediction;
+          if (ratingUserAdjustmentFactor < userAdjustmentFactor) {
+            // Rating user is more introverted than current user
+            prediction =
+              basePrediction +
+              personalityDifference * experience.socialIntensity * 0.2;
+          } else {
+            // Rating user is more extroverted than current user
+            prediction =
+              basePrediction -
+              personalityDifference * experience.socialIntensity * 0.2;
+          }
+
+          const finalPrediction = Math.max(1, Math.min(10, prediction));
+          return {
+            prediction: finalPrediction,
+            confidence: confidenceFactor,
+          };
+        },
+
+        // Get all experiences (user + demo)
+        getAllExperiences: () => {
+          const userExperiences = DataLayer.load("userExperiences", []);
+          return [...DemoUsers.experiences, ...userExperiences];
+        },
+
+        // Activity Recommendation Engine
+        getRecommendations: (userAdjustmentFactor) => {
+          const allExperiences = ActivitySystem.getAllExperiences();
+          const userExperiences = DataLayer.load("userExperiences", []);
+          const userExperienceNames = userExperiences.map((exp) =>
+            exp.name.toLowerCase()
+          );
+          const friendIds = FriendsSystem.getFriendIds();
+
+          // Only include experiences from friends
+          const friendExperiences = allExperiences.filter((exp) =>
+            friendIds.includes(exp.userId)
+          );
+
+          const recommendations = [];
+
+          // Group experiences by name to avoid duplicates
+          const experienceGroups = {};
+          friendExperiences.forEach((exp) => {
+            const key = exp.name.toLowerCase();
+            if (!experienceGroups[key]) {
+              experienceGroups[key] = [];
+            }
+            experienceGroups[key].push(exp);
+          });
+
+          Object.entries(experienceGroups).forEach(([name, experiences]) => {
+            // Skip if user has already been to this place
+            if (userExperienceNames.includes(name)) return;
+
+            const predictions = [];
+            let totalScore = 0;
+            let ratingCount = 0;
+
+            experiences.forEach((exp) => {
+              const ratingUser = DemoUsers.users[exp.userId];
+              if (ratingUser) {
+                const prediction = ActivitySystem.predictRating(
+                  userAdjustmentFactor,
+                  exp,
+                  ratingUser.adjustmentFactor,
+                  exp.rawScore
+                );
+
+                predictions.push({
+                  user: ratingUser,
+                  experience: exp,
+                  prediction: prediction,
+                });
+
+                totalScore += prediction.prediction * prediction.confidence;
+                ratingCount++;
+              }
+            });
+
+            if (ratingCount > 0) {
+              const averageScore = totalScore / ratingCount;
+              const avgConfidence =
+                predictions.reduce(
+                  (sum, p) => sum + p.prediction.confidence,
+                  0
+                ) / ratingCount;
+
+              recommendations.push({
+                experience: experiences[0], // Use first experience as representative
+                predictedScore: averageScore,
+                confidence: avgConfidence,
+                ratingCount: ratingCount,
+                predictions: predictions,
+              });
+            }
+          });
+
+          // Sort by predicted score * confidence
+          return recommendations.sort(
+            (a, b) =>
+              b.predictedScore * b.confidence - a.predictedScore * a.confidence
+          );
+        },
+
+        // Find Similar Users
+        findSimilarUsers: (userAdjustmentFactor) => {
+          const similarities = Object.values(DemoUsers.users)
+            .map((user) => {
+              const personalityDifference = Math.abs(
+                user.adjustmentFactor - userAdjustmentFactor
+              );
+              const similarity = Math.max(0, 1 - personalityDifference / 2); // 0 to 1 scale
+
+              return {
+                user: user,
+                similarity: similarity,
+                personalityDifference: personalityDifference,
+              };
+            })
+            .sort((a, b) => b.similarity - a.similarity);
+
+          return similarities;
+        },
+      };
+
+      function fillActivityForm(name, category, location, description = "") {
+        // Switch to activities page
+        showPage("activities");
+
+        // Pre-fill the form
+        setTimeout(() => {
+          document.getElementById("activity-name").value = name;
+          document.getElementById("activity-category").value = category;
+          document.getElementById("activity-location").value = location;
+          document.getElementById("activity-description").value = description;
+
+          // Scroll to form
+          document
+            .getElementById("activity-form")
+            .scrollIntoView({ behavior: "smooth" });
+
+          NotificationSystem.show(
+            "Form pre-filled! Add your ratings below.",
+            "info"
+          );
+        }, 100);
+      }
+
+      // Feed System
+      const FeedSystem = {
+        currentFilter: "all",
+        searchTerm: "",
+
+        init: () => {
+          FeedSystem.displayFeed();
+        },
+
+        setFilter: (filter) => {
+          FeedSystem.currentFilter = filter;
+
+          // Update active tab
+          document.querySelectorAll(".filter-tab").forEach((tab) => {
+            tab.classList.remove("active");
+          });
+          event.target.classList.add("active");
+
+          FeedSystem.displayFeed();
+        },
+
+        filterFeed: () => {
+          FeedSystem.searchTerm = document
+            .getElementById("feed-search")
+            .value.toLowerCase();
+          FeedSystem.displayFeed();
+        },
+
+        displayFeed: () => {
+          const personalityData = DataLayer.load("personalityScore");
+          const allExperiences = ActivitySystem.getAllExperiences();
+          const userExperiences = DataLayer.load("userExperiences", []);
+          const userExperienceNames = userExperiences.map((exp) =>
+            exp.name.toLowerCase()
+          );
+
+          let filteredExperiences = [...allExperiences];
+
+          // Apply search filter
+          if (FeedSystem.searchTerm) {
+            filteredExperiences = filteredExperiences.filter(
+              (exp) =>
+                exp.name.toLowerCase().includes(FeedSystem.searchTerm) ||
+                exp.category.toLowerCase().includes(FeedSystem.searchTerm) ||
+                exp.location.toLowerCase().includes(FeedSystem.searchTerm) ||
+                (DemoUsers.users[exp.userId] &&
+                  DemoUsers.users[exp.userId].displayName
+                    .toLowerCase()
+                    .includes(FeedSystem.searchTerm))
+            );
+          }
+
+          // Apply category filters
+          if (FeedSystem.currentFilter === "similar" && personalityData) {
+            const similarUsers = ActivitySystem.findSimilarUsers(
+              personalityData.adjustmentFactor
+            )
+              .slice(0, 3)
+              .map((sim) => sim.user.id);
+            filteredExperiences = filteredExperiences.filter((exp) =>
+              similarUsers.includes(exp.userId)
+            );
+          } else if (FeedSystem.currentFilter === "high-rated") {
+            filteredExperiences = filteredExperiences.filter(
+              (exp) => exp.adjustedScore >= 7.5
+            );
+          } else if (FeedSystem.currentFilter === "recent") {
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+            filteredExperiences = filteredExperiences.filter(
+              (exp) =>
+                new Date(exp.timestamp) > oneWeekAgo ||
+                exp.userId === "user-main"
+            );
+          }
+
+          // Sort by timestamp (newest first)
+          filteredExperiences.sort(
+            (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
+          );
+
+          const feedContent = document.getElementById("feed-content");
+
+          if (filteredExperiences.length === 0) {
+            feedContent.innerHTML = `
+        <div class="empty-state">
+          <h3>No activities found</h3>
+          <p>Try adjusting your search or filters to see more results.</p>
+        </div>
+      `;
+            return;
+          }
+
+          feedContent.innerHTML = filteredExperiences
+            .map((exp) => {
+              const user =
+                exp.userId === "user-main"
+                  ? DataLayer.load("currentUser")
+                  : DemoUsers.users[exp.userId];
+
+              if (!user) return "";
+
+              // Check if user has been to this place
+              const hasBeenThere = userExperienceNames.includes(
+                exp.name.toLowerCase()
+              );
+              const isFriend = FriendsSystem.isFriend(exp.userId);
+
+              // Calculate prediction for current user
+              let predictionHtml = "";
+              if (personalityData && exp.userId !== "user-main") {
+                const prediction = ActivitySystem.predictRating(
+                  personalityData.adjustmentFactor,
+                  exp,
+                  user.adjustmentFactor,
+                  exp.rawScore
+                );
+
+                predictionHtml = `
+          <div class="prediction-card">
+            <div class="prediction-score">Predicted for you: ${prediction.prediction.toFixed(
+              1
+            )}/10</div>
+            <div class="prediction-confidence">Confidence: ${(
+              prediction.confidence * 100
+            ).toFixed(0)}%</div>
+          </div>
+        `;
+              }
+
+              // Add friend status and rate button
+              let actionButtons = "";
+              if (exp.userId !== "user-main") {
+                if (!isFriend) {
+                  actionButtons += `
+            <button class="btn btn-secondary" style="font-size: 0.8rem; padding: 6px 12px; margin-right: 0.5rem;"
+                    onclick="FriendsSystem.addFriend(${exp.userId})">
+              Add Friend
+            </button>
+          `;
+                } else {
+                  actionButtons += `
+            <span style="color: #35C1AE; font-size: 0.8rem; font-weight: bold; margin-right: 0.5rem;">✓ Friend</span>
+          `;
+                }
+
+                if (!hasBeenThere) {
+                  actionButtons += `
+            <button class="btn" style="font-size: 0.8rem; padding: 6px 12px;"
+                    onclick="fillActivityForm('${exp.name}', '${
+                    exp.category
+                  }', '${exp.location}', '${exp.description.replace(
+                    /'/g,
+                    "\\'"
+                  )}')">
+              Rate This Place
+            </button>
+          `;
+                }
+              }
+
+              return `
+        <div class="feed-item">
+          <div class="feed-header">
+            <div class="feed-avatar">${user.avatar}</div>
+            <div class="feed-user-info">
+              <h4>${user.displayName} ${
+                isFriend ? '<span style="color: #35C1AE;">★</span>' : ""
+              }</h4>
+              <div class="personality-type">${
+                user.personalityType || "Unknown Type"
+              }</div>
+              <div class="feed-timestamp">${new Date(
+                exp.timestamp
+              ).toLocaleDateString()}</div>
+            </div>
+          </div>
+          <div class="feed-content">
+            <h3>${exp.name} ${
+                hasBeenThere
+                  ? '<span style="color: #35C1AE;">✓ Visited</span>'
+                  : ""
+              }</h3>
+            <div class="activity-category">${exp.category} • ${
+                exp.location
+              }</div>
+            ${
+              exp.description
+                ? `<p style="margin: 0.5rem 0; color: #666;">"${exp.description}"</p>`
+                : ""
+            }
+            <div class="feed-rating">Rated: ${exp.adjustedScore}/10</div>
+            <div style="font-size: 0.9rem; color: #888; margin-top: 0.5rem;">
+              Social Intensity: ${exp.socialIntensity.toFixed(1)}/10 |
+              Noise Level: ${exp.noiseLevel.toFixed(1)}/10 |
+              Crowd Size: ${exp.crowdSize.toFixed(1)}/10
+            </div>
+            ${predictionHtml}
+            ${
+              actionButtons
+                ? `<div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #eee;">${actionButtons}</div>`
+                : ""
+            }
+          </div>
+        </div>
+      `;
+            })
+            .join("");
+        },
+      };
+
+      // Groups System
+      const GroupsSystem = {
+        init: () => {
+          GroupsSystem.displayGroups();
+        },
+
+        createGroup: (name, description, members) => {
+          const currentUser = DataLayer.load("currentUser");
+          const personalityData = DataLayer.load("personalityScore");
+
+          if (!personalityData) {
+            NotificationSystem.show(
+              "Please complete the personality assessment first!",
+              "warning"
+            );
+            return;
+          }
+
+          const group = {
+            id: Date.now(),
+            name: name.trim(),
+            description: description.trim(),
+            createdBy: currentUser.id,
+            createdAt: new Date().toISOString(),
+            members: [
+              {
+                userId: currentUser.id,
+                displayName: currentUser.displayName,
+                personalityType: currentUser.personalityType,
+                adjustmentFactor: personalityData.adjustmentFactor,
+                avatar: currentUser.avatar,
+                importance: 1.0,
+              },
+              ...members,
+            ],
+          };
+
+          DataLayer.push("groups", group);
+          GroupsSystem.displayGroups();
+          closeModal();
+        },
+
+        deleteGroup: (groupId) => {
+          if (confirm("Are you sure you want to delete this group?")) {
+            DataLayer.remove("groups", (group) => group.id === groupId);
+            GroupsSystem.displayGroups();
+          }
+        },
+
+        getGroupRecommendations: (group) => {
+          const allExperiences = ActivitySystem.getAllExperiences();
+          const userExperiences = DataLayer.load("userExperiences", []);
+          const userExperienceNames = userExperiences.map((exp) =>
+            exp.name.toLowerCase()
+          );
+
+          const recommendations = [];
+
+          // Group experiences by name to avoid duplicates
+          const experienceGroups = {};
+          allExperiences.forEach((exp) => {
+            const key = exp.name.toLowerCase();
+            if (!experienceGroups[key]) {
+              experienceGroups[key] = [];
+            }
+            experienceGroups[key].push(exp);
+          });
+
+          Object.entries(experienceGroups).forEach(([name, experiences]) => {
+            let groupScore = 0;
+            let individualScores = [];
+            let totalWeight = 0;
+            let hasValidPredictions = false;
+
+            group.members.forEach((member) => {
+              let memberScore = 0;
+              let memberPredictions = 0;
+
+              experiences.forEach((exp) => {
+                const ratingUser = DemoUsers.users[exp.userId];
+                if (ratingUser) {
+                  const prediction = ActivitySystem.predictRating(
+                    member.adjustmentFactor,
+                    exp,
+                    ratingUser.adjustmentFactor,
+                    exp.rawScore
+                  );
+                  memberScore += prediction.prediction * prediction.confidence;
+                  memberPredictions++;
+                  hasValidPredictions = true;
+                }
+              });
+
+              if (memberPredictions > 0) {
+                const avgMemberScore = memberScore / memberPredictions;
+                individualScores.push({
+                  member: member,
+                  score: avgMemberScore,
+                });
+                groupScore += avgMemberScore * member.importance;
+                totalWeight += member.importance;
+              }
+            });
+
+            if (hasValidPredictions && totalWeight > 0) {
+              const finalGroupScore = groupScore / totalWeight;
+              const scoreVariance = GroupsSystem.calculateVariance(
+                individualScores.map((s) => s.score)
+              );
+              const confidence = Math.max(0.1, 1 - scoreVariance / 10);
+
+              recommendations.push({
+                experience: experiences[0],
+                groupScore: finalGroupScore,
+                confidence: confidence,
+                individualScores: individualScores,
+                variance: scoreVariance,
+              });
+            }
+          });
+
+          return recommendations.sort(
+            (a, b) => b.groupScore * b.confidence - a.groupScore * a.confidence
+          );
+        },
+
+        calculateVariance: (scores) => {
+          if (scores.length === 0) return 0;
+          const mean =
+            scores.reduce((sum, score) => sum + score, 0) / scores.length;
+          const variance =
+            scores.reduce((sum, score) => sum + Math.pow(score - mean, 2), 0) /
+            scores.length;
+          return Math.sqrt(variance);
+        },
+
+        displayGroups: () => {
+          const groups = DataLayer.load("groups", []);
+          const groupsContent = document.getElementById("groups-content");
+
+          if (groups.length === 0) {
+            groupsContent.innerHTML = `
+      <div class="empty-state">
+        <h3>No groups yet</h3>
+        <p>Create your first group to start planning activities with friends!</p>
+      </div>
+    `;
+            return;
+          }
+
+          groupsContent.innerHTML = groups
+            .map((group) => {
+              const recommendations =
+                GroupsSystem.getGroupRecommendations(group);
+              const topRecommendations = recommendations.slice(0, 3);
+
+              // Initialize votes if not exists
+              if (!group.votes) group.votes = {};
+
+              // Find most voted activity
+              let mostVoted = null;
+              let maxVotes = 0;
+              Object.entries(group.votes).forEach(([activityName, votes]) => {
+                if (votes.length > maxVotes) {
+                  maxVotes = votes.length;
+                  mostVoted = activityName;
+                }
+              });
+
+              return `
+      <div class="group-card">
+        <div class="group-header">
+          <div>
+            <h3>${group.name}</h3>
+            <p style="margin: 0.5rem 0; color: #666;">${group.description}</p>
+            <small style="color: #888;">Created ${new Date(
+              group.createdAt
+            ).toLocaleDateString()}</small>
+          </div>
+          <div>
+            <button class="edit-group-btn" onclick="GroupsSystem.editGroup(${
+              group.id
+            })">
+              <i class="fas fa-edit"></i> Edit
+            </button>
+            <button class="btn btn-danger" onclick="GroupsSystem.deleteGroup(${
+              group.id
+            })">Delete</button>
+          </div>
+        </div>
+
+        <div class="group-members">
+          <strong>Members (${group.members.length}):</strong>
+          <div>
+            ${group.members
+              .map(
+                (member) => `
+              <div class="member-tag">
+                ${member.displayName} (${member.personalityType})
+              </div>
+            `
+              )
+              .join("")}
+          </div>
+        </div>
+
+        ${
+          topRecommendations.length > 0
+            ? `
+          <div style="margin-top: 1.5rem;">
+            <h4>Top Recommendations for Your Group</h4>
+            <div class="voting-section">
+              <p style="margin-bottom: 1rem; font-weight: bold; color: #333;">Vote for your preferred activity:</p>
+            </div>
+            <div class="activity-grid">
+              ${topRecommendations
+                .map((rec) => {
+                  const activityName = rec.experience.name;
+                  const votes = group.votes[activityName] || [];
+                  const currentUserId = DataLayer.load("currentUser").id;
+                  const hasVoted = votes.includes(currentUserId);
+                  const isMostVoted =
+                    mostVoted === activityName && maxVotes > 0;
+
+                  return `
+                  <div class="activity-card ${
+                    isMostVoted ? "most-voted" : ""
+                  }" style="border: 2px solid #51cf66;">
+                    <div style="background: linear-gradient(135deg, #51cf66 0%, #40c057 100%); color: white; padding: 0.5rem; margin: -1.5rem -1.5rem 1rem -1.5rem; border-radius: 15px 15px 0 0;">
+                      <div style="font-weight: bold;">Group Score: ${rec.groupScore.toFixed(
+                        1
+                      )}/10</div>
+                      <div style="font-size: 0.8rem; opacity: 0.9;">Confidence: ${(
+                        rec.confidence * 100
+                      ).toFixed(0)}%</div>
+                    </div>
+                    <div class="activity-title">${rec.experience.name}</div>
+                    <div class="activity-category">${
+                      rec.experience.category
+                    } • ${rec.experience.location}</div>
+                    ${
+                      rec.experience.description
+                        ? `<p style="font-size: 0.9rem; color: #666; margin: 0.5rem 0;">${rec.experience.description}</p>`
+                        : ""
+                    }
+
+                    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #eee;">
+                      <strong style="font-size: 0.9rem;">Individual Predictions:</strong>
+                      ${rec.individualScores
+                        .map(
+                          (score) => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; margin-top: 0.3rem;">
+                          <span>${score.member.avatar} ${
+                            score.member.displayName
+                          }</span>
+                          <span style="font-weight: bold; color: ${
+                            score.score >= 7
+                              ? "#4CAF50"
+                              : score.score >= 5
+                              ? "#FF9800"
+                              : "#f44336"
+                          }">${score.score.toFixed(1)}/10</span>
+                        </div>
+                      `
+                        )
+                        .join("")}
+                      <div style="margin-top: 0.5rem; font-size: 0.8rem; color: #888;">
+                        Score variance: ${rec.variance.toFixed(
+                          1
+                        )} (lower = better consensus)
+                      </div>
+                      
+                      <!-- Voting section -->
+                      <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #eee;">
+                        <button class="vote-button ${hasVoted ? "voted" : ""}" 
+                                onclick="GroupsSystem.voteForActivity(${
+                                  group.id
+                                }, '${activityName}')">
+                          ${hasVoted ? "✓ Voted" : "Vote for this"}
+                        </button>
+                        <div class="vote-count">
+                          ${votes.length} vote${votes.length !== 1 ? "s" : ""}
+                          ${
+                            votes.length > 0
+                              ? `(${votes
+                                  .map((userId) => {
+                                    const member = group.members.find(
+                                      (m) => m.userId === userId
+                                    );
+                                    return member ? member.avatar : "?";
+                                  })
+                                  .join(", ")})`
+                              : ""
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                `;
+                })
+                .join("")}
+            </div>
+          </div>
+        `
+            : '<p style="color: #666;">No recommendations available yet. More community data needed!</p>'
+        }
+      </div>
+    `;
+            })
+            .join("");
+        },
+      };
+
+      //GroupsSystem object
+      GroupsSystem.voteForActivity = function (groupId, activityName) {
+        const groups = DataLayer.load("groups", []);
+        const group = groups.find((g) => g.id === groupId);
+        if (!group) return;
+
+        // Initialize votes if not exists
+        if (!group.votes) group.votes = {};
+        
+        const currentUserId = DataLayer.load("currentUser").id;
+
+        // Remove user's vote from all other activities first
+        Object.entries(group.votes).forEach(([activity, votes]) => {
+          const voteIndex = votes.indexOf(currentUserId);
+          if (voteIndex > -1) {
+            votes.splice(voteIndex, 1);
+          }
+        });
+
+        // Initialize the current activity's votes array if it doesn't exist
+        if (!group.votes[activityName]) group.votes[activityName] = [];
+
+        // Add vote for the new activity
+        if (!group.votes[activityName].includes(currentUserId)) {
+          group.votes[activityName].push(currentUserId);
+        }
+
+        // Update groups data
+        DataLayer.save("groups", groups);
+        GroupsSystem.displayGroups();
+      };
+
+      GroupsSystem.editGroup = function (groupId) {
+        const groups = DataLayer.load("groups", []);
+        const group = groups.find((g) => g.id === groupId);
+        if (!group) return;
+
+        const friends = FriendsSystem.getFriends();
+        const currentMembers = group.members.filter(
+          (m) => m.userId !== DataLayer.load("currentUser").id
+        );
+
+        const modalHtml = `
+    <div id="edit-group-modal" class="modal">
+      <div class="modal-content">
+        <button class="modal-close" onclick="closeEditModal()">&times;</button>
+        <div class="modal-header">
+          <h2>Edit Group</h2>
+        </div>
+        <div class="modal-body">
+          <form id="edit-group-form" onsubmit="handleEditGroup(event, ${groupId})">
+            <div class="form-group">
+              <label for="edit-group-name">Group Name *</label>
+              <input type="text" id="edit-group-name" class="form-control" value="${
+                group.name
+              }" required>
+            </div>
+            <div class="form-group">
+              <label for="edit-group-description">Description</label>
+              <textarea id="edit-group-description" class="form-control">${
+                group.description
+              }</textarea>
+            </div>
+            <div class="form-group">
+              <label>Current Members</label>
+              <div style="margin-bottom: 1rem;">
+                ${currentMembers
+                  .map(
+                    (member) => `
+                  <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem; padding: 0.5rem; border: 1px solid #eee; border-radius: 8px;">
+                    <input type="checkbox" id="keep-member-${member.userId}" checked>
+                    <div class="feed-avatar" style="width: 30px; height: 30px; font-size: 0.8rem;">${member.avatar}</div>
+                    <span>${member.displayName} (${member.personalityType})</span>
+                  </div>
+                `
+                  )
+                  .join("")}
+              </div>
+              <label>Add New Members</label>
+              ${friends
+                .filter(
+                  (friend) => !group.members.some((m) => m.userId === friend.id)
+                )
+                .map(
+                  (friend) => `
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem; padding: 0.5rem; border: 1px solid #eee; border-radius: 8px;">
+                  <input type="checkbox" id="add-member-${friend.id}">
+                  <div class="feed-avatar" style="width: 30px; height: 30px; font-size: 0.8rem;">${friend.avatar}</div>
+                  <span>${friend.displayName} (${friend.personalityType})</span>
+                </div>
+              `
+                )
+                .join("")}
+            </div>
+            <div style="text-align: center; margin-top: 2rem;">
+              <button type="submit" class="btn">Save Changes</button>
+              <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  `;
+
+        document.body.insertAdjacentHTML("beforeend", modalHtml);
+      };
+
+      // Modal system for creating groups
+      function showCreateGroupModal() {
+        // Get friends list
+        const friends = FriendsSystem.getFriends();
+
+        if (friends.length === 0) {
+          NotificationSystem.show(
+            "Add some friends first before creating a group!",
+            "warning"
+          );
+          showPage("feed");
+          return;
+        }
+
+        const modalHtml = `
+    <div id="group-modal" class="modal">
+      <div class="modal-content">
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+        <div class="modal-header">
+          <h2>Create New Group</h2>
+        </div>
+        <div class="modal-body">
+          <form id="group-form" onsubmit="handleCreateGroup(event)">
+            <div class="form-group">
+              <label for="group-name">Group Name *</label>
+              <input type="text" id="group-name" class="form-control" placeholder="e.g., Friday Night Crew, Study Group" required>
+            </div>
+            <div class="form-group">
+              <label for="group-description">Description</label>
+              <textarea id="group-description" class="form-control" placeholder="What's this group about?"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Add Friends to Group *</label>
+              <p style="font-size: 0.9rem; color: #666; margin-bottom: 1rem;">Select friends to add to your group:</p>
+              ${friends
+                .map(
+                  (friend) => `
+                  <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.8rem; padding: 0.8rem; border: 1px solid #eee; border-radius: 8px;">
+                    <input type="checkbox" id="member-${friend.id}" value="${
+                    friend.id
+                  }">
+                    <div class="feed-avatar" style="width: 35px; height: 35px; font-size: 1rem;">${
+                      friend.avatar
+                    }</div>
+                    <div style="flex: 1;">
+                      <strong>${friend.displayName}</strong>
+                      <div style="font-size: 0.8rem; color: #667eea;">${
+                        friend.personalityType
+                      }</div>
+                      <div style="font-size: 0.8rem; color: #888;">AF: ${friend.adjustmentFactor.toFixed(
+                        2
+                      )}</div>
+                    </div>
+                  </div>
+              `
+                )
+                .join("")}
+            </div>
+            <div style="text-align: center; margin-top: 2rem;">
+              <button type="submit" class="btn">Create Group</button>
+              <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  `;
+
+        document.body.insertAdjacentHTML("beforeend", modalHtml);
+      }
+      function handleCreateGroup(event) {
+        event.preventDefault();
+
+        const name = document.getElementById("group-name").value;
+        const description = document.getElementById("group-description").value;
+
+        // Get selected friends
+        const selectedMembers = [];
+        const friends = FriendsSystem.getFriends();
+        friends.forEach((friend) => {
+          const checkbox = document.getElementById(`member-${friend.id}`);
+          if (checkbox && checkbox.checked) {
+            selectedMembers.push({
+              userId: friend.id,
+              displayName: friend.displayName,
+              personalityType: friend.personalityType,
+              adjustmentFactor: friend.adjustmentFactor, // Fixed: was user.adjustmentFactor
+              avatar: friend.avatar, // Fixed: was user.avatar
+              importance: 1.0,
+            });
+          }
+        });
+
+        if (selectedMembers.length === 0) {
+         
+          NotificationSystem.show(
+            "Please select at least one member to add to the group.",
+            "warning"
+          );
+          return;
+        }
+
+        GroupsSystem.createGroup(name, description, selectedMembers);
+      }
+
+      // Updated showCreateGroupModal to limit to 3-6 friends displayed
+      function showCreateGroupModal() {
+        const friends = FriendsSystem.getFriends();
+
+        if (friends.length === 0) {
+          NotificationSystem.show(
+            "Add some friends first before creating a group!",
+            "warning"
+          );
+          showPage("feed");
+          return;
+        }
+
+        // Limit to first 6 friends for better UI
+        const displayFriends = friends.slice(0, 6);
+
+        const modalHtml = `
+    <div id="group-modal" class="modal">
+      <div class="modal-content">
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+        <div class="modal-header">
+          <h2>Create New Group</h2>
+        </div>
+        <div class="modal-body">
+          <form id="group-form" onsubmit="handleCreateGroup(event)">
+            <div class="form-group">
+              <label for="group-name">Group Name *</label>
+              <input type="text" id="group-name" class="form-control" placeholder="e.g., Friday Night Crew, Study Group" required>
+            </div>
+            <div class="form-group">
+              <label for="group-description">Description</label>
+              <textarea id="group-description" class="form-control" placeholder="What's this group about?"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Add Friends to Group *</label>
+              <p style="font-size: 0.9rem; color: #666; margin-bottom: 1rem;">Select friends to add to your group:</p>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.8rem;">
+                ${displayFriends
+                  .map(
+                    (friend) => `
+                    <div style="display: flex; align-items: center; gap: 1rem; padding: 0.8rem; border: 1px solid #eee; border-radius: 8px;">
+                      <input type="checkbox" id="member-${friend.id}" value="${
+                      friend.id
+                    }">
+                      <div class="feed-avatar" style="width: 35px; height: 35px; font-size: 1rem;">${
+                        friend.avatar
+                      }</div>
+                      <div style="flex: 1;">
+                        <strong>${friend.displayName}</strong>
+                        <div style="font-size: 0.8rem; color: #667eea;">${
+                          friend.personalityType
+                        }</div>
+                        <div style="font-size: 0.8rem; color: #888;">AF: ${friend.adjustmentFactor.toFixed(
+                          2
+                        )}</div>
+                      </div>
+                    </div>
+                `
+                  )
+                  .join("")}
+              </div>
+              ${
+                friends.length > 6
+                  ? `<p style="font-size: 0.8rem; color: #888; margin-top: 0.5rem; font-style: italic;">Showing first 6 friends. You can add more after creating the group.</p>`
+                  : ""
+              }
+            </div>
+            <div style="text-align: center; margin-top: 2rem;">
+              <button type="submit" class="btn">Create Group</button>
+              <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  `;
+
+        document.body.insertAdjacentHTML("beforeend", modalHtml);
+      }
+
+      // Enhanced closeModal function
+      function closeModal() {
+        const modal = document.getElementById("group-modal");
+        if (modal) {
+          modal.style.animation = "fadeOut 0.3s ease forwards";
+          setTimeout(() => {
+            if (modal.parentNode) {
+              modal.remove();
+            }
+          }, 300);
+        }
+      }
+
+      const fadeOutStyle = document.createElement("style");
+      fadeOutStyle.textContent = `
+  @keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+`;
+      document.head.appendChild(fadeOutStyle);
+      function closeModal() {
+        const modal = document.getElementById("group-modal");
+        if (modal) {
+          modal.remove();
+        }
+      }
+
+      // Recommendation System
+      const RecommendationSystem = {
+        displayRecommendations: () => {
+          const personalityData = DataLayer.load("personalityScore");
+          if (!personalityData) return "";
+
+          const recommendations = ActivitySystem.getRecommendations(
+            personalityData.adjustmentFactor
+          );
+          const friends = FriendsSystem.getFriends();
+
+          if (recommendations.length === 0) {
+            if (friends.length === 0) {
+              return `
+          <div style="margin-bottom: 2rem;">
+            <h3>No Recommendations Yet</h3>
+            <p style="color: #666;">Add friends to get personalized recommendations based on places they've visited!</p>
+            <div style="text-align: center; margin-top: 1rem;">
+              <button class="btn" onclick="showPage('feed')">Find Similar Users</button>
+            </div>
+          </div>
+        `;
+            } else {
+              return `
+          <div style="margin-bottom: 2rem;">
+            <h3>No New Recommendations</h3>
+            <p style="color: #666;">Your friends haven't shared new places recently. Check the community feed for more experiences!</p>
+          </div>
+        `;
+            }
+          }
+
+          return `
+      <div style="margin-bottom: 2rem;">
+        <h3>Recommended For You (From Friends)</h3>
+        <p style="color: #666; margin-bottom: 1rem;">Based on places your friends have visited and enjoyed</p>
+        <div class="activity-grid">
+          ${recommendations
+            .slice(0, 4)
+            .map(
+              (rec) => `
+            <div class="activity-card" style="border: 2px solid #667eea;">
+              <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 0.5rem; margin: -1.5rem -1.5rem 1rem -1.5rem; border-radius: 15px 15px 0 0;">
+                <div style="font-weight: bold;">Recommended: ${rec.predictedScore.toFixed(
+                  1
+                )}/10</div>
+                <div style="font-size: 0.8rem; opacity: 0.9;">Confidence: ${(
+                  rec.confidence * 100
+                ).toFixed(0)}%</div>
+              </div>
+              <div class="activity-title">${rec.experience.name}</div>
+              <div class="activity-category">${rec.experience.category} • ${
+                rec.experience.location
+              }</div>
+              <div class="activity-details">
+                ${
+                  rec.experience.description
+                    ? `<p style="margin: 0.5rem 0; color: #666;">"${rec.experience.description}"</p>`
+                    : ""
+                }
+                <div style="font-size: 0.9rem; color: #888; margin-top: 0.5rem;">
+                  Social Intensity: ${rec.experience.socialIntensity.toFixed(
+                    1
+                  )}/10 |
+                  Noise Level: ${rec.experience.noiseLevel.toFixed(1)}/10 |
+                  Crowd Size: ${rec.experience.crowdSize.toFixed(1)}/10
+                </div>
+              </div>
+              <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #eee;">
+                <div style="font-size: 0.9rem; color: #666; margin-bottom: 0.5rem;">
+                  Recommended by friends:
+                </div>
+                ${rec.predictions
+                  .slice(0, 2)
+                  .map(
+                    (p) => `
+                  <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; margin-bottom: 0.3rem;">
+                    <span>${p.user.displayName} (${p.user.personalityType})</span>
+                    <span style="font-weight: bold;">${p.experience.adjustedScore}/10</span>
+                  </div>
+                `
+                  )
+                  .join("")}
+                <div style="text-align: center; margin-top: 1rem;">
+                  <button class="btn" style="font-size: 0.9rem; padding: 8px 16px;"
+                          onclick="fillActivityForm('${
+                            rec.experience.name
+                          }', '${rec.experience.category}', '${
+                rec.experience.location
+              }', '${rec.experience.description.replace(/'/g, "\\'")}')">
+                    Rate This Place
+                  </button>
+                </div>
+              </div>
+            </div>
+          `
+            )
+            .join("")}
+        </div>
+      </div>
+    `;
+        },
+      };
+      // Similar Users System
+      const SimilarUsersSystem = {
+        displaySimilarUsers: () => {
+          const personalityData = DataLayer.load("personalityScore");
+          if (!personalityData) return "";
+
+          const similarUsers = ActivitySystem.findSimilarUsers(
+            personalityData.adjustmentFactor
+          );
+          const friends = FriendsSystem.getFriends();
+          const friendIds = FriendsSystem.getFriendIds();
+
+          // Filter out users who are already friends
+          const nonFriendUsers = similarUsers.filter(
+            (sim) => !friendIds.includes(sim.user.id)
+          );
+
+          return `
+      <div style="margin-bottom: 2rem;">
+        <h3>Users Similar to You</h3>
+        <p style="color: #666; margin-bottom: 1rem;">Connect with people who have similar social energy preferences</p>
+
+        ${
+          friends.length > 0
+            ? `
+          <div style="margin-bottom: 1.5rem; padding: 1rem; background: rgba(53, 193, 174, 0.1); border-radius: 10px;">
+            <h4 style="margin: 0 0 0.5rem 0; color: #35C1AE;">Your Friends (${
+              friends.length
+            })</h4>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              ${friends
+                .map(
+                  (friend) => `
+                <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: white; padding: 0.3rem 0.8rem; border-radius: 15px; font-size: 0.8rem;">
+                  <div style="width: 20px; height: 20px; border-radius: 50%; background: linear-gradient(135deg, #35C1AE 0%, #2ECC71 100%); color: white; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold;">
+                    ${friend.avatar}
+                  </div>
+                  ${friend.displayName}
+                </div>
+              `
+                )
+                .join("")}
+            </div>
+          </div>
+        `
+            : ""
+        }
+
+        <div class="similar-users-grid">
+          ${nonFriendUsers
+            .slice(0, 6)
+            .map((sim) => {
+              const userExperiences = DemoUsers.experiences.filter(
+                (exp) => exp.userId === sim.user.id
+              );
+              return `
+              <div class="similar-user-card">
+                <div style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.8rem;">
+                  <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient( 135deg, var(--primary) 0%, var(--primary-alt) 100% ); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                    ${sim.user.avatar}
+                  </div>
+                  <div style="text-align: left;">
+                    <div style="font-weight: bold;">${
+                      sim.user.displayName
+                    }</div>
+                    <div style="font-size: 0.8rem; color: var(--primary);">${
+                      sim.user.personalityType
+                    }</div>
+                  </div>
+                </div>
+                <div class="similarity-score">
+                  ${(sim.similarity * 100).toFixed(0)}% Similar
+                </div>    
+                <div style="font-size: 0.8rem; color: #666; margin: 0.8rem 0;">
+                  AF: ${sim.user.adjustmentFactor.toFixed(2)}
+                </div>
+                <div style="font-size: 0.9rem; color: #666; margin-bottom: 0.8rem;">
+                  "${sim.user.bio}"
+                </div>
+                <div style="font-size: 0.8rem; color: #888; margin-bottom: 1rem;">
+                  ${userExperiences.length} experiences shared
+                </div>
+                <div style="text-align: center;">
+                  <button class="btn" style="font-size: 0.8rem; padding: 6px 12px;"
+                          onclick="FriendsSystem.addFriend(${sim.user.id})">
+                    Add Friend
+                  </button>
+                </div>
+              </div>
+            `;
+            })
+            .join("")}
+        </div>
+
+        ${
+          nonFriendUsers.length === 0
+            ? `
+          <div style="text-align: center; color: #666; font-style: italic;">
+            You're already friends with all similar users!
+          </div>
+        `
+            : ""
+        }
+      </div>
+    `;
+        },
+      };
+
+      function updateDashboard() {
+        const personalityData = DataLayer.load("personalityScore");
+        const personalityType = DataLayer.load("personalityType");
+        const currentUser = DataLayer.load("currentUser");
+
+        if (
+          personalityData &&
+          personalityType &&
+          DataLayer.exists("currentUser")
+        ) {
+          document.getElementById("user-avatar").textContent =
+            currentUser.avatar;
+          document.getElementById(
+            "welcome-message"
+          ).innerHTML = `Welcome back, <strong>${currentUser.displayName}</strong>! You're a ${personalityType.type}`;
+
+          const userExperiences = DataLayer.load("userExperiences", []);
+          const groups = DataLayer.load("groups", []);
+
+          document.getElementById("dashboard-content").innerHTML = `
+      <div style="margin-bottom: 2rem;">
+        <h2>Your Social Energy Profile</h2>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value">${personalityData.adjustmentFactor.toFixed(
+              2
+            )}</div>
+            <div class="stat-label">Adjustment Factor</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">${userExperiences.length}</div>
+            <div class="stat-label">Experiences</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">${groups.length}</div>
+            <div class="stat-label">Groups</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">${personalityType.type}</div>
+            <div class="stat-label">Personality Type</div>
+          </div>
+        </div>
+        <p style="font-style: italic; color: #666; margin: 1.5rem 0; text-align: center;">"${
+          personalityType.description
+        }"</p>
+        <div class="action-buttons">
+          <button class="btn" onclick="showPage('activities')"><i class="fas fa-plus-circle"></i> Add Experience</button>
+          <button class="btn btn-secondary" onclick="showPage('feed')"><i class="fas fa-users"></i> Explore Community</button>
+        </div>
+      </div>
+
+      ${RecommendationSystem.displayRecommendations()}
+      ${SimilarUsersSystem.displaySimilarUsers()}
+    `;
+        }
+      }
+
+      function updateProfile() {
+        const personalityData = DataLayer.load("personalityScore");
+        const personalityType = DataLayer.load("personalityType");
+        const userExperiences = DataLayer.load("userExperiences", []);
+        const groups = DataLayer.load("groups", []);
+        const currentUser = DataLayer.load("currentUser");
+
+        const profileContent = document.getElementById("profile-content");
+
+        if (!personalityData) {
+          profileContent.innerHTML = `
+      <div class="centered">
+        <p>Complete the personality assessment to see your profile.</p>
+        <button class="btn" onclick="showPage('assessment')">Take Assessment</button>
+      </div>
+    `;
+          return;
+        }
+
+        const avgRating =
+          userExperiences.length > 0
+            ? userExperiences.reduce(
+                (sum, exp) => sum + parseFloat(exp.adjustedScore),
+                0
+              ) / userExperiences.length
+            : 0;
+
+        // Get recommendations for profile
+        const recommendations = ActivitySystem.getRecommendations(
+          personalityData.adjustmentFactor
+        );
+        const unratedRecommendations = recommendations.filter(
+          (rec) =>
+            !userExperiences.some(
+              (userExp) =>
+                userExp.name.toLowerCase() === rec.experience.name.toLowerCase()
+            )
+        );
+
+        // Get similar users
+        const similarUsers = ActivitySystem.findSimilarUsers(
+          personalityData.adjustmentFactor
+        );
+
+        profileContent.innerHTML = `
+    <div class="user-info" style="margin-bottom: 2rem;">
+      <div class="avatar" style="width: 80px; height: 80px; font-size: 2rem;">${
+        currentUser.avatar
+      }</div>
+      <div>
+        <h2 style="margin: 0;">${personalityType.type}</h2>
+        <div style="color: #667eea; font-weight: bold; margin: 0.5rem 0;">Adjustment Factor: ${personalityData.adjustmentFactor.toFixed(
+          2
+        )}</div>
+        <div style="color: #666; font-style: italic;">"${
+          personalityType.description
+        }"</div>
+      </div>
+    </div>
+
+    <div class="stats-grid" style="margin-bottom: 2rem;">
+      <div class="stat-card">
+        <div class="stat-value">${userExperiences.length}</div>
+        <div class="stat-label">Experiences</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">${
+          avgRating > 0 ? avgRating.toFixed(1) : "0.0"
+        }</div>
+        <div class="stat-label">Avg Rating</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">${groups.length}</div>
+        <div class="stat-label">Groups</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">${unratedRecommendations.length}</div>
+        <div class="stat-label">New Recommendations</div>
+      </div>
+    </div>
+
+    ${
+      userExperiences.length > 0
+        ? `
+    <div class="card" style="margin-bottom: 2rem;">
+      <h3>Your Experiences</h3>
+      <div style="max-height: 400px; overflow-y: auto;">
+        ${userExperiences
+          .map(
+            (exp) => `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border: 1px solid #eee; border-radius: 10px; margin-bottom: 0.5rem;">
+              <div style="flex: 1;">
+                <div style="font-weight: bold; margin-bottom: 0.2rem;">${
+                  exp.name
+                }</div>
+                <div style="color: #667eea; font-size: 0.9rem; margin-bottom: 0.2rem;">${
+                  exp.category
+                } • ${exp.location}</div>
+                ${
+                  exp.description
+                    ? `<div style="color: #666; font-size: 0.8rem; margin-bottom: 0.2rem;">"${exp.description}"</div>`
+                    : ""
+                }
+                <div style="color: #888; font-size: 0.8rem;">
+                  ${new Date(exp.timestamp).toLocaleDateString()} •
+                  Social: ${exp.socialIntensity.toFixed(1)}/10 •
+                  Noise: ${exp.noiseLevel.toFixed(1)}/10 •
+                  Crowd: ${exp.crowdSize.toFixed(1)}/10
+                </div>
+              </div>
+              <div style="text-align: right; margin-left: 1rem;">
+                <div style="font-weight: bold; font-size: 1.3rem; color: #667eea;">${
+                  exp.adjustedScore
+                }/10</div>
+                <div style="font-size: 0.8rem; color: #888;">Raw: ${
+                  exp.rawScore
+                }/10</div>
+              </div>
+            </div>
+        `
+          )
+          .join("")}
+      </div>
+    </div>`
+        : `
+    <div class="card" style="margin-bottom: 2rem;">
+      <h3>Your Experiences</h3>
+      <div class="empty-state">
+        <p>You haven't added any experiences yet.</p>
+        <button class="btn" onclick="showPage('activities')">Add Your First Experience</button>
+      </div>
+    </div>`
+    }
+
+    <div class="card" style="margin-bottom: 2rem;">
+      <h3>Personality Breakdown</h3>
+      <div style="margin-bottom: 1rem;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+          <span>Introversion</span>
+          <span>Extroversion</span>
+        </div>
+        <div style="width: 100%; height: 20px; background: #f0f0f0; border-radius: 10px; position: relative;">
+          <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 2px; height: 100%; background: #ccc;"></div>
+          <div style="width: ${
+            ((personalityData.adjustmentFactor + 1) / 2) * 100
+          }%; height: 100%; background: linear-gradient(90deg, #764ba2, #667eea); border-radius: 10px; position: relative;">
+            <div style="position: absolute; right: -10px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; background: white; border: 3px solid #667eea; border-radius: 50%;"></div>
+          </div>
+        </div>
+        <div style="text-align: center; margin-top: 0.5rem; font-weight: bold; color: #667eea;">
+          ${personalityData.adjustmentFactor.toFixed(2)}
+        </div>
+      </div>
+    </div>
+
+            <div class="card" style="margin-bottom: 2rem;">
+          <h3>Most Compatible Users</h3>
+          <div class="similar-users-grid">
+            ${similarUsers
+              .slice(0, 3)
+              .map(
+                (sim) => `
+                <div style="text-align: center; padding: 1rem; border: 1px solid #eee; border-radius: 10px;">
+                  <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; margin: 0 auto 0.5rem;">
+                    ${sim.user.avatar}
+                  </div>
+                  <div style="font-weight: bold; margin-bottom: 0.2rem;">${
+                    sim.user.displayName
+                  }</div>
+                  <div style="font-size: 0.8rem; color: #667eea; margin-bottom: 0.3rem;">${
+                    sim.user.personalityType
+                  }</div>
+                  <div style="font-size: 0.8rem; color: #4CAF50; font-weight: bold;">${(
+                    sim.similarity * 100
+                  ).toFixed(0)}% Match</div>
+                  <button class="btn" style="margin-top: 0.5rem; font-size: 0.8rem; padding: 6px 12px;" 
+                          onclick="FriendsSystem.addFriend(${sim.user.id})">
+                    ${
+                      FriendsSystem.isFriend(sim.user.id)
+                        ? "✓ Friend"
+                        : "Add Friend"
+                    }
+                  </button>
+                </div>
+            `
+              )
+              .join("")}
+          </div>
+        </div>
+
+    <div class="action-buttons">
+      <button class="btn" onclick="showPage('activities')"><i class="fas fa-plus-circle"></i> Add Experience</button>
+      <button class="btn btn-secondary" onclick="showPage('dashboard')"><i class="fas fa-tachometer-alt"></i> Dashboard</button>
+      <button class="btn btn-secondary" onclick="showPage('groups')"><i class="fas fa-users"></i> Groups</button>
+    </div>
+  `;
+      }
+
+      // UI Management
+      function showPage(pageId) {
+        // Hide all pages
+        document.querySelectorAll(".page").forEach((page) => {
+          page.classList.add("hidden");
+        });
+
+        // Update active navigation
+        document.querySelectorAll(".nav-links a").forEach((link) => {
+          link.classList.remove("active");
+        });
+        const navElement = document.getElementById(`nav-${pageId}`);
+        if (navElement) {
+          navElement.classList.add("active");
+        }
+
+        // Show selected page
+        document.getElementById(pageId).classList.remove("hidden");
+
+        // Page-specific initialization
+        switch (pageId) {
+          case "dashboard":
+            updateDashboard();
+            break;
+          case "assessment":
+            PersonalityAssessment.init();
+            break;
+          case "activities":
+            if (!DataLayer.exists("personalityScore")) {
+              NotificationSystem.show(
+                "Please complete the personality assessment first!",
+                "warning"
+              );
+              showPage("assessment");
+              return;
+            }
+            setTimeout(() => initializeLocationAutocomplete(), 100);
+            break;
+          case "feed":
+            FeedSystem.init();
+            break;
+          case "groups":
+            GroupsSystem.init();
+            break;
+          case "profile":
+            updateProfile();
+            break;
+        }
+      }
+
+      function nextQuestion() {
+        PersonalityAssessment.currentQuestion++;
+
+        if (
+          PersonalityAssessment.currentQuestion >=
+          PersonalityAssessment.questions.length
+        ) {
+          PersonalityAssessment.showResults();
+        } else {
+          PersonalityAssessment.displayQuestion();
+          document.getElementById("next-btn").disabled = true;
+        }
+      }
+
+      function completeAssessment() {
+        showPage("dashboard");
+      }
+
+      function updateSliderValue(slider, targetId) {
+        document.getElementById(targetId).textContent = slider.value;
+      }
+
+      function resetActivityForm() {
+        document.getElementById("activity-form").reset();
+
+        // Reset all sliders to 5
+        ActivitySystem.ratingQuestions.forEach((question) => {
+          const slider = document.getElementById(`rating-${question.id}`);
+          const display = document.getElementById(`slider-${question.id}`);
+          if (slider && display) {
+            slider.value = 5;
+            display.textContent = "5";
+          }
+        });
+      }
+
+      // Notification system
+      const NotificationSystem = {
+  show: (message, type = "info", duration = 3000) => {
+    const notification = document.createElement("div");
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 40px 15px 20px;
+      border-radius: 8px;
+      color: white;
+      font-weight: 600;
+      z-index: 10000;
+      transform: translateX(100%);
+      transition: transform 0.3s ease;
+      max-width: 300px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    `;
+
+    switch (type) {
+      case "success":
+        notification.style.background =
+          "linear-gradient(135deg, #51cf66 0%, #40c057 100%)";
+        break;
+      case "error":
+        notification.style.background =
+          "linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)";
+        break;
+      case "warning":
+        notification.style.background =
+          "linear-gradient(135deg, #ffd43b 0%, #fd7e14 100%)";
+        break;
+      default:
+        notification.style.background =
+          "linear-gradient(135deg, #667eea 0%, #764ba2 100%)";
+    }
+
+    // Create message element
+    const messageEl = document.createElement("span");
+    messageEl.textContent = message;
+    messageEl.style.flex = "1";
+
+    // Create close button
+    const closeBtn = document.createElement("button");
+    closeBtn.innerHTML = "×";
+    closeBtn.style.cssText = `
+      background: none;
+      border: none;
+      color: white;
+      font-size: 20px;
+      font-weight: bold;
+      cursor: pointer;
+      padding: 0;
+      margin-left: 10px;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: background-color 0.2s ease;
+    `;
+
+    // Add hover effect to close button
+    closeBtn.addEventListener("mouseenter", () => {
+      closeBtn.style.backgroundColor = "rgba(255,255,255,0.2)";
+    });
+    closeBtn.addEventListener("mouseleave", () => {
+      closeBtn.style.backgroundColor = "transparent";
+    });
+
+    // Function to remove notification
+    const removeNotification = () => {
+      notification.style.transform = "translateX(100%)";
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.parentNode.removeChild(notification);
+        }
+      }, 300);
+    };
+
+    // Close button click handler
+    closeBtn.addEventListener("click", removeNotification);
+
+    // Append elements
+    notification.appendChild(messageEl);
+    notification.appendChild(closeBtn);
+    document.body.appendChild(notification);
+
+    // Animate in
+    setTimeout(() => {
+      notification.style.transform = "translateX(0)";
+    }, 100);
+
+    // Auto-remove after duration
+    const autoRemoveTimer = setTimeout(removeNotification, duration);
+
+    // Clear timer if manually closed
+    closeBtn.addEventListener("click", () => {
+      clearTimeout(autoRemoveTimer);
+    });
+  },
+};
+      // Location autocomplete functionality
+      function initializeLocationAutocomplete() {
+        // Check if Google Maps API is available
+        if (
+          typeof google !== "undefined" &&
+          google.maps &&
+          google.maps.places
+        ) {
+          const locationInput = document.getElementById("activity-location");
+          if (locationInput) {
+            const autocomplete = new google.maps.places.Autocomplete(
+              locationInput,
+              {
+                types: ["establishment", "geocode"],
+                fields: ["name", "formatted_address", "place_id"],
+              }
+            );
+
+            autocomplete.addListener("place_changed", () => {
+              const place = autocomplete.getPlace();
+              if (place.formatted_address) {
+                locationInput.value = place.formatted_address;
+              }
+            });
+          }
+        } else {
+          // Fallback: Simple location suggestions (common areas)
+          const locationInput = document.getElementById("activity-location");
+          if (locationInput) {
+            const commonLocations = [
+              "Downtown",
+              "City Center",
+              "University District",
+              "Arts District",
+              "Entertainment District",
+              "Shopping District",
+              "Financial District",
+              "Old Town",
+              "Midtown",
+              "Uptown",
+              "Suburbs",
+              "Waterfront",
+              "North Side",
+              "South Side",
+              "East Side",
+              "West Side",
+            ];
+
+            locationInput.addEventListener("input", (e) => {
+              const value = e.target.value.toLowerCase();
+              if (value.length > 0) {
+                const matches = commonLocations.filter((loc) =>
+                  loc.toLowerCase().includes(value)
+                );
+
+                // Create simple dropdown (basic implementation)
+                let dropdown = document.getElementById("location-dropdown");
+                if (dropdown) dropdown.remove();
+
+                if (
+                  matches.length > 0 &&
+                  matches.length < commonLocations.length
+                ) {
+                  dropdown = document.createElement("div");
+                  dropdown.id = "location-dropdown";
+                  dropdown.style.cssText = `
+              position: absolute;
+              top: 100%;
+              left: 0;
+              right: 0;
+              background: white;
+              border: 1px solid #ddd;
+              border-top: none;
+              border-radius: 0 0 8px 8px;
+              max-height: 200px;
+              overflow-y: auto;
+              z-index: 1000;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            `;
+
+                  matches.slice(0, 5).forEach((match) => {
+                    const option = document.createElement("div");
+                    option.style.cssText = `
+                padding: 12px;
+                cursor: pointer;
+                border-bottom: 1px solid #eee;
+              `;
+                    option.textContent = match;
+                    option.addEventListener("mouseenter", () => {
+                      option.style.background = "#f5f5f5";
+                    });
+                    option.addEventListener("mouseleave", () => {
+                      option.style.background = "white";
+                    });
+                    option.addEventListener("click", () => {
+                      locationInput.value = match;
+                      dropdown.remove();
+                    });
+                    dropdown.appendChild(option);
+                  });
+
+                  locationInput.parentNode.style.position = "relative";
+                  locationInput.parentNode.appendChild(dropdown);
+                }
+              }
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener("click", (e) => {
+              const dropdown = document.getElementById("location-dropdown");
+              if (
+                dropdown &&
+                !locationInput.contains(e.target) &&
+                !dropdown.contains(e.target)
+              ) {
+                dropdown.remove();
+              }
+            });
+          }
+        }
+      }
+
+      // Initialize app
+      document.addEventListener("DOMContentLoaded", () => {
+        // Initialize demo data in memory to make the app feel populated
+        const demoExperiences = DemoUsers.experiences.map((exp) => ({
+          ...exp,
+        }));
+
+        showPage("dashboard");
+      });
+
+      // Keyboard shortcuts for power users
+      document.addEventListener("keydown", (event) => {
+        // Alt + number keys for quick navigation
+        if (event.altKey && !event.ctrlKey && !event.shiftKey) {
+          switch (event.key) {
+            case "1":
+              event.preventDefault();
+              showPage("dashboard");
+              break;
+            case "2":
+              event.preventDefault();
+              showPage("assessment");
+              break;
+            case "3":
+              event.preventDefault();
+              showPage("activities");
+              break;
+            case "4":
+              event.preventDefault();
+              showPage("feed");
+              break;
+            case "5":
+              event.preventDefault();
+              showPage("groups");
+              break;
+            case "6":
+              event.preventDefault();
+              showPage("profile");
+              break;
+          }
+        }
+
+        // Escape to close modals
+        if (event.key === "Escape") {
+          closeModal();
+        }
+      });
+
+      // Enhanced activity submission with notifications
+      const EnhancedActivitySystem = {
+        submitWithNotification: (event) => {
+          try {
+            ActivitySystem.submitNewExperience(event);
+            NotificationSystem.show(
+              "Experience added successfully!",
+              "success"
+            );
+          } catch (error) {
+            console.error("Failed to submit experience:", error);
+            NotificationSystem.show(
+              "Failed to add experience. Please try again.",
+              "error"
+            );
+          }
+        },
+      };
+
+      // Error handling wrapper
+      function safeExecute(fn, errorMessage = "An error occurred") {
+        try {
+          return fn();
+        } catch (error) {
+          console.error(errorMessage, error);
+          NotificationSystem.show(
+            errorMessage + ". Please try again.",
+            "error"
+          );
+          return null;
+        }
+      }
+
+      // Data export functionality (for demo purposes)
+      function exportUserData() {
+        const userData = {
+          personality: DataLayer.load("personalityScore"),
+          personalityType: DataLayer.load("personalityType"),
+          experiences: DataLayer.load("userExperiences", []),
+          groups: DataLayer.load("groups", []),
+          friends: DataLayer.load("friends", []),
+          exportDate: new Date().toISOString(),
+        };
+
+        const dataStr = JSON.stringify(userData, null, 2);
+        const dataBlob = new Blob([dataStr], { type: "application/json" });
+
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(dataBlob);
+        link.download = "social-energy-data.json";
+        link.click();
+      }
+
+      // Final initialization
+      console.log("Social Energy App initialized successfully!");
+      console.log("Use Alt+1-6 for quick navigation between pages");
+      console.log("Demo includes:", {
+        users: Object.keys(DemoUsers.users).length,
+        experiences: DemoUsers.experiences.length,
+        features: [
+          "Personality Assessment",
+          "Activity Tracking",
+          "Social Feed",
+          "Group Planning",
+          "Personalized Recommendations",4
+        ],
+      });
+    </script>
+  </body>
+</html>
