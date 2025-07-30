@@ -5,51 +5,45 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Senergy</title>
-  <link rel="icon" href="logo-icon.png" type="image/png" />
+  <link rel="icon" href="logo-icon-blue.png" type="image/png" />
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
     :root {
-      --primary: #35c1ae;
-      --primary-alt: #ff6f61;
-      --secondary: #ededed;
-      --background: #fafafa;
-      --card-bg: #ffffff;
-      --header-text: #1e1e2f;
-      --body-text: #222831;
-      --body-text-alt: #4b4b4b;
-      --input-bg: #ffffff;
-      --input-border: #b8bcc7;
-      --highlight: #fec260;
-      --shadow: rgba(30, 30, 47, 0.1);
-      --success: #51cf66;
-      --danger: #ff6b6b;
-      --info: #667eea;
-      --rating-low: #35c1ae;
-      --rating-high: #ff6f61;
-      --transition: all 0.3s ease;
-      --gradient-wide: linear-gradient(90deg,
-          #54c3f1,
-          #50e3c2,
-          #8ccafd,
-          #f58fcb,
-          #ffad76);
-      --gradient-min: linear-gradient(130deg,
-          /* #54c3f1, */
-          #50e3c2,
-          /* #8ccafd, */
-          #f58fcb,
-          #ffad76);
-      --gradient-min-btn: linear-gradient(120deg,
-          /* #54c3f1, */
-          #5863bb,
-          /* #8ccafd, */
-          /* #f58fcb, */
-          #c6b6ff,
-          #96a1f4,
-          #5863bb);
+      --primary-color: #1f3b73;
+      --primary-color-hover: #16305f;
 
-      --blue-bg: rgba(118, 191, 255, 0.08);
+      --secondary-color: #4a90e2;
+      --secondary-color-hover: #3b7dd3;
+      --background-color: #ffffff;
+      --background-alt-color: #fafafa;
+
+      --text-color: #1a1a1a;
+      --muted-text-color: #555555; 
+      --inverted-text-color: #ffffff;
+
+      --border-color: #e0e0e0;            
+
+      --primary-gradient: linear-gradient(135deg, #1f3b73, #4a90e2); 
+      --secondary-gradient: linear-gradient(135deg, #4a90e2, #a0c8f0);
+      --accent-gradient: linear-gradient(135deg, #7bede7, #7971f3);
+      --background-gradient: linear-gradient(180deg, #ffffff, #fafafa);
+
+      --shadow-small: 0 1px 2px rgba(0, 0, 0, 0.05);
+      --shadow-medium: 0 4px 6px rgba(0, 0, 0, 0.1);
+      --shadow-large: 0 10px 15px rgba(0, 0, 0, 0.15);
+
+      --border-radius-small: 4px;
+      --border-radius-medium: 8px;
+      --border-radius-large: 12px;
+
+      --success-color: #27ae60;
+      --error-color: #e74c3c;
+      --warning-color: #f39c12;
+      --info-color: #3498db;
+
+      --transition: all 0.3s ease;
+      --blue-bg: rgba(74, 144, 226, 0.08);
     }
 
     * {
@@ -61,9 +55,9 @@
     body {
       font-family: "Segoe UI", "Inter", -apple-system, BlinkMacSystemFont,
         sans-serif;
-      background: var(--background);
+      background: var(--background-color);
       min-height: 100vh;
-      color: var(--body-text);
+      color: var(--text-color);
       line-height: 1.6;
     }
 
@@ -75,11 +69,11 @@
 
     /* Modern navbar */
     .navbar {
-      background: var(--card-bg);
+      background: var(--background-color);
       padding: 1.2rem 2rem;
       margin: 2rem 0;
-      border-radius: 16px;
-      box-shadow: 0 8px 24px var(--shadow);
+      border-radius: var(--border-radius-large);
+      box-shadow: var(--shadow-medium);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -92,12 +86,7 @@
       font-size: 1.8rem;
       font-weight: 800;
 
-      background: linear-gradient(90deg,
-          #54c3f1,
-          #50e3c2,
-          #8ccafd,
-          #f58fcb,
-          #ffad76);
+      background: var(--primary-gradient);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -114,7 +103,7 @@
 
     .nav-links a {
       text-decoration: none;
-      color: var(--header-text);
+      color: var(--text-color);
       font-weight: 500;
       transition: var(--transition);
       position: relative;
@@ -122,39 +111,48 @@
       font-size: 1rem;
     }
 
+    .nav-links a::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      width: 0;
+      height: 3px;
+      background: var(--accent-gradient);
+      border-radius: var(--border-radius-small);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transform: translateX(-50%);
+    }
+
     .nav-links a:hover {
-      color: var(--info);
+      color: var(--secondary-color);
+    }
+
+    .nav-links a:hover::after {
+      width: 100%;
     }
 
     .nav-links a.active {
-      color: var(--info);
+      color: var(--secondary-color);
       font-weight: 600;
     }
 
     .nav-links a.active::after {
-      content: "";
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, var(--primary), var(--primary-alt));
-      background: var(--gradient-wide);
-      border-radius: 3px;
+      width: 100%;
     }
 
     /* Card styling */
     .card {
-      background: var(--card-bg);
-      border-radius: 20px;
+      background: var(--background-color);
+      border-radius: var(--border-radius-large);
       padding: 2.5rem;
       margin-bottom: 2.5rem;
-      box-shadow: 0 8px 32px var(--shadow);
+      box-shadow: var(--shadow-medium);
       transition: var(--transition);
     }
 
     .card:hover {
-      box-shadow: 0 12px 40px rgba(30, 30, 47, 0.15);
+      box-shadow: var(--shadow-large);
     }
 
     .card-header {
@@ -164,17 +162,16 @@
 
     .card-header h2 {
       font-size: 1.8rem;
-      color: var(--header-text);
+      color: var(--text-color);
       margin-bottom: 0.5rem;
-      background-color: var(--header-text);
-
+      background: var(--primary-gradient);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
 
     .card-header p {
-      color: var(--body-text-alt);
+      color: var(--muted-text-color);
       max-width: 700px;
       margin: 0 auto;
     }
@@ -185,29 +182,27 @@
 
     /* Buttons */
     .btn {
-      /* background: var(--primary); */
-      background: var(--gradient-min-btn);
-      color: white;
+      background: var(--primary-gradient);
+      color: var(--inverted-text-color);
       border: none;
       padding: 14px 28px;
       border-radius: 50px;
       cursor: pointer;
       font-size: 1rem;
       font-weight: 600;
-      transition: var(--transition);
+      transition: all 0.3s ease;
       margin: 0.5rem;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
-      box-shadow: 0 4px 12px rgba(53, 193, 174, 0.25);
+      box-shadow: var(--shadow-small);
     }
 
     .btn:hover {
       transform: translateY(-3px);
-      box-shadow: 0 7px 20px rgba(154, 194, 255, 0.4);
-      /* background: #2db09d; */
-      background: var(--gradient-min-btn);
+      box-shadow: var(--shadow-medium);
+      filter: brightness(1.1);
     }
 
     .btn:active {
@@ -215,53 +210,53 @@
     }
 
     .btn:disabled {
-      background: #b8bcc7;
+      background: var(--border-color);
       cursor: not-allowed;
       transform: none;
       box-shadow: none;
     }
 
     .btn-secondary {
-      background: var(--secondary);
-      color: var(--header-text);
-      border: 2px solid var(--input-border);
+      background: var(--background-alt-color);
+      color: var(--text-color);
+      border: 2px solid var(--border-color);
       box-shadow: none;
     }
 
     .btn-secondary:hover {
-      background: #e0e0e0;
+      background: var(--border-color);
       transform: translateY(-3px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      box-shadow: var(--shadow-small);
     }
 
     .btn-danger {
-      background: linear-gradient(135deg, var(--danger) 0%, #ee5a24 100%);
-      color: white;
+      background: linear-gradient(135deg, var(--error-color) 0%, #c0392b 100%);
+      color: var(--inverted-text-color);
     }
 
     .btn-success {
-      background: linear-gradient(135deg, var(--success) 0%, #40c057 100%);
-      color: white;
+      background: linear-gradient(135deg, var(--success-color) 0%, #2ecc71 100%);
+      color: var(--inverted-text-color);
     }
 
     .btn-info {
-      background: linear-gradient(135deg, var(--info) 0%, #764ba2 100%);
-      color: white;
+      background: linear-gradient(135deg, var(--info-color) 0%, #2980b9 100%);
+      color: var(--inverted-text-color);
     }
 
     /* Personality assessment */
     .question-container {
       margin-bottom: 2.5rem;
       padding: 1.5rem;
-      border-radius: 16px;
-      background: rgba(118, 191, 255, 0.08);
+      border-radius: var(--border-radius-large);
+      background: var(--blue-bg);
     }
 
     .question-text {
       font-size: 1.3rem;
       margin-bottom: 1.5rem;
       font-weight: 600;
-      color: var(--header-text);
+      color: var(--text-color);
       text-align: center;
     }
 
@@ -277,7 +272,7 @@
       justify-content: space-between;
       width: 100%;
       font-size: 0.95rem;
-      color: var(--body-text-alt);
+      color: var(--muted-text-color);
       margin-bottom: 1rem;
       font-weight: 500;
     }
@@ -304,16 +299,16 @@
     }
 
     .radio-item:hover {
-      background: rgba(116, 129, 250, 0.1);
+      background: rgba(74, 144, 226, 0.1);
       transform: translateY(-5px);
-      box-shadow: 0 4px 12px rgba(116, 129, 250, 0.1);
+      box-shadow: var(--shadow-small);
     }
 
     .radio-item input[type="radio"] {
       appearance: none;
       width: 24px;
       height: 24px;
-      border: 2px solid var(--highlight);
+      border: 2px solid var(--secondary-color);
       border-radius: 50%;
       position: relative;
       cursor: pointer;
@@ -321,7 +316,7 @@
     }
 
     .radio-item input[type="radio"]:checked {
-      background: var(--highlight);
+      background: var(--secondary-color);
     }
 
     .radio-item input[type="radio"]:checked::after {
@@ -329,7 +324,7 @@
       width: 10px;
       height: 10px;
       border-radius: 50%;
-      background: white;
+      background: var(--inverted-text-color);
       position: absolute;
       top: 50%;
       left: 50%;
@@ -340,7 +335,7 @@
       margin-top: 0.8rem;
       font-size: 0.9rem;
       font-weight: 600;
-      color: var(--info);
+      color: var(--secondary-color);
     }
 
     .progress-container {
@@ -351,15 +346,15 @@
     .progress-bar {
       width: 100%;
       height: 10px;
-      background: rgba(102, 220, 249, 0.2);
-      border-radius: 5px;
+      background: rgba(74, 144, 226, 0.2);
+      border-radius: var(--border-radius-small);
       overflow: hidden;
     }
 
     .progress-fill {
       height: 100%;
-      background: var(--gradient-min);
-      border-radius: 5px;
+      background: var(--secondary-gradient);
+      border-radius: var(--border-radius-small);
       transition: width 0.5s ease;
     }
 
@@ -368,7 +363,7 @@
       justify-content: space-between;
       margin-top: 0.5rem;
       font-size: 0.9rem;
-      color: var(--body-text-alt);
+      color: var(--muted-text-color);
       font-weight: 500;
     }
 
@@ -382,9 +377,7 @@
       font-size: 4rem;
       font-weight: 800;
       margin: 1.5rem 0;
-      background: linear-gradient(135deg,
-          var(--rating-low) 0%,
-          var(--rating-high) 100%);
+      background: var(--primary-gradient);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -394,14 +387,14 @@
       font-size: 1.8rem;
       margin-bottom: 1rem;
       font-weight: 700;
-      color: var(--header-text);
+      color: var(--text-color);
     }
 
     .personality-description {
       max-width: 600px;
       margin: 0 auto 2rem;
       font-size: 1.1rem;
-      color: var(--body-text-alt);
+      color: var(--muted-text-color);
       line-height: 1.7;
     }
 
@@ -414,32 +407,32 @@
     }
 
     .activity-card {
-      background: var(--card-bg);
-      border-radius: 18px;
+      background: var(--background-color);
+      border-radius: var(--border-radius-large);
       padding: 1.8rem;
-      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+      box-shadow: var(--shadow-small);
       transition: var(--transition);
       cursor: pointer;
-      border: 1px solid rgba(199, 184, 195, 0.2);
+      border: 1px solid var(--border-color);
       display: flex;
       flex-direction: column;
     }
 
     .activity-card:hover {
       transform: translateY(-8px);
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
-      border-color: rgba(193, 53, 125, 0.3);
+      box-shadow: var(--shadow-large);
+      border-color: var(--secondary-color);
     }
 
     .activity-title {
       font-size: 1.3rem;
       font-weight: 700;
       margin-bottom: 0.5rem;
-      color: var(--header-text);
+      color: var(--text-color);
     }
 
     .activity-category {
-      color: var(--info);
+      color: var(--secondary-color);
       font-size: 0.95rem;
       margin-bottom: 1rem;
       text-transform: uppercase;
@@ -449,12 +442,12 @@
 
     .activity-details {
       margin-bottom: 1.2rem;
-      color: var(--body-text-alt);
+      color: var(--muted-text-color);
       flex-grow: 1;
     }
 
     .rating-section {
-      border-top: 1px solid rgba(184, 188, 199, 0.3);
+      border-top: 1px solid var(--border-color);
       padding-top: 1.2rem;
       margin-top: 1.2rem;
     }
@@ -471,14 +464,14 @@
       display: block;
       margin-bottom: 0.8rem;
       font-weight: 500;
-      color: var(--header-text);
+      color: var(--text-color);
     }
 
     .rating-slider {
       width: 100%;
       height: 8px;
-      border-radius: 4px;
-      background: #e0e0e0;
+      border-radius: var(--border-radius-small);
+      background: var(--border-color);
       outline: none;
       appearance: none;
     }
@@ -488,28 +481,26 @@
       width: 22px;
       height: 22px;
       border-radius: 50%;
-      background: var(--gradient-min);
+      background: var(--secondary-gradient);
       cursor: pointer;
-      box-shadow: 0 2px 8px rgba(241, 80, 198, 0.4);
-      border: 2px solid white;
+      box-shadow: var(--shadow-small);
+      border: 2px solid var(--inverted-text-color);
     }
 
     .rating-slider::-moz-range-thumb {
       width: 22px;
       height: 22px;
       border-radius: 50%;
-      background: linear-gradient(135deg,
-          var(--primary) 0%,
-          var(--primary-alt) 100%);
+      background: var(--primary-gradient);
       cursor: pointer;
-      box-shadow: 0 2px 8px rgba(53, 193, 174, 0.4);
-      border: 2px solid white;
+      box-shadow: var(--shadow-small);
+      border: 2px solid var(--inverted-text-color);
     }
 
     .slider-value {
       text-align: center;
       font-weight: 700;
-      color: var(--body-text-alt);
+      color: var(--muted-text-color);
       margin-top: 0.8rem;
       font-size: 1.1rem;
     }
@@ -519,13 +510,11 @@
       font-weight: 700;
       text-align: center;
       padding: 1.2rem;
-      background: linear-gradient(135deg,
-          var(--primary) 0%,
-          var(--primary-alt) 100%);
-      color: white;
-      border-radius: 12px;
+      background: var(--primary-gradient);
+      color: var(--inverted-text-color);
+      border-radius: var(--border-radius-medium);
       margin-top: 1.5rem;
-      box-shadow: 0 4px 12px rgba(53, 193, 174, 0.3);
+      box-shadow: var(--shadow-small);
     }
 
     /* User info */
@@ -534,34 +523,34 @@
       align-items: center;
       gap: 1.5rem;
       margin-bottom: 2.5rem;
-      background: rgba(118, 191, 255, 0.08);
+      background: var(--blue-bg);
       padding: 1.5rem;
-      border-radius: 16px;
+      border-radius: var(--border-radius-large);
     }
 
     .avatar {
       width: 70px;
       height: 70px;
       border-radius: 50%;
-      background: var(--gradient-min);
+      background: var(--secondary-gradient);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
+      color: var(--inverted-text-color);
       font-size: 1.8rem;
       font-weight: 700;
-      box-shadow: 0 5px 15px rgba(53, 193, 174, 0.3);
+      box-shadow: var(--shadow-small);
     }
 
     .welcome-text {
       font-size: 1.3rem;
-      color: var(--header-text);
+      color: var(--text-color);
       font-weight: 500;
     }
 
     .welcome-text strong {
       font-weight: 700;
-      color: var(--primary);
+      color: var(--primary-color);
     }
 
     /* Forms */
@@ -573,29 +562,29 @@
       display: block;
       margin-bottom: 0.8rem;
       font-weight: 600;
-      color: var(--header-text);
+      color: var(--text-color);
     }
 
     .form-control {
       width: 100%;
       padding: 14px 18px;
-      border: 2px solid var(--input-border);
-      border-radius: 12px;
+      border: 2px solid var(--border-color);
+      border-radius: var(--border-radius-medium);
       font-size: 1rem;
       transition: var(--transition);
-      background: var(--input-bg);
-      color: var(--body-text);
+      background: var(--background-color);
+      color: var(--text-color);
       font-family: inherit;
     }
 
     .form-control:focus {
       outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(53, 193, 174, 0.2);
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(31, 59, 115, 0.2);
     }
 
     .form-control::placeholder {
-      color: #a0a4b0;
+      color: var(--muted-text-color);
     }
 
     .form-control select {
@@ -609,18 +598,18 @@
 
     /* Feed items */
     .feed-item {
-      background: var(--card-bg);
-      border-radius: 18px;
+      background: var(--background-color);
+      border-radius: var(--border-radius-large);
       padding: 1.8rem;
       margin-bottom: 1.8rem;
-      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+      box-shadow: var(--shadow-small);
       transition: var(--transition);
-      border: 1px solid rgba(184, 188, 199, 0.2);
+      border: 1px solid var(--border-color);
     }
 
     .feed-item:hover {
       transform: translateY(-5px);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+      box-shadow: var(--shadow-medium);
     }
 
     .feed-header {
@@ -634,13 +623,11 @@
       width: 55px;
       height: 55px;
       border-radius: 50%;
-      background: linear-gradient(135deg,
-          var(--primary) 0%,
-          var(--primary-alt) 100%);
+      background: var(--primary-gradient);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
+      color: var(--inverted-text-color);
       font-size: 1.3rem;
       font-weight: 700;
       flex-shrink: 0;
@@ -648,20 +635,20 @@
 
     .feed-user-info h4 {
       margin: 0;
-      color: var(--header-text);
+      color: var(--text-color);
       font-size: 1.1rem;
     }
 
     .feed-user-info .personality-type {
       font-size: 0.85rem;
-      color: var(--primary);
+      color: var(--primary-color);
       margin: 0.3rem 0 0;
       font-weight: 600;
     }
 
     .feed-timestamp {
       font-size: 0.8rem;
-      color: var(--body-text-alt);
+      color: var(--muted-text-color);
       margin-top: 0.2rem;
     }
 
@@ -671,10 +658,8 @@
 
     .feed-rating {
       display: inline-block;
-      background: linear-gradient(135deg,
-          var(--primary) 0%,
-          var(--primary-alt) 100%);
-      color: white;
+      background: var(--primary-gradient);
+      color: var(--inverted-text-color);
       padding: 0.6rem 1.2rem;
       border-radius: 50px;
       font-weight: 700;
@@ -690,23 +675,23 @@
     }
 
     .similar-user-card {
-      background: var(--card-bg);
-      border-radius: 16px;
+      background: var(--background-color);
+      border-radius: var(--border-radius-large);
       padding: 1.8rem;
       text-align: center;
-      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+      box-shadow: var(--shadow-small);
       transition: var(--transition);
-      border: 1px solid rgba(184, 188, 199, 0.2);
+      border: 1px solid var(--border-color);
     }
 
     .similar-user-card:hover {
       transform: translateY(-5px);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      box-shadow: var(--shadow-medium);
     }
 
     .similarity-score {
-      background: linear-gradient(135deg, var(--success) 0%, #40c057 100%);
-      color: white;
+      background: var(--accent-gradient);
+      color: var(--inverted-text-color);
       padding: 0.4rem 1rem;
       border-radius: 50px;
       font-size: 0.85rem;
@@ -716,12 +701,12 @@
     }
 
     .group-card {
-      background: var(--card-bg);
-      border-radius: 18px;
+      background: var(--background-color);
+      border-radius: var(--border-radius-large);
       padding: 1.8rem;
       margin-bottom: 1.8rem;
-      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-      border: 1px solid rgba(184, 188, 199, 0.2);
+      box-shadow: var(--shadow-small);
+      border: 1px solid var(--border-color);
     }
 
     .group-header {
@@ -748,13 +733,13 @@
     .voting-section {
       margin-top: 1.5rem;
       padding: 1.5rem;
-      background: rgba(245, 245, 245, 0.7);
-      border-radius: 12px;
+      background: var(--background-alt-color);
+      border-radius: var(--border-radius-medium);
     }
 
     .vote-button {
-      background: #e0e0e0;
-      color: #333;
+      background: var(--border-color);
+      color: var(--text-color);
       border: 2px solid transparent;
       padding: 8px 16px;
       border-radius: 20px;
@@ -766,19 +751,19 @@
     }
 
     .vote-button:hover {
-      background: #d0d0d0;
+      background: var(--muted-text-color);
       transform: translateY(-2px);
     }
 
     .vote-button.voted {
-      background: var(--primary);
-      color: white;
-      border-color: var(--primary);
+      background: var(--primary-color);
+      color: var(--inverted-text-color);
+      border-color: var(--primary-color);
     }
 
     .most-voted {
-      border: 3px solid #ff4444 !important;
-      background: rgba(255, 68, 68, 0.1) !important;
+      border: 3px solid var(--error-color) !important;
+      background: rgba(231, 76, 60, 0.1) !important;
       position: relative;
     }
 
@@ -787,41 +772,49 @@
       position: absolute;
       top: -10px;
       left: 10px;
-      background: #ff4444;
-      color: white;
+      background: var(--error-color);
+      color: var(--inverted-text-color);
       padding: 4px 12px;
-      border-radius: 12px;
+      border-radius: var(--border-radius-medium);
       font-size: 0.7rem;
       font-weight: bold;
     }
 
     .vote-count {
       font-size: 0.8rem;
-      color: #666;
+      color: var(--muted-text-color);
       margin-top: 0.5rem;
       font-weight: bold;
     }
 
     .edit-group-btn {
-      background: var(--info);
-      color: white;
+      background: var(--info-color);
+      color: var(--inverted-text-color);
       border: none;
-      padding: 8px 16px;
-      border-radius: 20px;
+      padding: 14px 28px;
+      border-radius: 50px;
       cursor: pointer;
-      font-size: 0.9rem;
+      font-size: 1rem;
       font-weight: 600;
       margin-right: 0.5rem;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: var(--shadow-small);
     }
 
     .edit-group-btn:hover {
-      background: #5a67d8;
-      transform: translateY(-2px);
+      background: var(--secondary-color);
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-medium);
+      filter: brightness(1.1);
     }
 
     .member-tag {
-      background: rgba(53, 193, 174, 0.1);
-      color: var(--primary);
+      background: rgba(31, 59, 115, 0.1);
+      color: var(--primary-color);
       padding: 0.5rem 1rem;
       border-radius: 50px;
       font-size: 0.85rem;
@@ -830,8 +823,8 @@
 
     .prediction-card {
       background: var(--blue-bg);
-      border: 2px solid rgba(53, 193, 174, 0.15);
-      border-radius: 14px;
+      border: 2px solid rgba(31, 59, 115, 0.15);
+      border-radius: var(--border-radius-medium);
       padding: 1.2rem;
       margin: 1.2rem 0;
     }
@@ -839,10 +832,10 @@
     .prediction-score {
       font-size: 1.5rem;
       font-weight: 800;
-      color: var(--highlight);
+      color: var(--primary-color);
       text-align: center;
       margin-bottom: 0.5rem;
-      background: var(--highlight);
+      background: var(--primary-color);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -851,7 +844,7 @@
     .prediction-confidence {
       text-align: center;
       font-size: 0.95rem;
-      color: var(--body-text-alt);
+      color: var(--muted-text-color);
     }
 
     /* Stats */
@@ -865,26 +858,26 @@
     .stat-card {
       text-align: center;
       padding: 1.5rem;
-      background: rgba(118, 191, 255, 0.08);
-      border-radius: 14px;
+      background: var(--blue-bg);
+      border-radius: var(--border-radius-medium);
       transition: var(--transition);
     }
 
     .stat-card:hover {
       transform: translateY(-5px);
-      background: rgba(118, 191, 255, 0.226);
+      background: rgba(74, 144, 226, 0.15);
     }
 
     .stat-value {
       font-size: 2.2rem;
       font-weight: 800;
-      color: var(--highlight);
+      color: var(--primary-color);
       margin-bottom: 0.5rem;
     }
 
     .stat-label {
       font-size: 0.95rem;
-      color: var(--body-text-alt);
+      color: var(--muted-text-color);
     }
 
     /* Search */
@@ -896,19 +889,19 @@
     .search-input {
       width: 100%;
       padding: 14px 50px 14px 20px;
-      border: 2px solid var(--input-border);
+      border: 2px solid var(--border-color);
       border-radius: 50px;
       font-size: 1rem;
-      background: var(--input-bg);
-      color: var(--body-text);
+      background: var(--background-color);
+      color: var(--text-color);
       transition: var(--transition);
       font-family: inherit;
     }
 
     .search-input:focus {
       outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(53, 193, 174, 0.2);
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(31, 59, 115, 0.2);
     }
 
     .search-icon {
@@ -916,7 +909,7 @@
       right: 20px;
       top: 50%;
       transform: translateY(-50%);
-      color: var(--primary);
+      color: var(--primary-color);
       font-size: 1.2rem;
     }
 
@@ -929,10 +922,10 @@
 
     .filter-tab {
       padding: 0.9rem 1.8rem;
-      border: 2px solid var(--primary);
+      border: 2px solid var(--primary-color);
       border-radius: 50px;
       background: transparent;
-      color: var(--primary);
+      color: var(--primary-color);
       cursor: pointer;
       font-weight: 600;
       transition: var(--transition);
@@ -940,23 +933,23 @@
     }
 
     .filter-tab.active {
-      background: var(--primary);
-      color: white;
+      background: var(--primary-color);
+      color: var(--inverted-text-color);
     }
 
     .filter-tab:hover:not(.active) {
-      background: rgba(53, 193, 174, 0.1);
+      background: rgba(31, 59, 115, 0.1);
     }
 
     .empty-state {
       text-align: center;
       padding: 3rem 1rem;
-      color: var(--body-text-alt);
+      color: var(--muted-text-color);
     }
 
     .empty-state h3 {
       margin-bottom: 1rem;
-      color: var(--header-text);
+      color: var(--text-color);
       font-size: 1.5rem;
     }
 
@@ -998,26 +991,26 @@
     }
 
     .modal-content {
-      background: var(--card-bg);
-      border-radius: 20px;
+      background: var(--background-color);
+      border-radius: var(--border-radius-large);
       padding: 0;
       width: 90%;
       max-width: 600px;
       max-height: 90vh;
       overflow-y: auto;
       position: relative;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      box-shadow: var(--shadow-large);
       animation: slideUp 0.3s ease;
     }
 
     .modal-header {
       padding: 2rem 2rem 1rem 2rem;
-      border-bottom: 1px solid #eee;
+      border-bottom: 1px solid var(--border-color);
     }
 
     .modal-header h2 {
       margin: 0;
-      color: var(--header-text);
+      color: var(--text-color);
       font-size: 1.8rem;
     }
 
@@ -1029,7 +1022,7 @@
       position: absolute;
       top: 20px;
       right: 25px;
-      color: #999;
+      color: var(--muted-text-color);
       font-size: 35px;
       font-weight: bold;
       background: none;
@@ -1045,7 +1038,7 @@
     }
 
     .modal-close:hover {
-      color: #333;
+      color: var(--text-color);
       background: rgba(0, 0, 0, 0.1);
       transform: rotate(90deg);
     }
@@ -1314,8 +1307,7 @@
                 <div class="slider-value" id="slider-comfort">5</div>
               </div>
               <div class="rating-question">
-                <label>How overwhelming was the environment (higher = more
-                  overwhelming)?
+                <label>How overwhelming was the environment? (Rate higher if it felt more overwhelming)
                 </label>
                 <input type="range" class="rating-slider" min="1" max="10" value="5"
                   oninput="updateSliderValue(this, 'slider-overwhelm')" id="rating-overwhelm" />
@@ -1480,6 +1472,9 @@
           "success"
         );
 
+        // Update the button immediately with animation
+        FriendsSystem.updateFriendButton(userId, true);
+
         // Refresh current page to show updated recommendations
         const currentPage = document.querySelector(".page:not(.hidden)").id;
         if (currentPage === "dashboard" || currentPage === "profile") {
@@ -1487,6 +1482,45 @@
         }
 
         return true;
+      },
+
+      updateFriendButton: (userId, isFriend) => {
+        // Find all buttons for this user and update them
+        const buttons = document.querySelectorAll(`[onclick*="FriendsSystem.addFriend(${userId})"]`);
+        buttons.forEach(button => {
+          if (isFriend) {
+            // Animate the button change
+            button.style.transition = 'all 0.3s ease';
+            button.style.transform = 'scale(1.1)';
+            button.style.color = 'white';
+            
+            // Reset transform after animation and update content
+            setTimeout(() => {
+              button.style.transform = 'scale(1)';
+              // Clear button styling to avoid double styling
+              button.style.background = 'transparent';
+              button.style.border = 'none';
+              button.style.padding = '0';
+              button.style.margin = '0';
+              button.style.boxShadow = 'none';
+              button.style.cursor = 'default';
+              button.onclick = null; // Remove click handler
+              button.innerHTML = '<span style="background: #f8f9fa; color: var(--primary-color); font-size: 0.8rem; font-weight: bold; padding: 4px 8px; border-radius: 12px; border: 1px solid var(--primary-color);">✓ Friend</span>';
+            }, 300);
+          } else {
+            // Reset to original button styling
+            button.innerHTML = 'Add Friend';
+            button.style.background = '';
+            button.style.color = '';
+            button.style.border = '';
+            button.style.padding = '';
+            button.style.margin = '';
+            button.style.boxShadow = '';
+            button.style.transform = '';
+            button.style.cursor = 'pointer';
+            // Restore click handler - this will be handled by the page refresh
+          }
+        });
       },
 
       getFriends: () => {
@@ -1499,6 +1533,33 @@
 
       isFriend: (userId) => {
         return FriendsSystem.getFriendIds().includes(userId);
+      },
+
+      removeFriend: (userId) => {
+        const friends = DataLayer.load("friends", []);
+        const friendToRemove = friends.find(friend => friend.id === userId);
+        
+        if (!friendToRemove) {
+          NotificationSystem.show("Friend not found!", "error");
+          return false;
+        }
+
+        DataLayer.remove("friends", (friend) => friend.id === userId);
+        NotificationSystem.show(
+          `Removed ${friendToRemove.displayName} from friends!`,
+          "success"
+        );
+
+        // Update the button immediately
+        FriendsSystem.updateFriendButton(userId, false);
+
+        // Refresh current page to show updated recommendations
+        const currentPage = document.querySelector(".page:not(.hidden)").id;
+        if (currentPage === "dashboard" || currentPage === "profile") {
+          showPage(currentPage);
+        }
+
+        return true;
       },
     };
 
@@ -1556,6 +1617,10 @@
         { text: "I'm energized by new social environments", weight: 2 },
         { text: "I prefer working in teams vs alone", weight: 1 },
       ],
+      
+      // questions: [
+      //   { text: "Large parties energize me", weight: 3 },
+      // ],
 
       currentQuestion: 0,
       responses: [],
@@ -1564,6 +1629,9 @@
         PersonalityAssessment.currentQuestion = 0;
         PersonalityAssessment.responses = [];
         PersonalityAssessment.displayQuestion();
+        
+        // Add keyboard event listener for assessment navigation
+        document.addEventListener("keydown", PersonalityAssessment.handleKeyboard);
       },
 
       displayQuestion: () => {
@@ -1610,6 +1678,30 @@
           PersonalityAssessment.currentQuestion
         ] = value;
         document.getElementById("next-btn").disabled = false;
+      },
+
+      handleKeyboard: (event) => {
+        // Only handle keyboard events if we're on the assessment page
+        if (document.getElementById("assessment").classList.contains("hidden")) {
+          return;
+        }
+
+        const key = event.key;
+        
+        // Handle number keys 1-5 for radio button selection
+        if (key >= "1" && key <= "5") {
+          const value = parseInt(key);
+          document.getElementById(`q${value}`).click();
+          PersonalityAssessment.selectAnswer(value);
+        }
+        
+        // Handle Enter key for next button
+        if (key === "Enter") {
+          const nextBtn = document.getElementById("next-btn");
+          if (!nextBtn.disabled) {
+            nextQuestion();
+          }
+        }
       },
 
       calculateScore: () => {
@@ -2568,7 +2660,7 @@
           `;
               } else {
                 actionButtons += `
-            <span style="color: #35C1AE; font-size: 0.8rem; font-weight: bold; margin-right: 0.5rem;">✓ Friend</span>
+            <span style="background: #f8f9fa; color: var(--primary-color); font-size: 0.8rem; font-weight: bold; padding: 4px 8px; border-radius: 12px; border: 1px solid var(--primary-color);">✓ Friend</span>
           `;
               }
 
@@ -2591,7 +2683,7 @@
           <div class="feed-header">
             <div class="feed-avatar">${user.avatar}</div>
             <div class="feed-user-info">
-              <h4>${user.displayName} ${isFriend ? '<span style="color: #35C1AE;">★</span>' : ""
+              <h4>${user.displayName} ${isFriend ? '<span style="color: var(--primary-color);">★</span>' : ""
               }</h4>
               <div class="personality-type">${user.personalityType || "Unknown Type"
               }</div>
@@ -2602,7 +2694,7 @@
           </div>
           <div class="feed-content">
             <h3>${exp.name} ${hasBeenThere
-                ? '<span style="color: #35C1AE;">✓ Visited</span>'
+                ? '<span style="color: var(--primary-color);">✓ Visited</span>'
                 : ""
               }</h3>
             <div class="activity-category">${exp.category} • ${exp.location
@@ -2656,12 +2748,27 @@ Trip Details:
 - Interests: ${tripDetails.interests}
 - Special Requirements: ${tripDetails.requirements || "None"}
 
-Based on the group's personality mix and preferences, create a ${tripDetails.duration
-          }-day itinerary that balances social activities for extroverts and quieter experiences for introverts. Include specific venue suggestions, timing, and explain why each activity suits the group's energy levels.
+Based on the group's personality mix and preferences, create EXACTLY ${tripDetails.duration} days (no more, no less) that balances social activities for extroverts and quieter experiences for introverts. 
+
+IMPORTANT SCHEDULING RULES:
+1. Account for travel time between activities (typically 15-45 minutes depending on distance)
+2. If an activity takes 2 hours and starts at 9:00 AM, the next activity should start no earlier than 11:30 AM (2 hours + 30 minutes travel time)
+3. Include realistic travel times in the duration field
+4. Don't schedule activities too close together - allow buffer time for travel and preparation
+5. Consider opening hours and peak times for venues
+
+Include specific venue suggestions, timing, and explain why each activity suits the group's energy levels.
 
 Return your response in the following JSON format:
 {
   "overview": "Brief overview of the itinerary approach",
+  "tripDetails": {
+    "duration": ${tripDetails.duration},
+    "location": "${tripDetails.location}",
+    "budget": "${tripDetails.budget}",
+    "interests": "${tripDetails.interests}",
+    "requirements": "${tripDetails.requirements || ""}"
+  },
   "days": [
     {
       "day": 1,
@@ -2682,6 +2789,8 @@ Return your response in the following JSON format:
   ],
   "tips": ["Tip 1", "Tip 2", "Tip 3"]
 }
+
+IMPORTANT: Create exactly ${tripDetails.duration} days in the "days" array, numbered from 1 to ${tripDetails.duration}.
 
 Only return the JSON, no additional text.`;
 
@@ -2754,16 +2863,16 @@ Only return the JSON, no additional text.`;
       <div class="modal-content" style="max-width: 600px;">
         <button class="modal-close" onclick="closeAIPremiumModal()">&times;</button>
         <div class="modal-header">
-          <h2 style="color: #667eea; display: flex; align-items: center; gap: 0.5rem;">
+          <h2 style="color: var(--secondary-color); display: flex; align-items: center; gap: 0.5rem;">
             <i class="fas fa-robot"></i> AI Premium Trip Planner
           </h2>
-          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 0.3rem 0.8rem; border-radius: 15px; font-size: 0.8rem; font-weight: bold;">
+          <div style="background: var(--primary-gradient); color: var(--inverted-text-color); padding: 0.3rem 0.8rem; border-radius: 15px; font-size: 0.8rem; font-weight: bold;">
             PREMIUM
           </div>
         </div>
         <div class="modal-body">
-          <div style="background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem;">
-            <h4 style="margin: 0 0 0.5rem 0; color: #667eea;">✨ AI-Powered Group Itinerary</h4>
+          <div style="background: rgba(74, 144, 226, 0.1); padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem;">
+            <h4 style="margin: 0 0 0.5rem 0; color: var(--secondary-color);">✨ AI-Powered Group Itinerary</h4>
             <p style="margin: 0; font-size: 0.9rem; color: #666;">
               Our AI will analyze your group's personality types and create a personalized day-by-day itinerary 
               that balances everyone's energy preferences and interests.
@@ -2774,7 +2883,7 @@ Only return the JSON, no additional text.`;
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
               <div class="form-group">
                 <label for="trip-duration">Trip Duration *</label>
-                <select id="trip-duration" class="form-control" required>
+                <select id="trip-duration" class="form-control" required onchange="handleTripDurationChange()">
                   <option value="">Select duration</option>
                   <option value="1">1 Day</option>
                   <option value="2">2 Days</option>
@@ -2782,7 +2891,11 @@ Only return the JSON, no additional text.`;
                   <option value="4">4 Days</option>
                   <option value="5">5 Days</option>
                   <option value="7">1 Week</option>
+                  <option value="custom">Custom Duration</option>
                 </select>
+                <input type="number" id="custom-duration" class="form-control" 
+                       placeholder="Enter number of days" min="1" max="30" 
+                       style="display: none; margin-top: 0.5rem;">
               </div>
               <div class="form-group">
                 <label for="trip-budget">Budget Level *</label>
@@ -2815,7 +2928,7 @@ Only return the JSON, no additional text.`;
             </div>
 
             <div style="text-align: center; margin-top: 2rem;">
-              <button type="submit" class="btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 24px;">
+              <button type="submit" class="btn" style="background: var(--primary-gradient); color: var(--inverted-text-color); padding: 12px 24px;">
                 <i class="fas fa-magic"></i> Generate AI Itinerary
               </button>
               <button type="button" class="btn btn-secondary" onclick="closeAIPremiumModal()">Cancel</button>
@@ -2839,10 +2952,30 @@ Only return the JSON, no additional text.`;
       if (modal) modal.remove();
     }
 
+    function handleTripDurationChange() {
+      const durationSelect = document.getElementById("trip-duration");
+      const customDurationInput = document.getElementById("custom-duration");
+      
+      if (durationSelect.value === "custom") {
+        customDurationInput.style.display = "block";
+        customDurationInput.required = true;
+      } else {
+        customDurationInput.style.display = "none";
+        customDurationInput.required = false;
+      }
+    }
+
     async function generateAIItinerary(event, groupId) {
       event.preventDefault();
 
-      const duration = document.getElementById("trip-duration").value;
+      let duration = document.getElementById("trip-duration").value;
+      if (duration === "custom") {
+        duration = document.getElementById("custom-duration").value;
+        if (!duration || duration < 1 || duration > 30) {
+          NotificationSystem.show("Please enter a valid custom duration (1-30 days)", "error");
+          return;
+        }
+      }
       const budget = document.getElementById("trip-budget").value;
       const location = document.getElementById("trip-location").value;
       const interests = document.getElementById("trip-interests").value;
@@ -2915,23 +3048,21 @@ Only return the JSON, no additional text.`;
       const itinerary = group.aiItinerary;
 
       return `
-    <div class="ai-itinerary-section" style="margin-top: 2rem; padding: 1.5rem; background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%); border-radius: 15px; border: 2px solid rgba(102, 126, 234, 0.2);">
+    <div class="ai-itinerary-section" style="margin-top: 2rem; padding: 1.5rem; background: linear-gradient(135deg, rgba(31, 59, 115, 0.05) 0%, rgba(74, 144, 226, 0.05) 100%); border-radius: 15px; border: 2px solid rgba(31, 59, 115, 0.2);">
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
-        <h4 style="margin: 0; color: #667eea; display: flex; align-items: center; gap: 0.5rem;">
+        <h4 style="margin: 0; color: var(--secondary-color); display: flex; align-items: center; gap: 0.5rem;">
           <i class="fas fa-robot"></i> AI Generated Itinerary
         </h4>
-        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 0.2rem 0.6rem; border-radius: 10px; font-size: 0.7rem; font-weight: bold;">
+        <div style="background: var(--primary-gradient); color: var(--inverted-text-color); padding: 0.2rem 0.6rem; border-radius: 10px; font-size: 0.7rem; font-weight: bold;">
           PREMIUM
         </div>
       </div>
       
       <div style="background: white; padding: 1rem; border-radius: 10px; margin-bottom: 1rem;">
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.8rem; font-size: 0.8rem;">
-          <div><strong>Duration:</strong> ${itinerary.tripDetails.duration
-        } days</div>
-          <div><strong>Location:</strong> ${itinerary.tripDetails.location
-        }</div>
-          <div><strong>Budget:</strong> ${itinerary.tripDetails.budget}</div>
+          <div><strong>Duration:</strong> ${itinerary.tripDetails.duration} days</div>
+          <div><strong>Location:</strong> ${itinerary.tripDetails.location.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ')}</div>
+          <div><strong>Budget:</strong> ${itinerary.tripDetails.budget.charAt(0).toUpperCase() + itinerary.tripDetails.budget.slice(1).toLowerCase()}</div>
         </div>
       </div>
 
@@ -2944,14 +3075,14 @@ Only return the JSON, no additional text.`;
         ${itinerary.days
           .map(
             (day, index) => `
-          <div class="day-card" style="background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem; border-left: 4px solid #667eea; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+          <div class="day-card" style="background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem; border-left: 4px solid var(--secondary-color); box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
             <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-              <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+              <div style="width: 40px; height: 40px; background: var(--primary-gradient); color: var(--inverted-text-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">
                 ${day.day}
               </div>
               <div>
                 <h5 style="margin: 0; color: #333;">Day ${day.day}</h5>
-                <div style="color: #667eea; font-weight: bold; font-size: 0.9rem;">${day.theme
+                <div style="color: var(--secondary-color); font-weight: bold; font-size: 0.9rem;">${day.theme
               }</div>
               </div>
             </div>
@@ -2960,8 +3091,8 @@ Only return the JSON, no additional text.`;
               ${day.activities
                 .map(
                   (activity, activityIndex) => `
-    <div class="activity-item" style="display: flex; gap: 1rem; padding: 1rem; background: rgba(102, 126, 234, 0.05); border-radius: 8px; margin-bottom: 0.8rem; position: relative;">
-      <div style="width: 60px; text-align: center; font-weight: bold; color: #667eea; flex-shrink: 0;">
+    <div class="activity-item" style="display: flex; gap: 1rem; padding: 1rem; background: rgba(31, 59, 115, 0.05); border-radius: 8px; margin-bottom: 0.8rem; position: relative;">
+      <div style="width: 60px; text-align: center; font-weight: bold; color: var(--secondary-color); flex-shrink: 0;">
         ${activity.time}
       </div>
       <div style="flex: 1;">
@@ -2990,13 +3121,13 @@ Only return the JSON, no additional text.`;
             Social: ${activity.socialIntensity}
           </span>
         </div>
-        <div style="margin-top: 0.5rem; font-size: 0.8rem; color: #667eea; font-style: italic;">
+        <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--secondary-color); font-style: italic;">
           💡 ${activity.whyThisWorks}
         </div>
       </div>
       <div style="position: absolute; top: 0.5rem; right: 0.5rem; display: flex; gap: 0.3rem;">
         <button onclick="showAIEditModal(${group.id}, ${index}, ${activityIndex})" 
-                style="background: #667eea; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; font-size: 0.7rem; cursor: pointer; display: flex; align-items: center; justify-content: center;" 
+                style="background: var(--secondary-color); color: var(--inverted-text-color); border: none; border-radius: 50%; width: 24px; height: 24px; font-size: 0.7rem; cursor: pointer; display: flex; align-items: center; justify-content: center;" 
                 title="Edit activity">
           ✏️
         </button>
@@ -3018,7 +3149,7 @@ Only return the JSON, no additional text.`;
       </div>
 
       <div style="background: white; padding: 1rem; border-radius: 10px; margin-top: 1rem;">
-        <h5 style="margin: 0 0 0.8rem 0; color: #667eea;">💡 AI Tips for Your Group</h5>
+        <h5 style="margin: 0 0 0.8rem 0; color: var(--secondary-color);">💡 AI Tips for Your Group</h5>
         <ul style="margin: 0; padding-left: 1.2rem;">
           ${itinerary.tips
           .map(
@@ -3031,7 +3162,7 @@ Only return the JSON, no additional text.`;
 
       <div style="text-align: center; margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
   <button class="btn" onclick="showAIAssistantModal(${group.id})" 
-          style="font-size: 0.8rem; padding: 6px 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+          style="font-size: 0.8rem; padding: 6px 12px; background: var(--primary-gradient); color: var(--inverted-text-color);">
     <i class="fas fa-robot"></i> AI Assistant
   </button>
   <button class="btn btn-secondary" onclick="regenerateItinerary(${group.id
@@ -3064,7 +3195,7 @@ Only return the JSON, no additional text.`;
       <div class="modal-content" style="max-width: 500px;">
         <button class="modal-close" onclick="closeAIEditModal()">&times;</button>
         <div class="modal-header">
-          <h2 style="color: #667eea;">✏️ Edit Activity</h2>
+          <h2 style="color: var(--secondary-color);">✏️ Edit Activity</h2>
         </div>
         <div class="modal-body">
           <form id="ai-edit-form" onsubmit="updateActivity(event, ${groupId}, ${dayIndex}, ${activityIndex})">
@@ -3127,6 +3258,70 @@ Only return the JSON, no additional text.`;
       NotificationSystem.show("Activity updated successfully!", "success");
     }
 
+    function parseDuration(durationStr) {
+      // Parse duration strings like "2 hours", "30 minutes", "1.5 hours"
+      const match = durationStr.match(/(\d+(?:\.\d+)?)\s*(hour|minute|hr|min)s?/i);
+      if (!match) return 60; // Default to 1 hour if can't parse
+      
+      const value = parseFloat(match[1]);
+      const unit = match[2].toLowerCase();
+      
+      if (unit.includes('hour') || unit.includes('hr')) {
+        return value * 60; // Convert to minutes
+      } else if (unit.includes('minute') || unit.includes('min')) {
+        return value;
+      }
+      return 60; // Default
+    }
+
+    function addMinutesToTime(timeStr, minutesToAdd) {
+      // Parse time like "9:00 AM" and add minutes
+      const [time, period] = timeStr.split(' ');
+      let [hours, minutes] = time.split(':').map(Number);
+      
+      if (period === 'PM' && hours !== 12) hours += 12;
+      if (period === 'AM' && hours === 12) hours = 0;
+      
+      const totalMinutes = hours * 60 + minutes + minutesToAdd;
+      const newHours = Math.floor(totalMinutes / 60);
+      const newMinutes = totalMinutes % 60;
+      
+      let displayHours = newHours;
+      let newPeriod = 'AM';
+      
+      if (newHours >= 12) {
+        newPeriod = 'PM';
+        if (newHours > 12) displayHours = newHours - 12;
+      }
+      if (displayHours === 0) displayHours = 12;
+      
+      return `${displayHours}:${newMinutes.toString().padStart(2, '0')} ${newPeriod}`;
+    }
+
+    function rescheduleActivities(activities) {
+      if (activities.length === 0) return activities;
+      
+      const rescheduled = [];
+      let currentTime = activities[0].time;
+      
+      for (let i = 0; i < activities.length; i++) {
+        const activity = { ...activities[i] };
+        activity.time = currentTime;
+        rescheduled.push(activity);
+        
+        // Calculate next start time
+        const durationMinutes = parseDuration(activity.duration);
+        const travelTime = 30; // Assume 30 minutes travel time between activities
+        const totalTime = durationMinutes + travelTime;
+        
+        if (i < activities.length - 1) {
+          currentTime = addMinutesToTime(currentTime, totalTime);
+        }
+      }
+      
+      return rescheduled;
+    }
+
     function deleteActivity(groupId, dayIndex, activityIndex) {
       if (!confirm("Are you sure you want to delete this activity?")) return;
 
@@ -3134,11 +3329,18 @@ Only return the JSON, no additional text.`;
       const groupIndex = groups.findIndex((g) => g.id === groupId);
       if (groupIndex === -1) return;
 
+      // Remove the activity
       groups[groupIndex].aiItinerary.days[dayIndex].activities.splice(activityIndex, 1);
+
+      // Reschedule remaining activities for this day
+      if (groups[groupIndex].aiItinerary.days[dayIndex].activities.length > 0) {
+        groups[groupIndex].aiItinerary.days[dayIndex].activities = 
+          rescheduleActivities(groups[groupIndex].aiItinerary.days[dayIndex].activities);
+      }
 
       DataLayer.save("groups", groups);
       GroupsSystem.displayGroups();
-      NotificationSystem.show("Activity deleted successfully!", "success");
+      NotificationSystem.show("Activity deleted and schedule updated!", "success");
     }
 
     function showAIAssistantModal(groupId) {
@@ -3151,13 +3353,13 @@ Only return the JSON, no additional text.`;
       <div class="modal-content" style="max-width: 600px;">
         <button class="modal-close" onclick="closeAIAssistantModal()">&times;</button>
         <div class="modal-header">
-          <h2 style="color: #667eea; display: flex; align-items: center; gap: 0.5rem;">
+          <h2 style="color: var(--secondary-color); display: flex; align-items: center; gap: 0.5rem;">
             <i class="fas fa-robot"></i> AI Assistant
           </h2>
         </div>
         <div class="modal-body">
-          <div style="background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem;">
-            <h4 style="margin: 0 0 0.5rem 0; color: #667eea;">🤖 Ask me to modify your itinerary!</h4>
+          <div style="background: rgba(74, 144, 226, 0.1); padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem;">
+            <h4 style="margin: 0 0 0.5rem 0; color: var(--secondary-color);">🤖 Ask me to modify your itinerary!</h4>
             <p style="margin: 0; font-size: 0.9rem; color: #666;">
               Examples: "Make day 2 more relaxing", "Replace the museum with outdoor activities", "Add more food options"
             </p>
@@ -3171,7 +3373,7 @@ Only return the JSON, no additional text.`;
             </div>
 
             <div style="text-align: center; margin-top: 2rem;">
-              <button type="submit" class="btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 24px;">
+              <button type="submit" class="btn" style="background: var(--primary-gradient); color: var(--inverted-text-color); padding: 12px 24px;">
                 <i class="fas fa-magic"></i> Apply Changes
               </button>
               <button type="button" class="btn btn-secondary" onclick="closeAIAssistantModal()">Cancel</button>
@@ -3226,7 +3428,19 @@ ${JSON.stringify(group.aiItinerary, null, 2)}
 
 User Request: "${request}"
 
-Please modify the existing itinerary based on the user's request while keeping the same structure and maintaining balance for the group's personality mix. Return the COMPLETE modified itinerary in the same JSON format as the original.
+IMPORTANT INSTRUCTIONS:
+1. If the user requests changes to duration, location, or budget, update the tripDetails accordingly
+2. If the user asks for a different number of days, create exactly that many days (no more, no less)
+3. Maintain the same JSON structure and format
+4. Keep the balance for the group's personality mix
+5. Return the COMPLETE modified itinerary including updated tripDetails if needed
+
+SCHEDULING RULES:
+- Account for travel time between activities (15-45 minutes)
+- If an activity takes 2 hours and starts at 9:00 AM, next activity should start no earlier than 11:30 AM
+- Include realistic travel times in duration fields
+- Don't schedule activities too close together
+- Consider opening hours and peak times
 
 Only return the JSON, no additional text.`;
 
@@ -3267,9 +3481,12 @@ Only return the JSON, no additional text.`;
         // Update the group's itinerary
         const groupIndex = groups.findIndex((g) => g.id === groupId);
         if (groupIndex !== -1) {
+          // Preserve existing tripDetails if the AI didn't update them
+          const preservedTripDetails = updatedItinerary.tripDetails || group.aiItinerary.tripDetails;
+          
           groups[groupIndex].aiItinerary = {
             ...updatedItinerary,
-            tripDetails: group.aiItinerary.tripDetails,
+            tripDetails: preservedTripDetails,
             generatedAt: group.aiItinerary.generatedAt,
             lastModified: new Date().toISOString(),
           };
@@ -3320,7 +3537,7 @@ Only return the JSON, no additional text.`;
     top: 60px;
     bottom: 20px;
     width: 2px;
-    background: linear-gradient(to bottom, #667eea, #764ba2);
+    background: var(--primary-gradient);
     z-index: 0;
   }
 
@@ -3331,7 +3548,7 @@ Only return the JSON, no additional text.`;
 
   .activity-item:hover {
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+    box-shadow: var(--shadow-small);
     transition: all 0.2s ease;
   }
 
@@ -3541,7 +3758,7 @@ Only return the JSON, no additional text.`;
             <div style="display: flex; gap: 0.5rem; align-items: center;">
               ${AI_PREMIUM_ENABLED
                 ? `
-                <button class="btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;" 
+                                <button class="btn" style="background: var(--primary-gradient); color: var(--inverted-text-color);"
                         onclick="showAIPremiumModal(${group.id})">
                   <i class="fa-solid fa-crown"></i> AI Trip Planner
                 </button>
@@ -3834,7 +4051,7 @@ Only return the JSON, no additional text.`;
               }</div>
                     <div style="flex: 1;">
                       <strong>${friend.displayName}</strong>
-                      <div style="font-size: 0.8rem; color: #667eea;">${friend.personalityType
+                      <div style="font-size: 0.8rem; color: var(--secondary-color);">${friend.personalityType
               }</div>
                       <div style="font-size: 0.8rem; color: #888;">AF: ${friend.adjustmentFactor.toFixed(
                 2
@@ -3936,14 +4153,14 @@ Only return the JSON, no additional text.`;
               }">
                       <div class="feed-avatar" style="width: 35px; height: 35px; font-size: 1rem;">${friend.avatar
               }</div>
-                      <div style="flex: 1;">
-                        <strong>${friend.displayName}</strong>
-                        <div style="font-size: 0.8rem; color: #667eea;">${friend.personalityType
+                                          <div style="flex: 1;">
+                      <strong>${friend.displayName}</strong>
+                      <div style="font-size: 0.8rem; color: var(--secondary-color);">${friend.personalityType
               }</div>
-                        <div style="font-size: 0.8rem; color: #888;">AF: ${friend.adjustmentFactor.toFixed(
+                      <div style="font-size: 0.8rem; color: #888;">AF: ${friend.adjustmentFactor.toFixed(
                 2
               )}</div>
-                      </div>
+                    </div>
                     </div>
                 `
           )
@@ -4036,8 +4253,8 @@ Only return the JSON, no additional text.`;
             .slice(0, 4)
             .map(
               (rec) => `
-            <div class="activity-card" style="border: 2px solid #f980ae;">
-              <div style="background: var(--gradient-min); color: white; padding: 0.5rem; margin: -1.5rem -1.5rem 1rem -1.5rem; border-radius: 15px 15px 0 0;">
+            <div class="activity-card" style="border: 2px solid var(--secondary-color);">
+                              <div style="background: var(--secondary-gradient); color: white; padding: 0.5rem; margin: -1.5rem -1.5rem 1rem -1.5rem; border-radius: 15px 15px 0 0;">
                 <div style="font-weight: bold;">Recommended: ${rec.predictedScore.toFixed(
                 1
               )}/10</div>
@@ -4126,10 +4343,18 @@ Only return the JSON, no additional text.`;
               .map(
                 (friend) => `
                 <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: white; padding: 0.3rem 0.8rem; border-radius: 15px; font-size: 0.8rem;">
-                  <div style="width: 20px; height: 20px; border-radius: 50%; background: var(--gradient-min); color: white; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold;">
+                  <div style="width: 20px; height: 20px; border-radius: 50%; background: var(--secondary-gradient); color: white; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold;">
                     ${friend.avatar}
                   </div>
                   ${friend.displayName}
+                  <button 
+                    onclick="FriendsSystem.removeFriend(${friend.id})"
+                    style="background: none; border: none; color: #999; cursor: pointer; font-size: 1rem; margin-left: 0.3rem; padding: 0; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s;"
+                    onmouseover="this.style.backgroundColor='var(--primary-color)'; this.style.color='white';"
+                    onmouseout="this.style.backgroundColor='transparent'; this.style.color='#999';"
+                    title="Remove friend">
+                    ×
+                  </button>
                 </div>
               `
               )
@@ -4150,7 +4375,7 @@ Only return the JSON, no additional text.`;
               return `
               <div class="similar-user-card">
                 <div style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.8rem;">
-                  <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--gradient-min); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                  <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--secondary-gradient); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">
                     ${sim.user.avatar}
                   </div>
                   <div style="text-align: left;">
@@ -4303,7 +4528,7 @@ Only return the JSON, no additional text.`;
         }</div>
       <div>
         <h2 style="margin: 0;">${personalityType.type}</h2>
-        <div style="color: #667eea; font-weight: bold; margin: 0.5rem 0;">Adjustment Factor: ${personalityData.adjustmentFactor.toFixed(
+        <div style="color: var(--secondary-color); font-weight: bold; margin: 0.5rem 0;">Adjustment Factor: ${personalityData.adjustmentFactor.toFixed(
           2
         )}</div>
         <div style="color: #666; font-style: italic;">"${personalityType.description
@@ -4312,7 +4537,7 @@ Only return the JSON, no additional text.`;
     </div>
 
     <div class="stats-grid" style="margin-bottom: 2rem;">
-      <div class="stat-card">
+      <div class="stat-card" onclick="showPage('activities')" style="cursor: pointer;">
         <div class="stat-value">${userExperiences.length}</div>
         <div class="stat-label">Experiences</div>
       </div>
@@ -4321,11 +4546,11 @@ Only return the JSON, no additional text.`;
         }</div>
         <div class="stat-label">Avg Rating</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card" onclick="showPage('groups')" style="cursor: pointer;">
         <div class="stat-value">${groups.length}</div>
         <div class="stat-label">Groups</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card" onclick="showPage('dashboard')" style="cursor: pointer;">
         <div class="stat-value">${unratedRecommendations.length}</div>
         <div class="stat-label">New Recommendations</div>
       </div>
@@ -4343,7 +4568,7 @@ Only return the JSON, no additional text.`;
               <div style="flex: 1;">
                 <div style="font-weight: bold; margin-bottom: 0.2rem;">${exp.name
                 }</div>
-                <div style="color: #667eea; font-size: 0.9rem; margin-bottom: 0.2rem;">${exp.category
+                <div style="color: var(--secondary-color); font-size: 0.9rem; margin-bottom: 0.2rem;">${exp.category
                 } • ${exp.location}</div>
                 ${exp.description
                   ? `<div style="color: #666; font-size: 0.8rem; margin-bottom: 0.2rem;">"${exp.description}"</div>`
@@ -4357,7 +4582,7 @@ Only return the JSON, no additional text.`;
                 </div>
               </div>
               <div style="text-align: right; margin-left: 1rem;">
-                <div style="font-weight: bold; font-size: 1.3rem; color: #667eea;">${exp.adjustedScore
+                <div style="font-weight: bold; font-size: 1.3rem; color: var(--secondary-color);">${exp.adjustedScore
                 }/10</div>
                 <div style="font-size: 0.8rem; color: #888;">Raw: ${exp.rawScore
                 }/10</div>
@@ -4388,11 +4613,11 @@ Only return the JSON, no additional text.`;
         <div style="width: 100%; height: 20px; background: #f0f0f0; border-radius: 10px; position: relative;">
           <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 2px; height: 100%; background: #ccc;"></div>
           <div style="width: ${((personalityData.adjustmentFactor + 1) / 2) * 100
-        }%; height: 100%; background: linear-gradient(90deg, #764ba2, #667eea); border-radius: 10px; position: relative;">
-            <div style="position: absolute; right: -10px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; background: white; border: 3px solid #667eea; border-radius: 50%;"></div>
+        }%; height: 100%; background: var(--primary-gradient); border-radius: 10px; position: relative;">
+            <div style="position: absolute; right: -10px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; background: white; border: 3px solid var(--secondary-color); border-radius: 50%;"></div>
           </div>
         </div>
-        <div style="text-align: center; margin-top: 0.5rem; font-weight: bold; color: #667eea;">
+        <div style="text-align: center; margin-top: 0.5rem; font-weight: bold; color: var(--secondary-color);">
           ${personalityData.adjustmentFactor.toFixed(2)}
         </div>
       </div>
@@ -4406,12 +4631,12 @@ Only return the JSON, no additional text.`;
           .map(
             (sim) => `
                 <div style="text-align: center; padding: 1rem; border: 1px solid #eee; border-radius: 10px;">
-                  <div style="width: 50px; height: 50px; border-radius: 50%; background: var(--gradient-min); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; margin: 0 auto 0.5rem;">
+                  <div style="width: 50px; height: 50px; border-radius: 50%; background: var(--secondary-gradient); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; margin: 0 auto 0.5rem;">
                     ${sim.user.avatar}
                   </div>
                   <div style="font-weight: bold; margin-bottom: 0.2rem;">${sim.user.displayName
               }</div>
-                  <div style="font-size: 0.8rem; color: #667eea; margin-bottom: 0.3rem;">${sim.user.personalityType
+                  <div style="font-size: 0.8rem; color: var(--secondary-color); margin-bottom: 0.3rem;">${sim.user.personalityType
               }</div>
                   <div style="font-size: 0.8rem; color: #4CAF50; font-weight: bold;">${(
                 sim.similarity * 100
@@ -4419,7 +4644,7 @@ Only return the JSON, no additional text.`;
                   <button class="btn" style="margin-top: 0.5rem; font-size: 0.8rem; padding: 6px 12px;" 
                           onclick="FriendsSystem.addFriend(${sim.user.id})">
                     ${FriendsSystem.isFriend(sim.user.id)
-                ? "✓ Friend"
+                ? '<span style="background: #f8f9fa; color: var(--primary-color); font-size: 0.8rem; font-weight: bold; padding: 4px 8px; border-radius: 12px; border: 1px solid var(--primary-color);">✓ Friend</span>'
                 : "Add Friend"
               }
                   </button>
@@ -4526,110 +4751,160 @@ Only return the JSON, no additional text.`;
 
     // Notification system
     const NotificationSystem = {
-      show: (message, type = "info", duration = 3000) => {
-        const notification = document.createElement("div");
-        notification.style.cssText = `
+  show: (message, type = "info", duration = 3000) => {
+    const notification = document.createElement("div");
+    notification.style.cssText = `
       position: fixed;
       top: 20px;
       right: 20px;
-      padding: 15px 40px 15px 20px;
-      border-radius: 8px;
-      color: white;
-      font-weight: 600;
+      padding: 16px 20px;
+      border-radius: 12px;
+      color: #374151;
+      font-size: 14px;
+      font-weight: 500;
       z-index: 10000;
       transform: translateX(100%);
-      transition: transform 0.3s ease;
-      max-width: 300px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      max-width: 350px;
+      min-width: 280px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
       display: flex;
-      align-items: center;
-      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
     `;
 
-        switch (type) {
-          case "success":
-            notification.style.background =
-              "linear-gradient(135deg, #51cf66 0%, #40c057 100%)";
-            break;
-          case "error":
-            notification.style.background =
-              "linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)";
-            break;
-          case "warning":
-            notification.style.background =
-              "linear-gradient(135deg, #ffd43b 0%, #fd7e14 100%)";
-            break;
-          default:
-            notification.style.background =
-              "linear-gradient(135deg, #667eea 0%, #764ba2 100%)";
-        }
+    // Set background and icon based on type
+    let icon;
+    let bgColor = "var(--background-alt-color)"
+    
+    switch (type) {
+      case "success":
+        notification.style.borderLeft = "4px solid #10b981";
+        icon = `<svg width="20" height="20" fill="var(--success-color)" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>`;
+        break;
+      case "error":
+        notification.style.borderLeft = "4px solid var(--error-color)";
+        icon = `<svg width="20" height="20" fill="#ef4444" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+        </svg>`;
+        break;
+      case "warning":
+        notification.style.borderLeft = "4px solid var(--warning-color)";
+        icon = `<svg width="20" height="20" fill="#f59e0b" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+        </svg>`;
+        break;
+      default:
+        notification.style.borderLeft = "4px solid #3b82f6";
+        icon = `<svg width="20" height="20" fill="var(--info-color)" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+        </svg>`;
+    }
 
-        // Create message element
-        const messageEl = document.createElement("span");
-        messageEl.textContent = message;
-        messageEl.style.flex = "1";
+    notification.style.backgroundColor = bgColor;
 
-        // Create close button
-        const closeBtn = document.createElement("button");
-        closeBtn.innerHTML = "×";
-        closeBtn.style.cssText = `
+    // Create icon element
+    const iconEl = document.createElement("div");
+    iconEl.innerHTML = icon;
+    iconEl.style.cssText = `
+      flex-shrink: 0;
+      margin-top: 1px;
+    `;
+
+    // Create content container
+    const contentEl = document.createElement("div");
+    contentEl.style.cssText = `
+      flex: 1;
+      line-height: 1.5;
+    `;
+
+    // Create message element
+    const messageEl = document.createElement("div");
+    messageEl.textContent = message;
+    messageEl.style.cssText = `
+      color: var(--primary-color);
+      font-weight: 500;
+    `;
+
+    // Create close button
+    const closeBtn = document.createElement("button");
+    closeBtn.innerHTML = `<svg width="16" height="16" fill="var(--muted-text-color)" viewBox="0 0 20 20">
+      <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+    </svg>`;
+    closeBtn.style.cssText = `
       background: none;
       border: none;
-      color: white;
-      font-size: 20px;
-      font-weight: bold;
       cursor: pointer;
-      padding: 0;
-      margin-left: 10px;
-      width: 20px;
-      height: 20px;
+      padding: 4px;
+      margin: -4px -4px -4px 4px;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 50%;
-      transition: background-color 0.2s ease;
+      
     `;
 
-        // Add hover effect to close button
-        closeBtn.addEventListener("mouseenter", () => {
-          closeBtn.style.backgroundColor = "rgba(255,255,255,0.2)";
-        });
-        closeBtn.addEventListener("mouseleave", () => {
-          closeBtn.style.backgroundColor = "transparent";
-        });
+    // Add hover effect to close button
+    closeBtn.addEventListener("mouseenter", () => {
+      closeBtn.style.backgroundColor = "#f3f4f6";
+      closeBtn.querySelector('svg').setAttribute('fill', '#6b7280');
+    });
+    closeBtn.addEventListener("mouseleave", () => {
+      closeBtn.style.backgroundColor = "transparent";
+      closeBtn.querySelector('svg').setAttribute('fill', '#9ca3af');
+    });
 
-        // Function to remove notification
-        const removeNotification = () => {
-          notification.style.transform = "translateX(100%)";
-          setTimeout(() => {
-            if (notification.parentNode) {
-              notification.parentNode.removeChild(notification);
-            }
-          }, 300);
-        };
-
-        // Close button click handler
-        closeBtn.addEventListener("click", removeNotification);
-
-        // Append elements
-        notification.appendChild(messageEl);
-        notification.appendChild(closeBtn);
-        document.body.appendChild(notification);
-
-        // Animate in
-        setTimeout(() => {
-          notification.style.transform = "translateX(0)";
-        }, 100);
-
-        // Auto-remove after duration
-        const autoRemoveTimer = setTimeout(removeNotification, duration);
-
-        // Clear timer if manually closed
-        closeBtn.addEventListener("click", () => {
-          clearTimeout(autoRemoveTimer);
-        });
-      },
+    // Function to remove notification
+    const removeNotification = () => {
+      notification.style.transform = "translateX(100%)";
+      notification.style.opacity = "0";
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.parentNode.removeChild(notification);
+        }
+      }, 300);
     };
+
+    // Close button click handler
+    closeBtn.addEventListener("click", removeNotification);
+
+    // Append elements
+    contentEl.appendChild(messageEl);
+    notification.appendChild(iconEl);
+    notification.appendChild(contentEl);
+    notification.appendChild(closeBtn);
+    document.body.appendChild(notification);
+
+    // Animate in
+    requestAnimationFrame(() => {
+      notification.style.transform = "translateX(0)";
+      notification.style.opacity = "1";
+    });
+
+    // Auto-remove after duration
+    const autoRemoveTimer = setTimeout(removeNotification, duration);
+
+    // Clear timer if manually closed
+    closeBtn.addEventListener("click", () => {
+      clearTimeout(autoRemoveTimer);
+    });
+
+    // Add pause on hover
+    notification.addEventListener("mouseenter", () => {
+      clearTimeout(autoRemoveTimer);
+    });
+
+    notification.addEventListener("mouseleave", () => {
+      setTimeout(removeNotification, 1000); // Give 1 second after mouse leave
+    });
+  },
+};
     // Location autocomplete functionality
     function initializeLocationAutocomplete() {
       // Check if Google Maps API is available
@@ -4764,39 +5039,25 @@ Only return the JSON, no additional text.`;
 
     // Keyboard shortcuts for power users
     document.addEventListener("keydown", (event) => {
-      // Alt + number keys for quick navigation
-      if (event.altKey && !event.ctrlKey && !event.shiftKey) {
-        switch (event.key) {
-          case "1":
-            event.preventDefault();
-            showPage("dashboard");
-            break;
-          case "2":
-            event.preventDefault();
-            showPage("assessment");
-            break;
-          case "3":
-            event.preventDefault();
-            showPage("activities");
-            break;
-          case "4":
-            event.preventDefault();
-            showPage("feed");
-            break;
-          case "5":
-            event.preventDefault();
-            showPage("groups");
-            break;
-          case "6":
-            event.preventDefault();
-            showPage("profile");
-            break;
-        }
-      }
-
       // Escape to close modals
       if (event.key === "Escape") {
-        closeModal();
+        // Close all possible modals
+        const modals = [
+          document.getElementById("ai-premium-modal"),
+          document.getElementById("ai-assistant-modal"),
+          document.getElementById("ai-edit-modal")
+        ];
+        
+        modals.forEach(modal => {
+          if (modal && !modal.classList.contains("hidden")) {
+            modal.remove();
+          }
+        });
+        
+        // Also try the generic closeModal function
+        if (typeof closeModal === 'function') {
+          closeModal();
+        }
       }
     });
 
@@ -4869,5 +5130,4 @@ Only return the JSON, no additional text.`;
     });
   </script>
 </body>
-
 </html>
