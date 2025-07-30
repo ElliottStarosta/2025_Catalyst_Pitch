@@ -4608,6 +4608,7 @@ Only return the JSON, no additional text.`;
       <div style="margin-bottom: 1rem;">
         <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
           <span>Introversion</span>
+          <span>Ambivert</span>
           <span>Extroversion</span>
         </div>
         <div style="width: 100%; height: 20px; background: #f0f0f0; border-radius: 10px; position: relative;">
@@ -5041,20 +5042,25 @@ Only return the JSON, no additional text.`;
     document.addEventListener("keydown", (event) => {
       // Escape to close modals
       if (event.key === "Escape") {
-        // Close all possible modals
-        const modals = [
-          document.getElementById("ai-premium-modal"),
-          document.getElementById("ai-assistant-modal"),
-          document.getElementById("ai-edit-modal")
-        ];
+        // Check for AI modals and close them using their specific functions
+        const aiPremiumModal = document.getElementById("ai-premium-modal");
+        const aiAssistantModal = document.getElementById("ai-assistant-modal");
+        const aiEditModal = document.getElementById("ai-edit-modal");
         
-        modals.forEach(modal => {
-          if (modal && !modal.classList.contains("hidden")) {
-            modal.remove();
+        if (aiPremiumModal) {
+          closeAIPremiumModal();
+        } else if (aiAssistantModal) {
+          closeAIAssistantModal();
+        } else if (aiEditModal) {
+          // If there's a closeAIEditModal function, call it
+          if (typeof closeAIEditModal === 'function') {
+            closeAIEditModal();
+          } else {
+            aiEditModal.remove();
           }
-        });
+        }
         
-        // Also try the generic closeModal function
+        // Also try the generic closeModal function as fallback
         if (typeof closeModal === 'function') {
           closeModal();
         }
