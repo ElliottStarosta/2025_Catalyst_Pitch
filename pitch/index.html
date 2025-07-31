@@ -1486,7 +1486,7 @@
   <script>
 
      // AI Premium Feature Configuration
-    const AI_PREMIUM_ENABLED = true; // Set to false to disable premium features
+    const AI_PREMIUM_ENABLED = false; // Set to false to disable premium features
 
     
     // Function to handle rating a place from the community feed
@@ -3750,6 +3750,10 @@ Only return the JSON, no additional text.`;
       const groupIndex = groups.findIndex((g) => g.id === groupId);
       if (groupIndex === -1) return;
 
+      // Store expansion state before updating
+      const content = document.getElementById(`group-content-${groupId}`);
+      const wasExpanded = content && content.style.maxHeight !== "0px" && content.style.maxHeight !== "";
+
       const activity = groups[groupIndex].aiItinerary.days[dayIndex].activities[activityIndex];
 
       activity.activity = document.getElementById("edit-activity-name").value;
@@ -3760,7 +3764,22 @@ Only return the JSON, no additional text.`;
 
       DataLayer.save("groups", groups);
       closeAIEditModal();
-      GroupsSystem.displayGroups();
+      
+      // Update only the specific group content instead of re-rendering all groups
+      GroupsSystem.updateGroupContent(groupId);
+      
+      // Restore expansion state if it was expanded
+      if (wasExpanded) {
+        setTimeout(() => {
+          const newContent = document.getElementById(`group-content-${groupId}`);
+          const newIcon = document.getElementById(`expand-icon-${groupId}`);
+          if (newContent && newIcon) {
+            newContent.style.maxHeight = newContent.scrollHeight + "px";
+            newIcon.style.transform = "rotate(180deg)";
+          }
+        }, 100); // Small delay to ensure DOM is updated
+      }
+      
       NotificationSystem.show("Activity updated successfully!", "success");
     }
 
@@ -3835,6 +3854,10 @@ Only return the JSON, no additional text.`;
       const groupIndex = groups.findIndex((g) => g.id === groupId);
       if (groupIndex === -1) return;
 
+      // Store expansion state before updating
+      const content = document.getElementById(`group-content-${groupId}`);
+      const wasExpanded = content && content.style.maxHeight !== "0px" && content.style.maxHeight !== "";
+
       // Remove the activity
       groups[groupIndex].aiItinerary.days[dayIndex].activities.splice(activityIndex, 1);
 
@@ -3845,7 +3868,22 @@ Only return the JSON, no additional text.`;
       }
 
       DataLayer.save("groups", groups);
-      GroupsSystem.displayGroups();
+      
+      // Update only the specific group content instead of re-rendering all groups
+      GroupsSystem.updateGroupContent(groupId);
+      
+      // Restore expansion state if it was expanded
+      if (wasExpanded) {
+        setTimeout(() => {
+          const newContent = document.getElementById(`group-content-${groupId}`);
+          const newIcon = document.getElementById(`expand-icon-${groupId}`);
+          if (newContent && newIcon) {
+            newContent.style.maxHeight = newContent.scrollHeight + "px";
+            newIcon.style.transform = "rotate(180deg)";
+          }
+        }, 100); // Small delay to ensure DOM is updated
+      }
+      
       NotificationSystem.show("Activity deleted and schedule updated!", "success");
     }
 
@@ -4960,6 +4998,12 @@ Only return the JSON, no additional text.`;
       const recommendationsContainer = groupContent.querySelector('.activity-grid');
       if (recommendationsContainer) {
         recommendationsContainer.innerHTML = recommendationsHtml;
+      }
+
+      // Update AI itinerary section if it exists
+      const aiItinerarySection = groupContent.querySelector('.ai-itinerary-section');
+      if (aiItinerarySection && group.aiItinerary) {
+        aiItinerarySection.innerHTML = renderAIItinerary(group);
       }
 
       // If the group was expanded, maintain the expanded state
