@@ -989,6 +989,39 @@
       align-items: center;
       justify-content: center;
       animation: fadeIn 0.3s ease;
+      overflow: hidden; /* Prevent modal from scrolling */
+    }
+
+    /* Prevent body scrolling when modal is open */
+    body.modal-open {
+      overflow: hidden;
+      position: fixed;
+      width: 100%;
+    }
+
+    /* Custom scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--primary-gradient);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--secondary-gradient);
+    }
+
+    /* Firefox scrollbar */
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: var(--primary-color) #f1f1f1;
     }
 
     .modal-content {
@@ -1453,7 +1486,7 @@
   <script>
 
      // AI Premium Feature Configuration
-    const AI_PREMIUM_ENABLED = false; // Set to false to disable premium features
+    const AI_PREMIUM_ENABLED = true; // Set to false to disable premium features
 
     
     // Function to handle rating a place from the community feed
@@ -2656,6 +2689,9 @@
 
     // Helper function to add ESC and click-outside functionality to modals
     function addModalListeners(modalId, closeFunction) {
+      // Prevent body scrolling when modal opens
+      document.body.classList.add('modal-open');
+      
       // Add ESC key listener
       const handleEscKey = (event) => {
         if (event.key === 'Escape') {
@@ -3413,6 +3449,8 @@ Only return the JSON, no additional text.`;
     function closeAIPremiumModal() {
       const modal = document.getElementById("ai-premium-modal");
       if (modal) modal.remove();
+      // Re-enable body scrolling
+      document.body.classList.remove('modal-open');
     }
 
     function handleTripDurationChange() {
@@ -3701,6 +3739,8 @@ Only return the JSON, no additional text.`;
     function closeAIEditModal() {
       const modal = document.getElementById("ai-edit-modal");
       if (modal) modal.remove();
+      // Re-enable body scrolling
+      document.body.classList.remove('modal-open');
     }
 
     function updateActivity(event, groupId, dayIndex, activityIndex) {
@@ -3864,6 +3904,8 @@ Only return the JSON, no additional text.`;
     function closeAIAssistantModal() {
       const modal = document.getElementById("ai-assistant-modal");
       if (modal) modal.remove();
+      // Re-enable body scrolling
+      document.body.classList.remove('modal-open');
     }
 
     function showGroupLocationRecommendations(groupId) {
@@ -3937,6 +3979,8 @@ Only return the JSON, no additional text.`;
           if (event.key === 'Escape') closeGroupLocationModal();
         });
       }
+      // Re-enable body scrolling
+      document.body.classList.remove('modal-open');
     }
 
     function showPremiumUpgradeModal() {
@@ -3998,6 +4042,8 @@ Only return the JSON, no additional text.`;
           if (event.key === 'Escape') closePremiumUpgradeModal();
         });
       }
+      // Re-enable body scrolling
+      document.body.classList.remove('modal-open');
     }
 
     function fillActivityForm(name, category, location, description) {
@@ -5222,6 +5268,8 @@ Only return the JSON, no additional text.`;
     function closeExperiencesModal() {
       const modal = document.getElementById("experiences-modal");
       if (modal) modal.remove();
+      // Re-enable body scrolling
+      document.body.classList.remove('modal-open');
     }
 
     function editExperience(index) {
@@ -5316,6 +5364,8 @@ Only return the JSON, no additional text.`;
     function closeEditExperienceModal() {
       const modal = document.getElementById("edit-experience-modal");
       if (modal) modal.remove();
+      // Re-enable body scrolling
+      document.body.classList.remove('modal-open');
     }
 
     function handleEditExperience(event, index) {
@@ -5479,6 +5529,8 @@ Only return the JSON, no additional text.`;
       if (modal) {
         modal.remove();
       }
+      // Re-enable body scrolling
+      document.body.classList.remove('modal-open');
     }
 
     // Recommendation System
@@ -6184,6 +6236,8 @@ Only return the JSON, no additional text.`;
           if (event.key === 'Escape') closeNearbyModal();
         });
       }
+      // Re-enable body scrolling
+      document.body.classList.remove('modal-open');
     }
 
     // Function to use current location
