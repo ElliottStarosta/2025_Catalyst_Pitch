@@ -4109,6 +4109,265 @@ Only return the JSON, no additional text.`;
       GroupsSystem.createGroup(name, description, selectedMembers);
     }
 
+    // Experiences Modal System
+    function showExperiencesModal() {
+      const userExperiences = DataLayer.load("userExperiences", []);
+      
+      const modalHtml = `
+        <div id="experiences-modal" class="modal">
+          <div class="modal-content" style="max-width: 800px; max-height: 80vh; overflow-y: auto;">
+            <button class="modal-close" onclick="closeExperiencesModal()">&times;</button>
+            <div class="modal-header">
+              <h2>Your Experiences</h2>
+              <p style="margin: 0; color: #666;">Manage and edit your shared experiences</p>
+            </div>
+            <div class="modal-body">
+              ${userExperiences.length === 0 ? `
+                <div style="text-align: center; padding: 3rem 1rem;">
+                  <div style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;">📝</div>
+                  <h3 style="color: #666; margin-bottom: 0.5rem;">No Experiences Yet</h3>
+                  <p style="color: #888; margin-bottom: 2rem;">Start sharing your experiences to see them here!</p>
+                  <button class="btn" onclick="closeExperiencesModal(); showPage('activities');">
+                    <i class="fas fa-plus-circle"></i> Add Your First Experience
+                  </button>
+                </div>
+              ` : `
+                <div style="display: grid; gap: 1.5rem;">
+                  ${userExperiences.map((experience, index) => `
+                    <div class="experience-card" style="
+                      border: 1px solid #eee; 
+                      border-radius: 12px; 
+                      padding: 1.5rem; 
+                      background: white;
+                      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+                      transition: all 0.2s ease;
+                    " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'" 
+                       onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.05)'">
+                      
+                      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                        <div style="flex: 1;">
+                          <h3 style="margin: 0 0 0.5rem 0; color: var(--primary-color); font-size: 1.2rem;">
+                            ${experience.name}
+                          </h3>
+                          <div style="display: flex; gap: 1rem; margin-bottom: 0.5rem; font-size: 0.9rem;">
+                            <span style="background: var(--secondary-color); color: white; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.8rem;">
+                              ${experience.category}
+                            </span>
+                            <span style="color: #666;">
+                              <i class="fas fa-map-marker-alt"></i> ${experience.location}
+                            </span>
+                          </div>
+                          <p style="margin: 0; color: #555; line-height: 1.5; font-size: 0.95rem;">
+                            ${experience.description}
+                          </p>
+                        </div>
+                        <div style="text-align: right; min-width: 80px;">
+                          <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary-color);">
+                            ${experience.adjustedScore.toFixed(1)}
+                          </div>
+                          <div style="font-size: 0.8rem; color: #666;">Rating</div>
+                        </div>
+                      </div>
+                      
+                      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; margin: 1rem 0; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
+                        <div style="text-align: center;">
+                          <div style="font-size: 0.9rem; color: #666; margin-bottom: 0.2rem;">Energy</div>
+                          <div style="font-weight: bold; color: var(--primary-color);">${experience.responses.energy}/10</div>
+                        </div>
+                        <div style="text-align: center;">
+                          <div style="font-size: 0.9rem; color: #666; margin-bottom: 0.2rem;">Social</div>
+                          <div style="font-weight: bold; color: var(--primary-color);">${experience.responses.social}/10</div>
+                        </div>
+                        <div style="text-align: center;">
+                          <div style="font-size: 0.9rem; color: #666; margin-bottom: 0.2rem;">Comfort</div>
+                          <div style="font-weight: bold; color: var(--primary-color);">${experience.responses.comfort}/10</div>
+                        </div>
+                        <div style="text-align: center;">
+                          <div style="font-size: 0.9rem; color: #666; margin-bottom: 0.2rem;">Return</div>
+                          <div style="font-weight: bold; color: var(--primary-color);">${experience.responses.return}/10</div>
+                        </div>
+                      </div>
+                      
+                      <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem;">
+                        <button class="btn btn-secondary" onclick="editExperience(${index})" style="font-size: 0.9rem; padding: 0.5rem 1rem;">
+                          <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button class="btn btn-danger" onclick="deleteExperience(${index})" style="font-size: 0.9rem; padding: 0.5rem 1rem;">
+                          <i class="fas fa-trash"></i> Delete
+                        </button>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+                
+                <div style="text-align: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #eee;">
+                  <button class="btn" onclick="closeExperiencesModal(); showPage('activities');">
+                    <i class="fas fa-plus-circle"></i> Add New Experience
+                  </button>
+                </div>
+              `}
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.insertAdjacentHTML("beforeend", modalHtml);
+    }
+
+    function closeExperiencesModal() {
+      const modal = document.getElementById("experiences-modal");
+      if (modal) modal.remove();
+    }
+
+    function editExperience(index) {
+      const userExperiences = DataLayer.load("userExperiences", []);
+      const experience = userExperiences[index];
+      
+      if (!experience) return;
+      
+      const modalHtml = `
+        <div id="edit-experience-modal" class="modal">
+          <div class="modal-content" style="max-width: 600px;">
+            <button class="modal-close" onclick="closeEditExperienceModal()">&times;</button>
+            <div class="modal-header">
+              <h2>Edit Experience</h2>
+            </div>
+            <div class="modal-body">
+              <form id="edit-experience-form" onsubmit="handleEditExperience(event, ${index})">
+                <div class="form-group">
+                  <label for="edit-name">Experience Name *</label>
+                  <input type="text" id="edit-name" class="form-control" value="${experience.name}" required>
+                </div>
+                <div class="form-group">
+                  <label for="edit-category">Category *</label>
+                  <select id="edit-category" class="form-control" required>
+                    <option value="Restaurant" ${experience.category === 'Restaurant' ? 'selected' : ''}>Restaurant</option>
+                    <option value="Bar/Pub" ${experience.category === 'Bar/Pub' ? 'selected' : ''}>Bar/Pub</option>
+                    <option value="Cafe" ${experience.category === 'Cafe' ? 'selected' : ''}>Cafe</option>
+                    <option value="Museum/Gallery" ${experience.category === 'Museum/Gallery' ? 'selected' : ''}>Museum/Gallery</option>
+                    <option value="Library/Study" ${experience.category === 'Library/Study' ? 'selected' : ''}>Library/Study</option>
+                    <option value="Park/Outdoor" ${experience.category === 'Park/Outdoor' ? 'selected' : ''}>Park/Outdoor</option>
+                    <option value="Entertainment" ${experience.category === 'Entertainment' ? 'selected' : ''}>Entertainment</option>
+                    <option value="Shopping" ${experience.category === 'Shopping' ? 'selected' : ''}>Shopping</option>
+                    <option value="Other" ${experience.category === 'Other' ? 'selected' : ''}>Other</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="edit-location">Location *</label>
+                  <input type="text" id="edit-location" class="form-control" value="${experience.location}" required>
+                </div>
+                <div class="form-group">
+                  <label for="edit-description">Description *</label>
+                  <textarea id="edit-description" class="form-control" rows="3" required>${experience.description}</textarea>
+                </div>
+                
+                <div style="margin: 2rem 0;">
+                  <h4 style="margin-bottom: 1rem; color: var(--primary-color);">Rate Your Experience</h4>
+                                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                     <div class="form-group">
+                       <label for="edit-energy">Energy Level (1-10)</label>
+                       <input type="range" class="rating-slider" min="1" max="10" value="${experience.responses.energy}" oninput="updateSliderValue(this, 'slider-energy')" id="edit-energy">
+                       <div style="text-align: center; font-weight: bold; color: var(--primary-color);" id="slider-energy">${experience.responses.energy}</div>
+                     </div>
+                     <div class="form-group">
+                       <label for="edit-social">Social Interaction (1-10)</label>
+                       <input type="range" class="rating-slider" min="1" max="10" value="${experience.responses.social}" oninput="updateSliderValue(this, 'slider-social')" id="edit-social">
+                       <div style="text-align: center; font-weight: bold; color: var(--primary-color);" id="slider-social">${experience.responses.social}</div>
+                     </div>
+                     <div class="form-group">
+                       <label for="edit-comfort">Comfort Level (1-10)</label>
+                       <input type="range" class="rating-slider" min="1" max="10" value="${experience.responses.comfort}" oninput="updateSliderValue(this, 'slider-comfort')" id="edit-comfort">
+                       <div style="text-align: center; font-weight: bold; color: var(--primary-color);" id="slider-comfort">${experience.responses.comfort}</div>
+                     </div>
+                     <div class="form-group">
+                       <label for="edit-overwhelm">Overwhelm Level (1-10)</label>
+                       <input type="range" class="rating-slider" min="1" max="10" value="${experience.responses.overwhelm}" oninput="updateSliderValue(this, 'slider-overwhelm')" id="edit-overwhelm">
+                       <div style="text-align: center; font-weight: bold; color: var(--primary-color);" id="slider-overwhelm">${experience.responses.overwhelm}</div>
+                     </div>
+                     <div class="form-group">
+                       <label for="edit-return">Would Return (1-10)</label>
+                       <input type="range" class="rating-slider" min="1" max="10" value="${experience.responses.return}" oninput="updateSliderValue(this, 'slider-return')" id="edit-return">
+                       <div style="text-align: center; font-weight: bold; color: var(--primary-color);" id="slider-return">${experience.responses.return}</div>
+                     </div>
+                   </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 2rem;">
+                  <button type="submit" class="btn">Save Changes</button>
+                  <button type="button" class="btn btn-secondary" onclick="closeEditExperienceModal()">Cancel</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.insertAdjacentHTML("beforeend", modalHtml);
+      
+
+    }
+
+    function closeEditExperienceModal() {
+      const modal = document.getElementById("edit-experience-modal");
+      if (modal) modal.remove();
+    }
+
+    function handleEditExperience(event, index) {
+      event.preventDefault();
+      
+      const userExperiences = DataLayer.load("userExperiences", []);
+      const experience = userExperiences[index];
+      
+      if (!experience) return;
+      
+      // Update experience data
+      experience.name = document.getElementById("edit-name").value;
+      experience.category = document.getElementById("edit-category").value;
+      experience.location = document.getElementById("edit-location").value;
+      experience.description = document.getElementById("edit-description").value;
+      experience.responses.energy = parseInt(document.getElementById("edit-energy").value);
+      experience.responses.social = parseInt(document.getElementById("edit-social").value);
+      experience.responses.comfort = parseInt(document.getElementById("edit-comfort").value);
+      experience.responses.overwhelm = parseInt(document.getElementById("edit-overwhelm").value);
+      experience.responses.return = parseInt(document.getElementById("edit-return").value);
+      
+      // Recalculate scores
+      const rawScore = (experience.responses.energy + experience.responses.social + experience.responses.comfort + experience.responses.return) / 4;
+      const personalityData = DataLayer.load("personalityScore");
+      const adjustmentFactor = personalityData ? personalityData.adjustmentFactor : 1.0;
+      const adjustedScore = rawScore * adjustmentFactor;
+      
+      experience.rawScore = rawScore;
+      experience.adjustedScore = adjustedScore;
+      
+      // Save updated experiences
+      DataLayer.save("userExperiences", userExperiences);
+      
+      // Close modal and show success message
+      closeEditExperienceModal();
+      closeExperiencesModal();
+      NotificationSystem.show("Experience updated successfully!", "success");
+      
+      // Refresh the page data
+      updateDashboard();
+      updateProfile();
+    }
+
+    function deleteExperience(index) {
+      if (confirm("Are you sure you want to delete this experience? This action cannot be undone.")) {
+        const userExperiences = DataLayer.load("userExperiences", []);
+        userExperiences.splice(index, 1);
+        DataLayer.save("userExperiences", userExperiences);
+        
+        closeExperiencesModal();
+        NotificationSystem.show("Experience deleted successfully!", "success");
+        
+        // Refresh the page data
+        updateDashboard();
+        updateProfile();
+      }
+    }
+
     // Updated showCreateGroupModal to limit to 3-6 friends displayed
     function showCreateGroupModal() {
       const friends = FriendsSystem.getFriends();
@@ -4538,7 +4797,7 @@ Only return the JSON, no additional text.`;
     </div>
 
     <div class="stats-grid" style="margin-bottom: 2rem;">
-      <div class="stat-card" onclick="showPage('activities')" style="cursor: pointer;">
+      <div class="stat-card" onclick="showExperiencesModal()" style="cursor: pointer;">
         <div class="stat-value">${userExperiences.length}</div>
         <div class="stat-label">Experiences</div>
       </div>
@@ -5043,27 +5302,71 @@ Only return the JSON, no additional text.`;
     document.addEventListener("keydown", (event) => {
       // Escape to close modals
       if (event.key === "Escape") {
-        // Check for AI modals and close them using their specific functions
-        const aiPremiumModal = document.getElementById("ai-premium-modal");
-        const aiAssistantModal = document.getElementById("ai-assistant-modal");
-        const aiEditModal = document.getElementById("ai-edit-modal");
+        // Check for experiences modals first
+        const experiencesModal = document.getElementById("experiences-modal");
+        const editExperienceModal = document.getElementById("edit-experience-modal");
         
-        if (aiPremiumModal) {
-          closeAIPremiumModal();
-        } else if (aiAssistantModal) {
-          closeAIAssistantModal();
-        } else if (aiEditModal) {
-          // If there's a closeAIEditModal function, call it
-          if (typeof closeAIEditModal === 'function') {
-            closeAIEditModal();
-          } else {
-            aiEditModal.remove();
+        if (editExperienceModal) {
+          closeEditExperienceModal();
+        } else if (experiencesModal) {
+          closeExperiencesModal();
+        } else {
+          // Check for AI modals and close them using their specific functions
+          const aiPremiumModal = document.getElementById("ai-premium-modal");
+          const aiAssistantModal = document.getElementById("ai-assistant-modal");
+          const aiEditModal = document.getElementById("ai-edit-modal");
+          
+          if (aiPremiumModal) {
+            closeAIPremiumModal();
+          } else if (aiAssistantModal) {
+            closeAIAssistantModal();
+          } else if (aiEditModal) {
+            // If there's a closeAIEditModal function, call it
+            if (typeof closeAIEditModal === 'function') {
+              closeAIEditModal();
+            } else {
+              aiEditModal.remove();
+            }
+          }
+          
+          // Also try the generic closeModal function as fallback
+          if (typeof closeModal === 'function') {
+            closeModal();
           }
         }
+      }
+      
+      // Enter key to click appropriate buttons based on current page
+      if (event.key === "Enter") {
+        // Check which page is currently visible
+        const allPages = document.querySelectorAll('.page');
+        let currentPage = null;
         
-        // Also try the generic closeModal function as fallback
-        if (typeof closeModal === 'function') {
-          closeModal();
+        allPages.forEach(page => {
+          if (!page.classList.contains("hidden")) {
+            currentPage = page.id;
+          }
+        });
+        
+        // Handle different pages
+        if (currentPage === "dashboard") {
+          // Look for "Start Assessment" button on dashboard
+          const startAssessmentBtn = document.querySelector('button[onclick="showPage(\'assessment\')"]');
+          if (startAssessmentBtn && startAssessmentBtn.offsetParent !== null) {
+            startAssessmentBtn.click();
+          }
+        } else if (currentPage === "profile") {
+          // Look for "Take Assessment" button on profile
+          const takeAssessmentBtn = document.querySelector('button[onclick="showPage(\'assessment\')"]');
+          if (takeAssessmentBtn && takeAssessmentBtn.offsetParent !== null) {
+            takeAssessmentBtn.click();
+          }
+        } else if (currentPage === "results") {
+          // Look for "Continue to Dashboard" button on results page
+          const continueBtn = document.querySelector('button[onclick="completeAssessment()"]');
+          if (continueBtn && continueBtn.offsetParent !== null) {
+            continueBtn.click();
+          }
         }
       }
     });
