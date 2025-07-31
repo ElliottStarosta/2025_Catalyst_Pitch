@@ -1486,7 +1486,7 @@
   <script>
 
      // AI Premium Feature Configuration
-    const AI_PREMIUM_ENABLED = false; // Set to false to disable premium features
+    const AI_PREMIUM_ENABLED = true; // Set to false to disable premium features
 
     
     // Function to handle rating a place from the community feed
@@ -1518,6 +1518,7 @@
         username: "you",
         displayName: "You",
         avatar: "Y",
+        isPremium: AI_PREMIUM_ENABLED, // Current user's premium status
       },
     };
 
@@ -1871,9 +1872,23 @@
         currentUser.personalityType = personality.type;
         currentUser.avatar = personality.type.charAt(0);
         
-        // Set default location to Waterloo center if not already set
-        if (!currentUser.location) {
-          currentUser.location = { lat: 43.4643, lng: -80.5204 }; // Waterloo University District
+        // Don't set a default location - let geolocation handle it
+        
+        // Try to get user's actual location if geolocation is available
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              currentUser.location = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude
+              };
+              DataLayer.save("currentUser", currentUser);
+            },
+            (error) => {
+              console.log("Could not get user location:", error.message);
+              // Don't set a default location - let user update manually
+            }
+          );
         }
         
         DataLayer.save("currentUser", currentUser);
@@ -1902,6 +1917,7 @@
           bio: "Love meeting new people and trying exciting venues!",
           avatar: "AC",
           location: { lat: 43.4643, lng: -80.5204 }, // Waterloo University District
+          isPremium: true, // Premium user
         },
         2: {
           id: 2,
@@ -1912,6 +1928,7 @@
           bio: "Enjoy good company in comfortable settings.",
           avatar: "SR",
           location: { lat: 43.4719, lng: -80.5250 }, // Waterloo Downtown
+          isPremium: false, // Free user
         },
         3: {
           id: 3,
@@ -1922,6 +1939,7 @@
           bio: "Quality over quantity when it comes to social time.",
           avatar: "JP",
           location: { lat: 43.4583, lng: -80.5204 }, // Waterloo South
+          isPremium: true, // Premium user
         },
         4: {
           id: 4,
@@ -1932,6 +1950,7 @@
           bio: "Love peaceful places and meaningful conversations.",
           avatar: "RT",
           location: { lat: 43.4700, lng: -80.5150 }, // Waterloo North
+          isPremium: false, // Free user
         },
         5: {
           id: 5,
@@ -1942,6 +1961,7 @@
           bio: "Finding energy in quiet, contemplative spaces.",
           avatar: "CW",
           location: { lat: 43.4667, lng: -80.5300 }, // Waterloo West
+          isPremium: true, // Premium user
         },
         6: {
           id: 6,
@@ -1952,6 +1972,7 @@
           bio: "Adaptable to different social situations and moods.",
           avatar: "TK",
           location: { lat: 43.4625, lng: -80.5250 }, // Waterloo East
+          isPremium: false, // Free user
         },
       },
 
@@ -3220,6 +3241,240 @@
     };
    
 
+    // Weather API integration for activity recommendations
+    const WeatherSystem = {
+      // Get weather data for a specific location and date
+      async getWeatherData(lat, lng, date) {
+        try {
+          console.log(`🌤️ Fetching weather for: lat=${lat}, lng=${lng}, date=${date}`);
+          const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weathercode&timezone=auto&start_date=${date}&end_date=${date}`;
+          console.log(`🌤️ Weather API URL: ${url}`);
+          
+          const response = await fetch(url);
+          console.log(`🌤️ Weather API response status: ${response.status}`);
+          
+          if (!response.ok) {
+            throw new Error(`Weather API responded with status: ${response.status}`);
+          }
+          
+          const data = await response.json();
+          console.log(`🌤️ Weather API response data:`, data);
+          
+          if (data.daily && data.daily.time && data.daily.time.length > 0) {
+            const index = 0; // First (and only) day
+            
+            // Validate that all required fields exist
+            if (data.daily.temperature_2m_max && 
+                data.daily.temperature_2m_min && 
+                data.daily.precipitation_probability_max && 
+                data.daily.weathercode) {
+              
+              const weatherData = {
+                maxTemp: data.daily.temperature_2m_max[index],
+                minTemp: data.daily.temperature_2m_min[index],
+                precipitation: data.daily.precipitation_probability_max[index],
+                weatherCode: data.daily.weathercode[index],
+                date: data.daily.time[index]
+              };
+              console.log(`🌤️ Parsed weather data:`, weatherData);
+              return weatherData;
+            } else {
+              console.log(`🌤️ Missing required weather fields in API response`);
+              return null;
+            }
+          }
+          console.log(`🌤️ No weather data found in response`);
+          return null;
+        } catch (error) {
+          console.error('🌤️ Error fetching weather data from Open-Meteo:', error);
+        }
+      },
+
+      // Get weather for multiple days
+      async getWeatherForDays(lat, lng, dates) {
+        try {
+          console.log(`🌤️ Getting weather for ${dates.length} days`);
+          const weatherPromises = dates.map(date => this.getWeatherData(lat, lng, date));
+          const results = await Promise.all(weatherPromises);
+          console.log(`🌤️ Weather results:`, results);
+          
+          // Filter out null results and ensure we have valid data
+          const validResults = results.filter(result => result !== null);
+          console.log(`🌤️ Valid weather results:`, validResults);
+          
+          return validResults;
+        } catch (error) {
+          console.error(`🌤️ Error getting weather for multiple days:`, error);
+          return [];
+        }
+      },
+
+      // Get weather description from WMO code
+      getWeatherDescription(code) {
+        const weatherCodes = {
+          0: "Clear sky",
+          1: "Mainly clear",
+          2: "Partly cloudy",
+          3: "Overcast",
+          45: "Foggy",
+          48: "Depositing rime fog",
+          51: "Light drizzle",
+          53: "Moderate drizzle",
+          55: "Dense drizzle",
+          56: "Light freezing drizzle",
+          57: "Dense freezing drizzle",
+          61: "Slight rain",
+          63: "Moderate rain",
+          65: "Heavy rain",
+          66: "Light freezing rain",
+          67: "Heavy freezing rain",
+          71: "Slight snow",
+          73: "Moderate snow",
+          75: "Heavy snow",
+          77: "Snow grains",
+          80: "Slight rain showers",
+          81: "Moderate rain showers",
+          82: "Violent rain showers",
+          85: "Slight snow showers",
+          86: "Heavy snow showers",
+          95: "Thunderstorm",
+          96: "Thunderstorm with slight hail",
+          99: "Thunderstorm with heavy hail"
+        };
+        return weatherCodes[code] || "Unknown";
+      },
+
+      // Get activity weather suitability score (0-10)
+      getActivityWeatherScore(activity, weather) {
+        if (!weather) return 5; // Neutral if no weather data
+        
+        const activityType = activity.category?.toLowerCase() || '';
+        const temp = (weather.maxTemp + weather.minTemp) / 2;
+        const precipitation = weather.precipitation;
+        const isRainy = weather.weatherCode >= 51 && weather.weatherCode <= 67;
+        const isSnowy = weather.weatherCode >= 71 && weather.weatherCode <= 86;
+        const isStormy = weather.weatherCode >= 95;
+        
+        let score = 5; // Base score
+        
+        // Temperature considerations
+        if (activityType.includes('outdoor') || activityType.includes('park') || activityType.includes('hiking')) {
+          if (temp >= 15 && temp <= 25) score += 3; // Perfect outdoor weather
+          else if (temp >= 10 && temp <= 30) score += 1; // Acceptable
+          else score -= 2; // Too hot/cold
+        }
+        
+        // Precipitation considerations
+        if (activityType.includes('outdoor') || activityType.includes('park') || activityType.includes('hiking')) {
+          if (precipitation < 20) score += 2; // Low chance of rain
+          else if (precipitation < 50) score += 0; // Moderate chance
+          else score -= 3; // High chance of rain
+        }
+        
+        // Indoor activities are less affected by weather
+        if (activityType.includes('indoor') || activityType.includes('museum') || activityType.includes('cafe') || activityType.includes('restaurant')) {
+          if (isRainy || isSnowy) score += 1; // Good for indoor activities
+          else score += 0; // Neutral
+        }
+        
+        // Extreme weather penalties
+        if (isStormy) score -= 2;
+        if (temp < -10 || temp > 35) score -= 1;
+        
+        return Math.max(0, Math.min(10, score)); // Clamp between 0-10
+      },
+
+      // Get best weather day from multiple options
+      async getBestWeatherDay(lat, lng, dates, activities) {
+        const weatherData = await this.getWeatherForDays(lat, lng, dates);
+        const scores = [];
+        
+        for (let i = 0; i < dates.length; i++) {
+          const weather = weatherData[i];
+          
+          // Skip if no weather data for this day
+          if (!weather) {
+            console.log(`🌤️ No weather data for day ${i}, skipping`);
+            continue;
+          }
+          
+          let dayScore = 0;
+          
+          // Calculate average weather score for all activities
+          for (const activity of activities) {
+            dayScore += this.getActivityWeatherScore(activity, weather);
+          }
+          
+          scores.push({
+            date: dates[i],
+            weather: weather,
+            score: dayScore / activities.length,
+            weatherDescription: weather ? this.getWeatherDescription(weather.weatherCode) : 'Unknown'
+          });
+        }
+        
+        // Check if we have any valid scores
+        if (scores.length === 0) {
+          console.log(`🌤️ No valid weather scores found`);
+          return null;
+        }
+        
+        // Find the best day
+        const bestDay = scores.reduce((best, current) => 
+          current.score > best.score ? current : best
+        );
+        
+        // Validate bestDay has weather data
+        if (!bestDay || !bestDay.weather) {
+          console.log(`🌤️ Best day has no weather data`);
+          return null;
+        }
+        
+        // Generate reason for selection
+        const temp = (bestDay.weather.maxTemp + bestDay.weather.minTemp) / 2;
+        const precipitation = bestDay.weather.precipitation;
+        const weatherCode = bestDay.weather.weatherCode;
+        
+        let reason = '';
+        
+        // Temperature-based reasoning
+        if (temp >= 15 && temp <= 25) {
+          reason += 'Perfect temperature for outdoor activities';
+        } else if (temp >= 10 && temp <= 30) {
+          reason += 'Comfortable temperature range';
+        } else if (temp < 10) {
+          reason += 'Cooler weather, good for indoor activities';
+        } else {
+          reason += 'Warm weather, suitable for various activities';
+        }
+        
+        // Precipitation-based reasoning
+        if (precipitation < 20) {
+          reason += ' with very low chance of rain';
+        } else if (precipitation < 50) {
+          reason += ' with moderate weather conditions';
+        } else {
+          reason += ' despite higher precipitation chance';
+        }
+        
+        // Weather condition reasoning
+        if (weatherCode >= 0 && weatherCode <= 3) {
+          reason += '. Clear to partly cloudy skies provide ideal conditions.';
+        } else if (weatherCode >= 51 && weatherCode <= 67) {
+          reason += '. Rainy weather is perfect for indoor activities.';
+        } else if (weatherCode >= 71 && weatherCode <= 86) {
+          reason += '. Snowy conditions are great for winter activities.';
+        } else {
+          reason += '. Weather conditions are suitable for your planned activities.';
+        }
+        
+        return {
+          ...bestDay,
+          reason: reason
+        };
+      }
+    };
+
     // AI Itinerary Generator
     const AIItineraryGenerator = {
       generateItinerary: async (groupData, tripDetails) => {
@@ -3675,6 +3930,797 @@ Only return the JSON, no additional text.`;
   `;
     }
 
+    async function renderGroupScheduling(group) {
+      const currentUser = DataLayer.load("currentUser");
+      const currentUserId = currentUser.id;
+      
+      // Check if all group members have premium access
+      const allMembersHavePremium = group.members.every(member => {
+        if (member.userId === currentUser.id) {
+          return currentUser.isPremium;
+        } else {
+          const demoUser = DemoUsers.users[member.userId];
+          return demoUser ? demoUser.isPremium : false;
+        }
+      });
+      
+      // Initialize availability if not exists
+      if (!group.availability) {
+        group.availability = {};
+      }
+      
+      // Get current week dates (next 7 days)
+      const weekDates = [];
+      const today = new Date();
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() + i);
+        weekDates.push({
+          date: date,
+          dayName: date.toLocaleDateString('en-US', { weekday: 'short' }),
+          fullDate: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          dateString: date.toISOString().split('T')[0]
+        });
+      }
+
+      // Count available members for each day
+      const availabilityCounts = weekDates.map(weekDate => {
+        const availableMembers = group.members.filter(member => {
+          const memberAvailability = group.availability[member.userId] || [];
+          return memberAvailability.includes(weekDate.dateString);
+        });
+        return {
+          ...weekDate,
+          availableCount: availableMembers.length,
+          totalCount: group.members.length
+        };
+      });
+
+      // Find best meeting day (most members available)
+      let bestDay = availabilityCounts.reduce((best, current) => {
+        if (current.availableCount > best.availableCount) {
+          return current;
+        }
+        return best;
+      });
+
+      // Check for ties (multiple days with same availability count)
+      const tiedDays = availabilityCounts.filter(day => 
+        day.availableCount === bestDay.availableCount && day.availableCount > 0
+      );
+
+      // Store tie information for display
+      const wasTie = tiedDays.length > 1;
+      const tieCount = tiedDays.length;
+
+      // If there are ties and we have activities, use weather to break the tie
+      if (tiedDays.length > 1 && group.activities && group.activities.length > 0) {
+        try {
+          // Get location from group activities, user location, or group center
+          let lat, lng;
+          
+          // Try to get location from first activity
+          const firstActivity = group.activities[0];
+          if (firstActivity && firstActivity.coordinates) {
+            lat = firstActivity.coordinates.lat;
+            lng = firstActivity.coordinates.lng;
+          } else {
+            // Try to get location from current user
+            const currentUser = DataLayer.load("currentUser");
+            if (currentUser && currentUser.location) {
+              lat = currentUser.location.lat;
+              lng = currentUser.location.lng;
+            } else {
+              // Calculate group center from member locations
+              const memberLocations = group.members.map(member => {
+                if (member.userId === currentUser.id) {
+                  return currentUser.location;
+                } else {
+                  const demoUser = DemoUsers.users[member.userId];
+                  return demoUser ? demoUser.location : null;
+                }
+              }).filter(loc => loc !== null);
+              
+              if (memberLocations.length > 0) {
+                const avgLat = memberLocations.reduce((sum, loc) => sum + loc.lat, 0) / memberLocations.length;
+                const avgLng = memberLocations.reduce((sum, loc) => sum + loc.lng, 0) / memberLocations.length;
+                lat = avgLat;
+                lng = avgLng;
+              } else {
+                // Fallback to Waterloo if no location data available
+                lat = 43.4643;
+                lng = -80.5204;
+              }
+            }
+          }
+          
+          const tiedDates = tiedDays.map(day => day.dateString);
+          const weatherBestDay = await WeatherSystem.getBestWeatherDay(lat, lng, tiedDates, group.activities);
+          
+          if (weatherBestDay) {
+            bestDay = availabilityCounts.find(day => day.dateString === weatherBestDay.date) || bestDay;
+            bestDay.weatherInfo = weatherBestDay;
+          }
+        } catch (error) {
+          console.error('Error getting weather data for tie-breaking:', error);
+        }
+      }
+
+      return `
+        <div class="group-scheduling-section" style="margin-top: 2rem; padding: 1.5rem; background: linear-gradient(135deg, rgba(74, 144, 226, 0.05) 0%, rgba(160, 200, 240, 0.05) 100%); border-radius: 15px; border: 2px solid rgba(74, 144, 226, 0.2);">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+            <h4 style="margin: 0; color: var(--primary-color); display: flex; align-items: center; gap: 0.5rem;">
+              <i class="fas fa-calendar-alt"></i> Group Scheduling
+            </h4>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <div style="background: var(--primary-gradient); color: var(--inverted-text-color); padding: 0.2rem 0.6rem; border-radius: 10px; font-size: 0.7rem; font-weight: bold;">
+                PREMIUM
+              </div>
+              ${allMembersHavePremium ? `
+                <button class="btn btn-secondary" onclick="showAvailabilityModal(${group.id})" style="font-size: 0.8rem; padding: 8px 16px;">
+                  <i class="fas fa-edit"></i> Set My Availability
+                </button>
+              ` : `
+                <button class="btn btn-secondary" onclick="showPremiumUpgradeModal()" style="font-size: 0.8rem; padding: 8px 16px;">
+                  <i class="fas fa-crown"></i> All Members Need Premium
+                </button>
+              `}
+            </div>
+          </div>
+          
+          ${allMembersHavePremium ? `
+            <div style="background: white; padding: 1rem; border-radius: 10px; margin-bottom: 1rem;">
+              <h5 style="margin: 0 0 1rem 0; color: var(--primary-color);">This Week's Availability</h5>
+              <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5rem;">
+                ${availabilityCounts.map(day => {
+                  const isAvailable = (group.availability[currentUserId] || []).includes(day.dateString);
+                  const availabilityPercent = (day.availableCount / day.totalCount) * 100;
+                  const isBestDay = day.dateString === bestDay.dateString && day.availableCount > 0;
+                  const wasTied = wasTie && day.availableCount === bestDay.availableCount && day.availableCount > 0;
+                  
+                  return `
+                    <div style="
+                      text-align: center; 
+                      padding: 0.8rem 0.5rem; 
+                      border-radius: 8px; 
+                      border: 2px solid ${isBestDay ? 'var(--success-color)' : wasTied ? 'var(--warning-color)' : '#e0e0e0'};
+                      background: ${isAvailable ? 'rgba(74, 144, 226, 0.1)' : 'white'};
+                      position: relative;
+                      ${isBestDay ? 'box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);' : wasTied ? 'box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);' : ''}
+                    ">
+                      <div style="font-weight: bold; font-size: 0.9rem; color: var(--primary-color);">${day.dayName}</div>
+                      <div style="font-size: 0.8rem; color: #666; margin: 0.3rem 0;">${day.fullDate}</div>
+                      <div style="font-size: 0.7rem; color: ${availabilityPercent >= 80 ? 'var(--success-color)' : availabilityPercent >= 50 ? 'var(--warning-color)' : '#666'};">
+                        ${day.availableCount}/${day.totalCount}
+                      </div>
+                      ${isAvailable ? '<div style="position: absolute; top: 2px; right: 2px; color: var(--secondary-color); font-size: 0.6rem;">✓</div>' : ''}
+                      ${isBestDay ? '<div style="position: absolute; bottom: -7px; left: 50%; transform: translateX(-50%); background: var(--success-color); color: white; padding: 1px 4px; border-radius: 4px; font-size: 0.6rem;">BEST</div>' : ''}
+                      ${wasTied && !isBestDay ? '<div style="position: absolute; bottom: -7px; left: 50%; transform: translateX(-50%); background: var(--warning-color); color: white; padding: 1px 4px; border-radius: 4px; font-size: 0.6rem;">TIED</div>' : ''}
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          ` : `
+            <div style="background: white; padding: 2rem; border-radius: 10px; margin-bottom: 1rem; text-align: center;">
+              <div style="font-size: 3rem; margin-bottom: 1rem;">👑</div>
+              <h5 style="margin: 0 0 1rem 0; color: var(--primary-color);">Premium Feature</h5>
+              <p style="margin: 0 0 1.5rem 0; color: #666; font-size: 0.9rem; line-height: 1.5;">
+                All group members need Premium to use Group Scheduling. This ensures everyone can coordinate their availability together!
+              </p>
+              <div style="margin-top: 1rem; padding: 1rem; background: rgba(74, 144, 226, 0.1); border-radius: 8px;">
+                <h6 style="margin: 0 0 0.5rem 0; color: var(--primary-color);">Group Members Premium Status:</h6>
+                ${group.members.map(member => {
+                  const isPremium = member.userId === currentUser.id ? 
+                    currentUser.isPremium : 
+                    (DemoUsers.users[member.userId] ? DemoUsers.users[member.userId].isPremium : false);
+                  return `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem; font-size: 0.8rem;">
+                      <span>${member.displayName}</span>
+                      <span style="color: ${isPremium ? 'var(--success-color)' : 'var(--warning-color)'}; font-weight: bold;">
+                        ${isPremium ? '✓ Premium' : '✗ Free'}
+                      </span>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+              <button class="btn" onclick="showPremiumUpgradeModal()" style="background: var(--primary-gradient); margin-top: 1rem;">
+                <i class="fas fa-crown"></i> Upgrade to Premium
+              </button>
+            </div>
+          `}
+          
+          ${allMembersHavePremium ? `
+            ${bestDay.availableCount > 0 ? `
+              <div style="background: white; padding: 1rem; border-radius: 10px; margin-bottom: 1rem; border-left: 4px solid var(--success-color);">
+                <h5 style="margin: 0 0 0.5rem 0; color: var(--success-color);">
+                  <i class="fas fa-check-circle"></i> Recommended Meeting Day
+                </h5>
+                <p style="margin: 0; font-size: 0.9rem; color: #666;">
+                  <strong>${bestDay.dayName}, ${bestDay.fullDate}</strong> - ${bestDay.availableCount} out of ${bestDay.totalCount} members available
+                  ${bestDay.weatherInfo ? ` <span style="color: var(--primary-color); font-weight: bold;">🌤️ Weather tie-breaker: ${bestDay.weatherInfo.weatherDescription}</span>` : ''}
+                </p>
+                <div style="margin-top: 0.5rem; font-size: 0.8rem; color: #666;">
+                  Available members: ${group.members.filter(member => {
+                    const memberAvailability = group.availability[member.userId] || [];
+                    return memberAvailability.includes(bestDay.dateString);
+                  }).map(member => member.displayName).join(', ')}
+                </div>
+                ${bestDay.weatherInfo ? `
+                  <div style="margin-top: 0.5rem; padding: 0.5rem; background: rgba(74, 144, 226, 0.1); border-radius: 5px; font-size: 0.8rem;">
+                                    <div style="margin-bottom: 0.5rem; font-weight: bold; color: var(--primary-color);">
+                  🌤️ Weather Tie-Breaker Applied
+                </div>
+                <div style="margin-bottom: 0.3rem; font-size: 0.75rem; color: #666;">
+                  ${tieCount} days had the same availability (${bestDay.availableCount}/${bestDay.totalCount}). 
+                  This day was selected based on weather conditions for your group's activities.
+                </div>
+                    <div style="font-size: 0.8rem;">
+                      <strong>Weather Forecast:</strong> ${bestDay.weatherInfo.weatherDescription} | 
+                      High: ${bestDay.weatherInfo.weather.maxTemp}°C | 
+                      Low: ${bestDay.weatherInfo.weather.minTemp}°C | 
+                      Rain: ${bestDay.weatherInfo.weather.precipitation}%
+                    </div>
+                  </div>
+                ` : ''}
+              </div>
+            ` : `
+              <div style="background: white; padding: 1rem; border-radius: 10px; margin-bottom: 1rem; border-left: 4px solid var(--warning-color);">
+                <h5 style="margin: 0 0 0.5rem 0; color: var(--warning-color);">
+                  <i class="fas fa-exclamation-triangle"></i> No Common Availability
+                </h5>
+                <p style="margin: 0; font-size: 0.9rem; color: #666;">
+                  No day this week works for everyone. Set your availability to find the best time!
+                </p>
+              </div>
+            `}
+
+            <!-- Weather-based activity recommendations -->
+            ${(() => {
+              console.log(`🌤️ Group ${group.id} has ${group.activities ? group.activities.length : 0} activities`);
+              return true; // Always show weather recommendations, even without activities
+            })() ? `
+              <div id="weather-recommendations-${group.id}" style="background: white; padding: 1rem; border-radius: 10px; margin-bottom: 1rem; border-left: 4px solid var(--info-color);">
+                <h5 style="margin: 0 0 0.5rem 0; color: var(--info-color);">
+                  <i class="fas fa-cloud-sun"></i> Weather-Based Activity Suggestions
+                </h5>
+                <div id="weather-recommendations-content-${group.id}" style="font-size: 0.9rem; color: #666;">
+                  <p>Loading weather-based activity suggestions...</p>
+                </div>
+              </div>
+            ` : ''}
+          ` : ''}
+        </div>
+      `;
+    }
+
+    // Function to update user's location
+    async function updateUserLocation() {
+      try {
+        const location = await getUserLocation();
+        NotificationSystem.show("Location updated successfully!", "success");
+        // Refresh the profile page to show updated location
+        showPage("profile");
+      } catch (error) {
+        NotificationSystem.show("Could not get your location. Please check your browser permissions.", "warning");
+        console.error("Error updating location:", error);
+      }
+    }
+
+    // Function to get user's current location
+    function getUserLocation() {
+      return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+          reject(new Error('Geolocation not supported'));
+          return;
+        }
+        
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const location = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            };
+            
+            // Update current user's location
+            const currentUser = DataLayer.load("currentUser");
+            currentUser.location = location;
+            DataLayer.save("currentUser", currentUser);
+            
+            resolve(location);
+          },
+          (error) => {
+            reject(error);
+          }
+        );
+      });
+    }
+
+    // Function to load and display weather recommendations (only for tied votes)
+    async function loadWeatherRecommendations(groupId) {
+      console.log(`🌤️ Loading weather recommendations for group:`, groupId);
+      
+      const groups = DataLayer.load("groups", []);
+      const group = groups.find((g) => g.id === groupId);
+      console.log(`🌤️ Found group:`, group);
+      
+      if (!group) {
+        console.log(`🌤️ No group found`);
+        return;
+      }
+
+      const recommendationsElement = document.getElementById(`weather-recommendations-content-${groupId}`);
+      console.log(`🌤️ Recommendations element:`, recommendationsElement);
+      
+      if (!recommendationsElement) {
+        console.log(`🌤️ No recommendations element found`);
+        return;
+      }
+
+      // Check if there are tied votes in the group scheduling
+      const weekDates = [];
+      const today = new Date();
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() + i);
+        weekDates.push({
+          date: date,
+          dateString: date.toISOString().split('T')[0]
+        });
+      }
+
+      // Count available members for each day
+      const availabilityCounts = weekDates.map(weekDate => {
+        const availableMembers = group.members.filter(member => {
+          const memberAvailability = (group.availability && group.availability[member.userId]) || [];
+          return memberAvailability.includes(weekDate.dateString);
+        });
+        return {
+          ...weekDate,
+          availableCount: availableMembers.length,
+          totalCount: group.members.length
+        };
+      });
+
+      // Find best meeting day and check for ties
+      let bestDay = availabilityCounts.reduce((best, current) => {
+        if (current.availableCount > best.availableCount) {
+          return current;
+        }
+        return best;
+      });
+
+      const tiedDays = availabilityCounts.filter(day => 
+        day.availableCount === bestDay.availableCount && day.availableCount > 0
+      );
+
+      // Only show weather recommendations if there are tied votes
+      if (tiedDays.length > 1) {
+        console.log(`🌤️ Found ${tiedDays.length} tied days, showing weather recommendations`);
+        
+        // Make sure the weather recommendations div is visible
+        const weatherRecommendationsDiv = document.getElementById(`weather-recommendations-${groupId}`);
+        if (weatherRecommendationsDiv) {
+          weatherRecommendationsDiv.style.display = 'block';
+        }
+        
+        try {
+          // Get location for weather data
+          let lat, lng;
+          const firstActivity = group.activities && group.activities.length > 0 ? group.activities[0] : null;
+          if (firstActivity && firstActivity.coordinates) {
+            lat = firstActivity.coordinates.lat;
+            lng = firstActivity.coordinates.lng;
+          } else {
+            const currentUser = DataLayer.load("currentUser");
+            if (currentUser && currentUser.location) {
+              lat = currentUser.location.lat;
+              lng = currentUser.location.lng;
+            } else {
+              // Fallback to Waterloo if no location data available
+              lat = 43.4643;
+              lng = -80.5204;
+            }
+          }
+          
+          const tiedDates = tiedDays.map(day => day.dateString);
+          
+          // Use group activities or create general activities for weather comparison
+          let activitiesForWeather = group.activities || [];
+          if (activitiesForWeather.length === 0) {
+            activitiesForWeather = [
+              { name: "Outdoor Activity", category: "Outdoor", coordinates: null },
+              { name: "Indoor Activity", category: "Indoor", coordinates: null },
+              { name: "Restaurant", category: "Restaurant", coordinates: null },
+              { name: "Cafe", category: "Cafe", coordinates: null },
+              { name: "Entertainment", category: "Entertainment", coordinates: null }
+            ];
+          }
+          
+          const weatherBestDay = await WeatherSystem.getBestWeatherDay(lat, lng, tiedDates, activitiesForWeather);
+          
+          if (weatherBestDay) {
+            const selectedDate = new Date(weatherBestDay.date).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+            const recommendationsHtml = `
+              <div style="background: white; padding: 1rem; border-radius: 10px; margin-bottom: 1rem; border-left: 4px solid var(--primary-color);">
+                <h5 style="margin: 0 0 0.5rem 0; color: var(--primary-color);">
+                  🌤️ Weather Tie-Breaker Applied
+                </h5>
+                <div style="margin-bottom: 0.5rem; font-size: 0.9rem; color: #666;">
+                  <strong>${tiedDays.length} days had the same availability (${bestDay.availableCount}/${bestDay.totalCount}).</strong>
+                  This day was selected based on weather conditions for your group's activities.
+                </div>
+                <div style="font-size: 0.8rem; color: #666; margin-bottom: 0.5rem;">
+                  <strong>Selected Day:</strong> ${selectedDate}
+                </div>
+                <div style="font-size: 0.8rem; color: #666; margin-bottom: 0.5rem;">
+                  <strong>Weather Forecast:</strong> ${weatherBestDay.weatherDescription} | 
+                  High: ${weatherBestDay.weather.maxTemp}°C | 
+                  Low: ${weatherBestDay.weather.minTemp}°C | 
+                  Rain: ${weatherBestDay.weather.precipitation}%
+                </div>
+                <div style="font-size: 0.8rem;">
+                  <strong>Why This Day:</strong> ${weatherBestDay.reason}
+                </div>
+              </div>
+            `;
+            recommendationsElement.innerHTML = recommendationsHtml;
+          } else {
+            recommendationsElement.innerHTML = `
+              <div style="background: white; padding: 1rem; border-radius: 10px; margin-bottom: 1rem; border-left: 4px solid var(--warning-color);">
+                <h5 style="margin: 0 0 0.5rem 0; color: var(--warning-color);">
+                  ⚠️ Weather Data Unavailable for Tie-Breaking
+                </h5>
+                <div style="font-size: 0.8rem; color: #666;">
+                  Unable to use weather data to break the tie between ${tiedDays.length} days with equal availability.
+                </div>
+              </div>
+            `;
+          }
+        } catch (error) {
+          console.error('Error loading weather recommendations for tie-breaking:', error);
+          recommendationsElement.innerHTML = `
+            <div style="background: white; padding: 1rem; border-radius: 10px; margin-bottom: 1rem; border-left: 4px solid var(--warning-color);">
+              <h5 style="margin: 0 0 0.5rem 0; color: var(--warning-color);">
+                ⚠️ Error Loading Weather Data
+              </h5>
+              <div style="font-size: 0.8rem; color: #666;">
+                Unable to load weather data for tie-breaking. The first available day will be selected.
+              </div>
+            </div>
+          `;
+        }
+      } else {
+        // No tied votes or no activities, hide the entire weather recommendations section
+        const weatherRecommendationsDiv = document.getElementById(`weather-recommendations-${groupId}`);
+        if (weatherRecommendationsDiv) {
+          weatherRecommendationsDiv.style.display = 'none';
+        } else {
+          recommendationsElement.innerHTML = '';
+        }
+      }
+    }
+
+    // Function to recommend activities based on weather
+    async function recommendActivitiesForWeather(group) {
+      console.log(`🌤️ Starting weather recommendations for group:`, group.id);
+      
+      // If no activities, create general activity recommendations based on weather
+      let activitiesToUse = group.activities || [];
+      if (activitiesToUse.length === 0) {
+        console.log(`🌤️ No activities found, creating general recommendations`);
+        activitiesToUse = [
+          { name: "Outdoor Activity", category: "Outdoor", coordinates: null },
+          { name: "Indoor Activity", category: "Indoor", coordinates: null },
+          { name: "Restaurant", category: "Restaurant", coordinates: null },
+          { name: "Cafe", category: "Cafe", coordinates: null },
+          { name: "Entertainment", category: "Entertainment", coordinates: null }
+        ];
+      }
+      
+      try {
+        // Get location from group activities, user location, or group center
+        let lat, lng;
+        
+        // Try to get location from first activity
+        const firstActivity = group.activities && group.activities.length > 0 ? group.activities[0] : null;
+        console.log(`🌤️ First activity:`, firstActivity);
+        
+        if (firstActivity && firstActivity.coordinates) {
+          lat = firstActivity.coordinates.lat;
+          lng = firstActivity.coordinates.lng;
+          console.log(`🌤️ Using activity coordinates: lat=${lat}, lng=${lng}`);
+        } else {
+          // Try to get location from current user
+          const currentUser = DataLayer.load("currentUser");
+          console.log(`🌤️ Current user:`, currentUser);
+          
+          if (currentUser && currentUser.location) {
+            lat = currentUser.location.lat;
+            lng = currentUser.location.lng;
+            console.log(`🌤️ Using user location: lat=${lat}, lng=${lng}`);
+          } else {
+            // Calculate group center from member locations
+            const memberLocations = group.members.map(member => {
+              if (member.userId === currentUser.id) {
+                return currentUser.location;
+              } else {
+                const demoUser = DemoUsers.users[member.userId];
+                return demoUser ? demoUser.location : null;
+              }
+            }).filter(loc => loc !== null);
+            
+            console.log(`🌤️ Member locations:`, memberLocations);
+            
+            if (memberLocations.length > 0) {
+              const avgLat = memberLocations.reduce((sum, loc) => sum + loc.lat, 0) / memberLocations.length;
+              const avgLng = memberLocations.reduce((sum, loc) => sum + loc.lng, 0) / memberLocations.length;
+              lat = avgLat;
+              lng = avgLng;
+              console.log(`🌤️ Using group center: lat=${lat}, lng=${lng}`);
+            } else {
+              // Fallback to Waterloo if no location data available
+              lat = 43.4643;
+              lng = -80.5204;
+              console.log(`🌤️ Using fallback Waterloo: lat=${lat}, lng=${lng}`);
+            }
+          }
+        }
+        
+        // Get weather for today and next few days
+        const today = new Date();
+        const dates = [];
+        for (let i = 0; i < 3; i++) {
+          const date = new Date(today);
+          date.setDate(today.getDate() + i);
+          dates.push(date.toISOString().split('T')[0]);
+        }
+        
+        console.log(`🌤️ Getting weather for dates:`, dates);
+        const weatherData = await WeatherSystem.getWeatherForDays(lat, lng, dates);
+        console.log(`🌤️ Weather data received:`, weatherData);
+        
+        // Check if weatherData is valid
+        if (!weatherData || !Array.isArray(weatherData) || weatherData.length === 0) {
+          console.log(`🌤️ No valid weather data received`);
+          return null;
+        }
+        
+        const recommendations = [];
+        
+        for (let i = 0; i < weatherData.length; i++) {
+          const weather = weatherData[i];
+          console.log(`🌤️ Processing weather for day ${i}:`, weather);
+          
+          if (!weather) {
+            console.log(`🌤️ No weather data for day ${i}`);
+            continue;
+          }
+          
+          // Score each activity for this weather
+          const activityScores = activitiesToUse.map(activity => ({
+            activity: activity,
+            score: WeatherSystem.getActivityWeatherScore(activity, weather),
+            weather: weather
+          }));
+          
+          console.log(`🌤️ Activity scores for day ${i}:`, activityScores);
+          
+          // Sort by score and get top 2
+          activityScores.sort((a, b) => b.score - a.score);
+          const topActivities = activityScores.slice(0, 2);
+          
+          console.log(`🌤️ Top activities for day ${i}:`, topActivities);
+          
+          if (topActivities.length > 0 && weather) {
+            const date = new Date(today);
+            date.setDate(today.getDate() + i);
+            const recommendation = {
+              date: date,
+              dateString: date.toISOString().split('T')[0],
+              activities: topActivities,
+              weather: weather
+            };
+            recommendations.push(recommendation);
+            console.log(`🌤️ Added recommendation for day ${i}:`, recommendation);
+          } else {
+            console.log(`🌤️ Skipping recommendation for day ${i} - no activities or invalid weather data`);
+          }
+        }
+        
+        console.log(`🌤️ Final recommendations:`, recommendations);
+        return recommendations;
+      } catch (error) {
+        console.error('Error getting weather-based recommendations:', error);
+        return null;
+      }
+    }
+
+    function showAvailabilityModal(groupId) {
+      const groups = DataLayer.load("groups", []);
+      const group = groups.find((g) => g.id === groupId);
+      if (!group) return;
+
+      const currentUser = DataLayer.load("currentUser");
+      
+      // Check if all group members have premium access
+      const allMembersHavePremium = group.members.every(member => {
+        if (member.userId === currentUser.id) {
+          return currentUser.isPremium;
+        } else {
+          const demoUser = DemoUsers.users[member.userId];
+          return demoUser ? demoUser.isPremium : false;
+        }
+      });
+
+      // Check if all members have premium
+      if (!allMembersHavePremium) {
+        showPremiumUpgradeModal();
+        return;
+      }
+      const currentUserId = currentUser.id;
+      
+      // Initialize availability if not exists
+      if (!group.availability) {
+        group.availability = {};
+      }
+      
+      // Get current week dates (next 7 days)
+      const weekDates = [];
+      const today = new Date();
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() + i);
+        weekDates.push({
+          date: date,
+          dayName: date.toLocaleDateString('en-US', { weekday: 'long' }),
+          fullDate: date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+          dateString: date.toISOString().split('T')[0]
+        });
+      }
+
+      // Get current user's availability
+      const currentAvailability = group.availability[currentUserId] || [];
+
+      const modalHtml = `
+        <div id="availability-modal" class="modal">
+          <div class="modal-content" style="max-width: 600px;">
+            <button class="modal-close" onclick="closeAvailabilityModal()">&times;</button>
+            <div class="modal-header">
+              <h2 style="color: var(--primary-color);">📅 Set Your Availability</h2>
+            </div>
+            <div class="modal-body">
+              <p style="margin-bottom: 1.5rem; color: #666; font-size: 0.9rem;">
+                Select the days when you're available to meet with the group. This helps find the best time for everyone.
+              </p>
+              
+              <form id="availability-form" onsubmit="saveAvailability(event, ${groupId})">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                  ${weekDates.map(day => {
+                    const isSelected = currentAvailability.includes(day.dateString);
+                    return `
+                      <div style="
+                        border: 2px solid ${isSelected ? 'var(--primary-color)' : '#e0e0e0'};
+                        border-radius: 12px;
+                        padding: 1rem;
+                        background: ${isSelected ? 'rgba(74, 144, 226, 0.1)' : 'white'};
+                        cursor: pointer;
+                        transition: all 0.2s ease;
+                        text-align: center;
+                      " onclick="toggleDaySelection('${day.dateString}')">
+                        <input type="checkbox" 
+                               id="day-${day.dateString}" 
+                               value="${day.dateString}" 
+                               ${isSelected ? 'checked' : ''} 
+                               style="display: none;">
+                        <div style="font-weight: bold; color: var(--primary-color); margin-bottom: 0.5rem;">
+                          ${day.dayName}
+                        </div>
+                        <div style="font-size: 0.9rem; color: #666;">
+                          ${day.fullDate}
+                        </div>
+                        <div style="margin-top: 0.5rem; font-size: 0.8rem; color: ${isSelected ? 'var(--primary-color)' : '#999'};">
+                          ${isSelected ? '✓ Available' : 'Click to select'}
+                        </div>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+                
+                <div style="text-align: center; margin-top: 2rem;">
+                  <button type="submit" class="btn" style="background: var(--primary-gradient);">
+                    <i class="fas fa-save"></i> Save Availability
+                  </button>
+                  <button type="button" class="btn btn-secondary" onclick="closeAvailabilityModal()">
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      `;
+
+      document.body.insertAdjacentHTML("beforeend", modalHtml);
+      
+      // Add ESC and click-outside functionality
+      addModalListeners("availability-modal", closeAvailabilityModal);
+    }
+
+    function closeAvailabilityModal() {
+      const modal = document.getElementById("availability-modal");
+      if (modal) modal.remove();
+      // Re-enable body scrolling
+      document.body.classList.remove('modal-open');
+    }
+
+    function toggleDaySelection(dateString) {
+      const checkbox = document.getElementById(`day-${dateString}`);
+      const dayDiv = checkbox.parentElement;
+      
+      if (checkbox.checked) {
+        checkbox.checked = false;
+        dayDiv.style.borderColor = '#e0e0e0';
+        dayDiv.style.background = 'white';
+        dayDiv.querySelector('div:last-child').textContent = 'Click to select';
+        dayDiv.querySelector('div:last-child').style.color = '#999';
+      } else {
+        checkbox.checked = true;
+        dayDiv.style.borderColor = 'var(--primary-color)';
+        dayDiv.style.background = 'rgba(74, 144, 226, 0.1)';
+        dayDiv.querySelector('div:last-child').textContent = '✓ Available';
+        dayDiv.querySelector('div:last-child').style.color = 'var(--primary-color)';
+      }
+    }
+
+    async function saveAvailability(event, groupId) {
+      event.preventDefault();
+      
+      const groups = DataLayer.load("groups", []);
+      const groupIndex = groups.findIndex((g) => g.id === groupId);
+      if (groupIndex === -1) return;
+
+      const currentUser = DataLayer.load("currentUser");
+      const currentUserId = currentUser.id;
+      
+      // Get selected dates
+      const selectedDates = [];
+      const checkboxes = document.querySelectorAll('#availability-form input[type="checkbox"]:checked');
+      checkboxes.forEach(checkbox => {
+        selectedDates.push(checkbox.value);
+      });
+
+      // Store expansion state before updating
+      const content = document.getElementById(`group-content-${groupId}`);
+      const wasExpanded = content && content.style.maxHeight !== "0px" && content.style.maxHeight !== "";
+
+      // Update availability
+      if (!groups[groupIndex].availability) {
+        groups[groupIndex].availability = {};
+      }
+      groups[groupIndex].availability[currentUserId] = selectedDates;
+      
+      DataLayer.save("groups", groups);
+      closeAvailabilityModal();
+      
+      // Update only the specific group content instead of re-rendering all groups
+      await GroupsSystem.updateGroupContent(groupId);
+      
+      // Restore expansion state if it was expanded
+      if (wasExpanded) {
+        setTimeout(() => {
+          const newContent = document.getElementById(`group-content-${groupId}`);
+          const newIcon = document.getElementById(`expand-icon-${groupId}`);
+          if (newContent && newIcon) {
+            newContent.style.maxHeight = newContent.scrollHeight + "px";
+            newIcon.style.transform = "rotate(180deg)";
+          }
+        }, 100); // Small delay to ensure DOM is updated
+      }
+      
+      NotificationSystem.show("Availability updated successfully!", "success");
+    }
+
     function regenerateItinerary(groupId) {
       if (
         confirm(
@@ -3743,7 +4789,7 @@ Only return the JSON, no additional text.`;
       document.body.classList.remove('modal-open');
     }
 
-    function updateActivity(event, groupId, dayIndex, activityIndex) {
+    async function updateActivity(event, groupId, dayIndex, activityIndex) {
       event.preventDefault();
 
       const groups = DataLayer.load("groups", []);
@@ -3766,7 +4812,7 @@ Only return the JSON, no additional text.`;
       closeAIEditModal();
       
       // Update only the specific group content instead of re-rendering all groups
-      GroupsSystem.updateGroupContent(groupId);
+      await GroupsSystem.updateGroupContent(groupId);
       
       // Restore expansion state if it was expanded
       if (wasExpanded) {
@@ -3847,7 +4893,7 @@ Only return the JSON, no additional text.`;
       return rescheduled;
     }
 
-    function deleteActivity(groupId, dayIndex, activityIndex) {
+    async function deleteActivity(groupId, dayIndex, activityIndex) {
       if (!confirm("Are you sure you want to delete this activity?")) return;
 
       const groups = DataLayer.load("groups", []);
@@ -3870,7 +4916,7 @@ Only return the JSON, no additional text.`;
       DataLayer.save("groups", groups);
       
       // Update only the specific group content instead of re-rendering all groups
-      GroupsSystem.updateGroupContent(groupId);
+      await GroupsSystem.updateGroupContent(groupId);
       
       // Restore expansion state if it was expanded
       if (wasExpanded) {
@@ -4357,6 +5403,28 @@ Only return the JSON, no additional text.`;
           return;
         }
 
+        // Ensure current user has location data
+        if (!currentUser.location) {
+          console.log(`🌤️ Current user has no location, attempting to get it...`);
+          // Try to get user's location if not already set
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+              (position) => {
+                currentUser.location = {
+                  lat: position.coords.latitude,
+                  lng: position.coords.longitude
+                };
+                DataLayer.save("currentUser", currentUser);
+                console.log(`🌤️ Updated current user location:`, currentUser.location);
+              },
+              (error) => {
+                console.log(`🌤️ Could not get user location:`, error.message);
+                // Keep default location
+              }
+            );
+          }
+        }
+
         const group = {
           id: Date.now(),
           name: name.trim(),
@@ -4700,6 +5768,14 @@ Only return the JSON, no additional text.`;
                 </div>
               </div>
 
+              <!-- Group Scheduling Section -->
+              <div id="scheduling-placeholder-${group.id}" style="margin-top: 2rem; padding: 1.5rem; background: linear-gradient(135deg, rgba(74, 144, 226, 0.05) 0%, rgba(160, 200, 240, 0.05) 100%); border-radius: 15px; border: 2px solid rgba(74, 144, 226, 0.2);">
+                <div style="text-align: center; color: #666;">
+                  <i class="fas fa-spinner fa-spin" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
+                  <p>Loading scheduling information...</p>
+                </div>
+              </div>
+
               <!-- AI Itinerary Section -->
               ${renderAIItinerary(group)}
 
@@ -4829,6 +5905,26 @@ Only return the JSON, no additional text.`;
       `;
           })
           .join("");
+          
+        // Load scheduling sections asynchronously after groups are rendered
+        setTimeout(() => {
+          groups.forEach(group => {
+            const placeholder = document.getElementById(`scheduling-placeholder-${group.id}`);
+            if (placeholder) {
+              renderGroupScheduling(group).then(schedulingHtml => {
+                placeholder.outerHTML = schedulingHtml;
+                
+                // Load weather recommendations after scheduling is loaded
+                setTimeout(() => {
+                  loadWeatherRecommendations(group.id);
+                }, 100);
+              }).catch(error => {
+                console.error('Error rendering group scheduling:', error);
+                placeholder.innerHTML = '<p style="color: #666; text-align: center;">Unable to load scheduling information.</p>';
+              });
+            }
+          });
+        }, 100);
       },
     };
 
@@ -4873,7 +5969,7 @@ Only return the JSON, no additional text.`;
       GroupsSystem.updateGroupContent(groupId);
     };
 
-    GroupsSystem.updateGroupContent = function (groupId) {
+    GroupsSystem.updateGroupContent = async function (groupId) {
       const groups = DataLayer.load("groups", []);
       const group = groups.find((g) => g.id === groupId);
       if (!group) return;
@@ -5005,6 +6101,23 @@ Only return the JSON, no additional text.`;
       if (aiItinerarySection && group.aiItinerary) {
         aiItinerarySection.innerHTML = renderAIItinerary(group);
       }
+
+              // Update group scheduling section if it exists
+        const groupSchedulingSection = groupContent.querySelector('.group-scheduling-section');
+        if (groupSchedulingSection) {
+          // Render the scheduling section asynchronously
+          renderGroupScheduling(group).then(schedulingHtml => {
+            groupSchedulingSection.innerHTML = schedulingHtml;
+            
+            // Load weather recommendations after updating the scheduling section
+            setTimeout(() => {
+              loadWeatherRecommendations(group.id);
+            }, 100);
+          }).catch(error => {
+            console.error('Error rendering group scheduling:', error);
+            groupSchedulingSection.innerHTML = '<p style="color: #666;">Unable to load scheduling information.</p>';
+          });
+        }
 
       // If the group was expanded, maintain the expanded state
       if (isExpanded) {
@@ -5899,6 +7012,28 @@ Only return the JSON, no additional text.`;
         )}</div>
         <div style="color: #666; font-style: italic;">"${personalityType.description
         }"</div>
+      </div>
+    </div>
+
+    <div class="location-info" style="margin-bottom: 2rem; padding: 1rem; background: rgba(74, 144, 226, 0.1); border-radius: 10px;">
+      <h4 style="margin: 0 0 0.5rem 0; color: var(--primary-color);">
+        <i class="fas fa-map-marker-alt"></i> Your Location
+      </h4>
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <div style="flex: 1;">
+          <div style="font-size: 0.9rem; color: #666;">
+            ${currentUser.location ? 
+              `Latitude: ${currentUser.location.lat.toFixed(4)}, Longitude: ${currentUser.location.lng.toFixed(4)}` : 
+              'Location not set'
+            }
+          </div>
+          <div style="font-size: 0.8rem; color: #888; margin-top: 0.2rem;">
+            This location is used for weather-based activity recommendations
+          </div>
+        </div>
+        <button class="btn btn-secondary" onclick="updateUserLocation()" style="font-size: 0.8rem; padding: 8px 16px;">
+          <i class="fas fa-location-arrow"></i> Update Location
+        </button>
       </div>
     </div>
 
