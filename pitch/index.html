@@ -1273,9 +1273,19 @@
           </div>
 
           <div class="form-group">
-            <label for="activity-location"><i class="fas fa-location-dot"></i> Location</label>
-            <input type="text" id="activity-location" class="form-control"
-              placeholder="e.g., Downtown, Brooklyn, Central Mall" />
+            <label for="activity-location"><i class="fas fa-location-dot"></i> Location *</label>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <input type="text" id="activity-location" class="form-control" required
+                placeholder="e.g., Downtown, Brooklyn, Central Mall" style="flex: 1;" />
+              <button type="button" id="use-current-location-btn" class="btn btn-secondary" 
+                      style="white-space: nowrap; padding: 14px 16px; font-size: 0.9rem;"
+                      onclick="useCurrentLocation()">
+                <i class="fas fa-crosshairs"></i> Use Current Location
+              </button>
+            </div>
+            <div style="font-size: 0.8rem; color: #666; margin-top: 0.5rem;">
+              <i class="fas fa-info-circle"></i> We'll use your location to provide better recommendations and help others find places near you.
+            </div>
           </div>
 
           <div class="form-group">
@@ -1365,6 +1375,9 @@
           <button class="filter-tab" onclick="FeedSystem.setFilter('recent')">
             Recent
           </button>
+          <button class="filter-tab" onclick="FeedSystem.setFilter('nearby')" id="nearby-filter-btn">
+            <i class="fas fa-map-marker-alt"></i> Near Me
+          </button>
         </div>
 
         <div id="feed-content">
@@ -1385,9 +1398,36 @@
         </div>
 
         <div class="centered">
-          <button class="btn" onclick="showCreateGroupModal()">
+          <button class="btn" onclick="showCreateGroupModal()" id="create-group-btn">
             <i class="fas fa-users"></i> Create New Group
           </button>
+        </div>
+
+        <!-- Group Usage Display -->
+        <div id="group-usage-display" style="
+          background: rgba(74, 144, 226, 0.1); 
+          padding: 1rem; 
+          border-radius: 10px; 
+          margin: 1rem 0; 
+          text-align: center;
+        ">
+          <div style="display: flex; justify-content: center; align-items: center; gap: 1rem; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <i class="fas fa-users" style="color: var(--secondary-color);"></i>
+              <span style="font-weight: bold;">Groups This Month:</span>
+              <span id="group-usage-text" style="
+                background: var(--primary-color); 
+                color: white; 
+                padding: 0.2rem 0.6rem; 
+                border-radius: 12px; 
+                font-size: 0.9rem;
+              ">Loading...</span>
+            </div>
+            <div id="premium-status-display" style="display: flex; align-items: center; gap: 0.5rem;">
+              <i class="fas fa-crown" style="color: #FFD700;"></i>
+              <span id="premium-status-text" style="font-size: 0.9rem; color: #666;">Loading...</span>
+            </div>
+          </div>
         </div>
 
         <div id="groups-content">
@@ -1411,6 +1451,11 @@
 
   <!-- JavaScript remains unchanged -->
   <script>
+
+     // AI Premium Feature Configuration
+    const AI_PREMIUM_ENABLED = false; // Set to false to disable premium features
+
+    
     // Function to handle rating a place from the community feed
     function ratePlace(name, category, location, description) {
       // Pre-fill the activity form
@@ -1792,6 +1837,12 @@
         currentUser.adjustmentFactor = scores.adjustmentFactor;
         currentUser.personalityType = personality.type;
         currentUser.avatar = personality.type.charAt(0);
+        
+        // Set default location to Waterloo center if not already set
+        if (!currentUser.location) {
+          currentUser.location = { lat: 43.4643, lng: -80.5204 }; // Waterloo University District
+        }
+        
         DataLayer.save("currentUser", currentUser);
 
         // Remove the assessment tab completely
@@ -1806,7 +1857,7 @@
       },
     };
 
-    // Demo users with sample data
+    // Demo users with sample data - All based in Waterloo, Ontario
     const DemoUsers = {
       users: {
         1: {
@@ -1817,6 +1868,7 @@
           personalityType: "Strong Extrovert",
           bio: "Love meeting new people and trying exciting venues!",
           avatar: "AC",
+          location: { lat: 43.4643, lng: -80.5204 }, // Waterloo University District
         },
         2: {
           id: 2,
@@ -1826,6 +1878,7 @@
           personalityType: "Moderate Extrovert",
           bio: "Enjoy good company in comfortable settings.",
           avatar: "SR",
+          location: { lat: 43.4719, lng: -80.5250 }, // Waterloo Downtown
         },
         3: {
           id: 3,
@@ -1835,6 +1888,7 @@
           personalityType: "Slight Introvert",
           bio: "Quality over quantity when it comes to social time.",
           avatar: "JP",
+          location: { lat: 43.4583, lng: -80.5204 }, // Waterloo South
         },
         4: {
           id: 4,
@@ -1844,6 +1898,7 @@
           personalityType: "Moderate Introvert",
           bio: "Love peaceful places and meaningful conversations.",
           avatar: "RT",
+          location: { lat: 43.4700, lng: -80.5150 }, // Waterloo North
         },
         5: {
           id: 5,
@@ -1853,6 +1908,7 @@
           personalityType: "Strong Introvert",
           bio: "Finding energy in quiet, contemplative spaces.",
           avatar: "CW",
+          location: { lat: 43.4667, lng: -80.5300 }, // Waterloo West
         },
         6: {
           id: 6,
@@ -1862,19 +1918,20 @@
           personalityType: "Ambivert",
           bio: "Adaptable to different social situations and moods.",
           avatar: "TK",
+          location: { lat: 43.4625, lng: -80.5250 }, // Waterloo East
         },
       },
 
-      // Sample experiences from demo users
+      // Sample experiences from demo users - Waterloo, Ontario locations
       experiences: [
         {
           id: 1,
           userId: 1,
-          name: "Rooftop Lounge 21",
+          name: "Phil's Grandson's Place",
           category: "Bar/Pub",
-          location: "Downtown",
+          location: "Waterloo Downtown",
           description:
-            "Amazing rooftop bar with live DJ and city views. Great crowd, everyone was dancing!",
+            "Popular student bar with great atmosphere and live music. Perfect for group outings!",
           responses: {
             energy: 9,
             social: 8,
@@ -1888,13 +1945,14 @@
           socialIntensity: 8.5,
           noiseLevel: 7.5,
           crowdSize: 8.0,
+          coordinates: { lat: 43.4719, lng: -80.5250 }, // Waterloo Downtown
         },
         {
           id: 2,
           userId: 2,
-          name: "The Coffee Corner",
+          name: "Balzac's Coffee",
           category: "Cafe",
-          location: "University District",
+          location: "Waterloo University District",
           description:
             "Cozy cafe with great atmosphere for studying and casual meetings. Perfect background music.",
           responses: {
@@ -1910,13 +1968,14 @@
           socialIntensity: 3.5,
           noiseLevel: 2.5,
           crowdSize: 4.0,
+          coordinates: { lat: 43.4643, lng: -80.5204 }, // Waterloo University District
         },
         {
           id: 3,
           userId: 3,
-          name: "Modern Art Museum",
+          name: "Clay and Glass Gallery",
           category: "Museum/Gallery",
-          location: "Arts District",
+          location: "Waterloo Arts District",
           description:
             "Beautiful contemporary art exhibition. Peaceful environment, perfect for reflection.",
           responses: {
@@ -1932,13 +1991,14 @@
           socialIntensity: 2.0,
           noiseLevel: 1.5,
           crowdSize: 3.0,
+          coordinates: { lat: 43.4583, lng: -80.5204 }, // Waterloo South
         },
         {
           id: 4,
           userId: 4,
-          name: "Quiet Garden Restaurant",
+          name: "The Bauer Kitchen",
           category: "Restaurant",
-          location: "Suburbs",
+          location: "Waterloo North",
           description:
             "Intimate restaurant with outdoor seating. Perfect for deep conversations with close friends.",
           responses: {
@@ -1954,13 +2014,14 @@
           socialIntensity: 4.0,
           noiseLevel: 2.0,
           crowdSize: 3.5,
+          coordinates: { lat: 43.4700, lng: -80.5150 }, // Waterloo North
         },
         {
           id: 5,
           userId: 5,
-          name: "Central Library",
+          name: "Waterloo Public Library",
           category: "Library/Study",
-          location: "Downtown",
+          location: "Waterloo Downtown",
           description:
             "Peaceful reading space with beautiful architecture. Perfect for solo work and reflection.",
           responses: {
@@ -1976,13 +2037,14 @@
           socialIntensity: 1.0,
           noiseLevel: 1.0,
           crowdSize: 2.0,
+          coordinates: { lat: 43.4719, lng: -80.5250 }, // Waterloo Downtown
         },
         {
           id: 6,
           userId: 6,
-          name: "Sports Bar Central",
+          name: "Molly Bloom's Irish Pub",
           category: "Bar/Pub",
-          location: "Entertainment District",
+          location: "Waterloo Entertainment District",
           description:
             "Lively sports bar with big screens and enthusiastic crowd. Great game night atmosphere!",
           responses: {
@@ -1998,13 +2060,14 @@
           socialIntensity: 7.0,
           noiseLevel: 8.0,
           crowdSize: 7.5,
+          coordinates: { lat: 43.4667, lng: -80.5300 }, // Waterloo West
         },
         {
           id: 7,
           userId: 1,
-          name: "Underground Dance Club",
+          name: "Beta Nightclub",
           category: "Nightclub",
-          location: "City Center",
+          location: "Waterloo City Center",
           description:
             "High-energy club with amazing sound system and packed dance floor. Pure energy!",
           responses: {
@@ -2020,13 +2083,14 @@
           socialIntensity: 10.0,
           noiseLevel: 9.5,
           crowdSize: 9.0,
+          coordinates: { lat: 43.4625, lng: -80.5250 }, // Waterloo East
         },
         {
           id: 8,
           userId: 5,
-          name: "Botanical Garden",
+          name: "Waterloo Park",
           category: "Park/Outdoor",
-          location: "North Side",
+          location: "Waterloo Park District",
           description:
             "Serene garden with beautiful flowers and quiet walking paths. So peaceful and restorative.",
           responses: {
@@ -2042,6 +2106,7 @@
           socialIntensity: 1.5,
           noiseLevel: 1.0,
           crowdSize: 2.5,
+          coordinates: { lat: 43.4700, lng: -80.5150 }, // Waterloo North
         },
       ],
     };
@@ -2217,9 +2282,9 @@
           .getElementById("activity-description")
           .value.trim();
 
-        if (!name || !category) {
+        if (!name || !category || !location) {
           NotificationSystem.show(
-            "Please fill in all required fields.",
+            "Please fill in all required fields including location.",
             "warning"
           );
           return;
@@ -2276,7 +2341,30 @@
           socialIntensity,
           noiseLevel,
           crowdSize,
+          coordinates: null, // Will be set if location is available
         };
+
+        // Try to get coordinates for the location if user has location access
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              experience.coordinates = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude
+              };
+              // Update the saved experience with coordinates
+              const userExperiences = DataLayer.load("userExperiences", []);
+              const expIndex = userExperiences.findIndex(exp => exp.id === experience.id);
+              if (expIndex !== -1) {
+                userExperiences[expIndex] = experience;
+                DataLayer.save("userExperiences", userExperiences);
+              }
+            },
+            (error) => {
+              console.log("Could not get coordinates for experience:", error.message);
+            }
+          );
+        }
 
         // Save experience
         DataLayer.push("userExperiences", experience);
@@ -2497,8 +2585,42 @@
     };
 
     function fillActivityForm(name, category, location, description = "") {
+      console.log("fillActivityForm called with:", name, category, location);
+      
+      // Close nearby modal if it's open - multiple approaches to ensure it closes
+      const nearbyModal = document.getElementById("nearby-modal");
+      console.log("Found nearby modal:", nearbyModal);
+      
+      if (nearbyModal) {
+        console.log("Attempting to close modal...");
+        // Try multiple methods to ensure modal closes
+        nearbyModal.style.display = 'none';
+        nearbyModal.style.visibility = 'hidden';
+        nearbyModal.style.opacity = '0';
+        nearbyModal.remove();
+        console.log("Modal removal attempted");
+      }
+      
+      // Also try to close any modal with class 'modal'
+      const allModals = document.querySelectorAll('.modal');
+      console.log("Found", allModals.length, "modals with .modal class");
+      allModals.forEach((modal, index) => {
+        console.log("Closing modal", index);
+        modal.style.display = 'none';
+        modal.style.visibility = 'hidden';
+        modal.style.opacity = '0';
+        modal.remove();
+      });
+      
+      // Force a reflow
+      document.body.offsetHeight;
+      
+      // Small delay to ensure modal is removed before page switch
+      setTimeout(() => {
+        console.log("Switching to activities page");
       // Switch to activities page
       showPage("activities");
+      }, 200);
 
       // Pre-fill the form
       setTimeout(() => {
@@ -2517,6 +2639,124 @@
           "info"
         );
       }, 100);
+    }
+
+    // Function to format date with full month name
+    function formatFullDate(dateString) {
+      const date = new Date(dateString);
+      const months = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+      ];
+      const month = months[date.getMonth()];
+      const day = date.getDate();
+      const year = date.getFullYear();
+      return `${month} ${day}, ${year}`;
+    }
+
+    // Helper function to add ESC and click-outside functionality to modals
+    function addModalListeners(modalId, closeFunction) {
+      // Add ESC key listener
+      const handleEscKey = (event) => {
+        if (event.key === 'Escape') {
+          closeFunction();
+          document.removeEventListener('keydown', handleEscKey);
+        }
+      };
+      document.addEventListener('keydown', handleEscKey);
+      
+      // Add click outside to close
+      const modal = document.getElementById(modalId);
+      if (modal) {
+        // Simple click outside detection
+        modal.addEventListener('click', (event) => {
+          if (event.target === modal) {
+            closeFunction();
+            document.removeEventListener('keydown', handleEscKey);
+          }
+        });
+      }
+    }
+
+    // Function to calculate distance between two coordinates (Haversine formula)
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371; // Radius of the Earth in kilometers
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = 
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      const distance = R * c; // Distance in kilometers
+      return distance;
+    }
+
+    // Function to calculate group's central location
+    function calculateGroupCenter(group) {
+      const members = group.members;
+      let totalLat = 0;
+      let totalLng = 0;
+      let validLocations = 0;
+
+      members.forEach(member => {
+        if (member.location) {
+          totalLat += member.location.lat;
+          totalLng += member.location.lng;
+          validLocations++;
+        } else {
+          // Fallback to demo user location if not in group data
+          const user = DemoUsers.users[member.userId];
+          if (user && user.location) {
+            totalLat += user.location.lat;
+            totalLng += user.location.lng;
+            validLocations++;
+          }
+        }
+      });
+
+      if (validLocations === 0) {
+        // Default to Waterloo center if no locations available
+        return { lat: 43.4643, lng: -80.5204 };
+      }
+
+      return {
+        lat: totalLat / validLocations,
+        lng: totalLng / validLocations
+      };
+    }
+
+    // Function to get location-based group recommendations
+    function getGroupLocationRecommendations(groupId) {
+      const groups = DataLayer.load("groups", []);
+      const group = groups.find(g => g.id === groupId);
+      if (!group) return;
+
+      const groupCenter = calculateGroupCenter(group);
+      const allExperiences = ActivitySystem.getAllExperiences();
+      
+      // Calculate distance from group center for each experience
+      const experiencesWithDistance = allExperiences.map(exp => {
+        if (exp.coordinates) {
+          const distance = calculateDistance(
+            groupCenter.lat, groupCenter.lng,
+            exp.coordinates.lat, exp.coordinates.lng
+          );
+          return { ...exp, distanceFromGroup: distance };
+        }
+        return { ...exp, distanceFromGroup: Infinity };
+      });
+
+      // Filter experiences within 25km of group center and sort by distance
+      const nearbyExperiences = experiencesWithDistance
+        .filter(exp => exp.distanceFromGroup <= 25)
+        .sort((a, b) => a.distanceFromGroup - b.distanceFromGroup)
+        .slice(0, 10);
+
+      return {
+        groupCenter,
+        recommendations: nearbyExperiences
+      };
     }
 
     // Feed System
@@ -2545,6 +2785,174 @@
           .getElementById("feed-search")
           .value.toLowerCase();
         FeedSystem.displayFeed();
+      },
+
+      displayFilteredExperiences: (experiences, filterType) => {
+        const personalityData = DataLayer.load("personalityScore");
+        const userExperiences = DataLayer.load("userExperiences", []);
+        const userExperienceNames = userExperiences.map((exp) =>
+          exp.name.toLowerCase()
+        );
+
+        // Sort by timestamp (newest first)
+        experiences.sort(
+          (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
+        );
+
+        const feedContent = document.getElementById("feed-content");
+
+        if (experiences.length === 0) {
+          if (filterType === "nearby") {
+            feedContent.innerHTML = `
+              <div class="empty-state">
+                <h3>No nearby experiences found</h3>
+                <p>Try expanding your search radius or check if you have location access enabled.</p>
+                <div style="margin-top: 1rem;">
+                  <button class="btn btn-secondary" onclick="FeedSystem.setFilter('all')">
+                    <i class="fas fa-globe"></i> Show All Experiences
+                  </button>
+                </div>
+              </div>
+            `;
+          } else {
+            feedContent.innerHTML = `
+              <div class="empty-state">
+                <h3>No activities found</h3>
+                <p>Try adjusting your search or filters to see more results.</p>
+              </div>
+            `;
+          }
+          return;
+        }
+
+        // Add location info for nearby filter
+        let locationInfo = "";
+        if (filterType === "nearby") {
+          locationInfo = `
+            <div style="background: rgba(74, 144, 226, 0.1); padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem;">
+              <p style="margin: 0; font-size: 0.9rem; color: #666;">
+                <i class="fas fa-map-marker-alt"></i> 
+                Showing ${experiences.length} experiences within 50km of your location. Sorted by distance.
+              </p>
+            </div>
+          `;
+        }
+
+        feedContent.innerHTML = locationInfo + experiences
+          .map((exp) => {
+            const user =
+              exp.userId === "user-main"
+                ? DataLayer.load("currentUser")
+                : DemoUsers.users[exp.userId];
+
+            if (!user) return "";
+
+            // Check if user has been to this place
+            const hasBeenThere = userExperienceNames.includes(
+              exp.name.toLowerCase()
+            );
+            const isFriend = FriendsSystem.isFriend(exp.userId);
+
+            // Calculate prediction for current user
+            let predictionHtml = "";
+            if (personalityData && exp.userId !== "user-main") {
+              const prediction = ActivitySystem.predictRating(
+                personalityData.adjustmentFactor,
+                exp,
+                user.adjustmentFactor,
+                exp.rawScore
+              );
+
+              predictionHtml = `
+                <div class="prediction-card">
+                  <div class="prediction-score">Predicted for you: ${prediction.prediction.toFixed(
+                    1
+                  )}/10</div>
+                  <div class="prediction-confidence">Confidence: ${(
+                    prediction.confidence * 100
+                  ).toFixed(0)}%</div>
+                </div>
+              `;
+            }
+
+            // Add distance info for nearby filter
+            let distanceInfo = "";
+            if (filterType === "nearby" && exp.coordinates) {
+              // Get user's current location to calculate distance
+              if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                  (position) => {
+                    const distance = calculateDistance(
+                      position.coords.latitude, position.coords.longitude,
+                      exp.coordinates.lat, exp.coordinates.lng
+                    );
+                    // Update the distance display for this experience
+                    const distanceElement = document.getElementById(`distance-${exp.id}`);
+                    if (distanceElement) {
+                      distanceElement.textContent = `${distance.toFixed(1)}km away`;
+                    }
+                  }
+                );
+              }
+              distanceInfo = `<div id="distance-${exp.id}" style="font-size: 0.8rem; color: var(--secondary-color); margin-top: 0.3rem;">Calculating distance...</div>`;
+            }
+
+            // Add friend status and rate button
+            let actionButtons = "";
+            if (exp.userId !== "user-main") {
+              if (!isFriend) {
+                actionButtons += `
+                  <button class="btn btn-secondary" style="font-size: 0.8rem; padding: 6px 12px; margin-right: 0.5rem;"
+                          onclick="FriendsSystem.addFriend(${exp.userId})">
+                    Add Friend
+                  </button>
+                `;
+              } else {
+                actionButtons += `
+                  <span style="background: #f8f9fa; color: var(--primary-color); font-size: 0.8rem; font-weight: bold; padding: 4px 8px; border-radius: 12px; border: 1px solid var(--primary-color); display: inline-block; margin-right: 0.5rem;">✓ Friend</span>
+                `;
+              }
+
+              if (!hasBeenThere) {
+                actionButtons += `
+                  <button class="btn" style="font-size: 0.8rem; padding: 6px 12px;"
+                          onclick="fillActivityForm('${exp.name}', '${exp.category}', '${exp.location}', '${exp.description.replace(/'/g, "\\'")}')">
+                    Rate This Place
+                  </button>
+                `;
+              }
+            }
+
+            return `
+              <div class="feed-item">
+                <div class="feed-header">
+                  <div class="feed-avatar">${user.avatar}</div>
+                  <div class="feed-user-info">
+                    <h4>${user.displayName} ${isFriend ? '<span style="color: var(--primary-color);">★</span>' : ""}</h4>
+                    <div class="personality-type">${user.personalityType || "Unknown Type"}</div>
+                    <div class="feed-timestamp" title="${formatFullDate(exp.timestamp)}" style="cursor: help;">
+                  ${new Date(exp.timestamp).toLocaleDateString()}
+                </div>
+                  </div>
+                </div>
+                <div class="feed-content">
+                  <h3>${exp.name} ${hasBeenThere ? '<span style="color: var(--primary-color);">✓ Visited</span>' : ""}</h3>
+                  <div class="activity-category">${exp.category} • ${exp.location}</div>
+                  ${exp.description ? `<p style="margin: 0.5rem 0; color: #666;">"${exp.description}"</p>` : ""}
+                  <div class="feed-rating">Rated: ${exp.adjustedScore}/10</div>
+                  <div style="font-size: 0.9rem; color: #888; margin-top: 0.5rem;">
+                    Social Intensity: ${exp.socialIntensity.toFixed(1)}/10 |
+                    Noise Level: ${exp.noiseLevel.toFixed(1)}/10 |
+                    Crowd Size: ${exp.crowdSize.toFixed(1)}/10
+                  </div>
+                  ${distanceInfo}
+                  ${predictionHtml}
+                  ${actionButtons ? `<div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #eee;">${actionButtons}</div>` : ""}
+                </div>
+              </div>
+            `;
+          })
+          .join("");
       },
 
       displayFeed: () => {
@@ -2593,6 +3001,58 @@
               new Date(exp.timestamp) > oneWeekAgo ||
               exp.userId === "user-main"
           );
+        } else if (FeedSystem.currentFilter === "nearby") {
+          // Get user's current location and filter by actual distance
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+              (position) => {
+                const userLat = position.coords.latitude;
+                const userLng = position.coords.longitude;
+                
+                // Filter experiences by actual distance (within 50km)
+                const nearbyExperiences = filteredExperiences.filter((exp) => {
+                  if (!exp.coordinates) return false;
+                  
+                  const distance = calculateDistance(
+                    userLat, userLng,
+                    exp.coordinates.lat, exp.coordinates.lng
+                  );
+                  
+                  return distance <= 50; // Within 50km
+                });
+                
+                // Sort by distance
+                nearbyExperiences.sort((a, b) => {
+                  const distanceA = calculateDistance(
+                    userLat, userLng,
+                    a.coordinates.lat, a.coordinates.lng
+                  );
+                  const distanceB = calculateDistance(
+                    userLat, userLng,
+                    b.coordinates.lat, b.coordinates.lng
+                  );
+                  return distanceA - distanceB;
+                });
+                
+                // Update the feed with nearby experiences
+                FeedSystem.displayFilteredExperiences(nearbyExperiences, "nearby");
+              },
+              (error) => {
+                console.error('Error getting location for nearby filter:', error);
+                // Fallback: show experiences with location data
+                const locationExperiences = filteredExperiences.filter(
+                  (exp) => exp.location && exp.location !== "Not specified"
+                );
+                FeedSystem.displayFilteredExperiences(locationExperiences, "nearby");
+              }
+            );
+            return; // Exit early since we're handling the display asynchronously
+          } else {
+            // Fallback: show experiences with location data
+            filteredExperiences = filteredExperiences.filter(
+              (exp) => exp.location && exp.location !== "Not specified"
+            );
+          }
         }
 
         // Sort by timestamp (newest first)
@@ -2661,7 +3121,7 @@
           `;
               } else {
                 actionButtons += `
-            <span style="background: #f8f9fa; color: var(--primary-color); font-size: 0.8rem; font-weight: bold; padding: 4px 8px; border-radius: 12px; border: 1px solid var(--primary-color);">✓ Friend</span>
+                  <span style="background: #f8f9fa; color: var(--primary-color); font-size: 0.8rem; font-weight: bold; padding: 4px 8px; border-radius: 12px; border: 1px solid var(--primary-color); display: inline-block; margin-right: 0.5rem;">✓ Friend</span>
           `;
               }
 
@@ -2688,9 +3148,9 @@
               }</h4>
               <div class="personality-type">${user.personalityType || "Unknown Type"
               }</div>
-              <div class="feed-timestamp">${new Date(
-                exp.timestamp
-              ).toLocaleDateString()}</div>
+              <div class="feed-timestamp" title="${formatFullDate(exp.timestamp)}" style="cursor: help;">
+                ${new Date(exp.timestamp).toLocaleDateString()}
+              </div>
             </div>
           </div>
           <div class="feed-content">
@@ -2722,8 +3182,7 @@
           .join("");
       },
     };
-    // AI Premium Feature Configuration
-    const AI_PREMIUM_ENABLED = true; // Set to false to disable premium features
+   
 
     // AI Itinerary Generator
     const AIItineraryGenerator = {
@@ -2946,6 +3405,9 @@ Only return the JSON, no additional text.`;
   `;
 
       document.body.insertAdjacentHTML("beforeend", modalHtml);
+      
+      // Add ESC and click-outside functionality
+      addModalListeners("ai-premium-modal", closeAIPremiumModal);
     }
 
     function closeAIPremiumModal() {
@@ -3231,6 +3693,9 @@ Only return the JSON, no additional text.`;
   `;
 
       document.body.insertAdjacentHTML("beforeend", modalHtml);
+      
+      // Add ESC and click-outside functionality
+      addModalListeners("ai-edit-modal", closeAIEditModal);
     }
 
     function closeAIEditModal() {
@@ -3391,11 +3856,171 @@ Only return the JSON, no additional text.`;
   `;
 
       document.body.insertAdjacentHTML("beforeend", modalHtml);
+      
+      // Add ESC and click-outside functionality
+      addModalListeners("ai-assistant-modal", closeAIAssistantModal);
     }
 
     function closeAIAssistantModal() {
       const modal = document.getElementById("ai-assistant-modal");
       if (modal) modal.remove();
+    }
+
+    function showGroupLocationRecommendations(groupId) {
+      const recommendations = getGroupLocationRecommendations(groupId);
+      if (!recommendations || recommendations.recommendations.length === 0) {
+        NotificationSystem.show("No nearby places found for this group.", "warning");
+        return;
+      }
+
+      const modalHtml = `
+        <div id="group-location-modal" class="modal">
+          <div class="modal-content" style="max-width: 700px;">
+            <button class="modal-close" onclick="closeGroupLocationModal()">&times;</button>
+            <div class="modal-header">
+              <h2 style="color: var(--secondary-color); display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-map-marker-alt"></i> Places Near Your Group
+              </h2>
+            </div>
+            <div class="modal-body">
+              <div style="background: rgba(74, 144, 226, 0.1); padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem;">
+                <h4 style="margin: 0 0 0.5rem 0; color: var(--secondary-color);">📍 Group Center</h4>
+                <p style="margin: 0; font-size: 0.9rem; color: #666;">
+                  Based on the average location of all group members in Waterloo, Ontario
+                </p>
+              </div>
+
+              <div style="display: grid; gap: 1rem;">
+                ${recommendations.recommendations.map((place, index) => `
+                  <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border: 1px solid #eee; border-radius: 8px; background: white;">
+                    <div style="flex: 1;">
+                      <div style="font-weight: bold; margin-bottom: 0.3rem; color: var(--primary-color);">${place.name}</div>
+                      <div style="font-size: 0.8rem; color: #666; margin-bottom: 0.3rem;">${place.category} • ${place.location}</div>
+                      <div style="font-size: 0.8rem; color: #888;">
+                        <i class="fas fa-map-marker-alt"></i> ${place.distanceFromGroup.toFixed(1)} km from group center
+                      </div>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                      <div style="text-align: center; margin-right: 1rem;">
+                        <div style="font-size: 0.9rem; font-weight: bold; color: var(--secondary-color);">${place.adjustedScore.toFixed(1)}</div>
+                        <div style="font-size: 0.7rem; color: #666;">Rating</div>
+                      </div>
+                      <button class="btn" style="font-size: 0.8rem; padding: 6px 12px;" 
+                              onclick="fillActivityForm('${place.name}', '${place.category}', '${place.location}', '${place.description}')">
+                        Rate This Place
+                      </button>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+
+              <div style="text-align: center; margin-top: 2rem;">
+                <button type="button" class="btn btn-secondary" onclick="closeGroupLocationModal()">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      document.body.insertAdjacentHTML('beforeend', modalHtml);
+      
+      // Add ESC and click-outside functionality
+      addModalListeners("group-location-modal", closeGroupLocationModal);
+    }
+
+    function closeGroupLocationModal() {
+      const modal = document.getElementById("group-location-modal");
+      if (modal) {
+        modal.remove();
+        // Remove any remaining event listeners
+        document.removeEventListener('keydown', (event) => {
+          if (event.key === 'Escape') closeGroupLocationModal();
+        });
+      }
+    }
+
+    function showPremiumUpgradeModal() {
+      const modalHtml = `
+        <div id="premium-upgrade-modal" class="modal">
+          <div class="modal-content" style="max-width: 500px;">
+            <button class="modal-close" onclick="closePremiumUpgradeModal()">&times;</button>
+            <div class="modal-header">
+              <h2 style="color: var(--secondary-color); display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-crown"></i> Upgrade to Premium
+              </h2>
+            </div>
+            <div class="modal-body">
+              <div style="background: linear-gradient(135deg, #FFD700, #FFA500); color: white; padding: 1.5rem; border-radius: 10px; margin-bottom: 1.5rem; text-align: center;">
+                <h3 style="margin: 0 0 1rem 0;">✨ Premium Features</h3>
+                <div style="display: grid; gap: 1rem; text-align: left;">
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-infinity"></i>
+                    <span><strong>Unlimited Groups</strong> - Create as many groups as you want</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-robot"></i>
+                    <span><strong>AI Trip Planner</strong> - Get personalized itineraries</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-magic"></i>
+                    <span><strong>AI Assistant</strong> - Modify plans with AI help</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-chart-line"></i>
+                    <span><strong>Advanced Analytics</strong> - Detailed group insights</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style="text-align: center; margin-top: 2rem;">
+                <button class="btn" style="background: linear-gradient(135deg, #FFD700, #FFA500); color: #333; padding: 12px 24px; font-weight: bold;">
+                  <i class="fas fa-crown"></i> Upgrade Now - $9.99/month
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="closePremiumUpgradeModal()">Maybe Later</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      document.body.insertAdjacentHTML('beforeend', modalHtml);
+      
+      // Add ESC and click-outside functionality
+      addModalListeners("premium-upgrade-modal", closePremiumUpgradeModal);
+    }
+
+    function closePremiumUpgradeModal() {
+      const modal = document.getElementById("premium-upgrade-modal");
+      if (modal) {
+        modal.remove();
+        // Remove any remaining event listeners
+        document.removeEventListener('keydown', (event) => {
+          if (event.key === 'Escape') closePremiumUpgradeModal();
+        });
+      }
+    }
+
+    function fillActivityForm(name, category, location, description) {
+      // Close the modal first
+      closeGroupLocationModal();
+      
+      // Navigate to activities page
+      showPage("activities");
+      
+      // Fill the form after a short delay to ensure the page is loaded
+      setTimeout(() => {
+        const nameInput = document.getElementById("activity-name");
+        const categoryInput = document.getElementById("activity-category");
+        const locationInput = document.getElementById("activity-location");
+        const descriptionInput = document.getElementById("activity-description");
+        
+        if (nameInput) nameInput.value = name;
+        if (categoryInput) categoryInput.value = category;
+        if (locationInput) locationInput.value = location;
+        if (descriptionInput) descriptionInput.value = description;
+        
+        NotificationSystem.show("Form filled with place details! Complete your rating.", "success");
+      }, 300);
     }
 
     async function handleAIAssistantRequest(event, groupId) {
@@ -3579,8 +4204,51 @@ Only return the JSON, no additional text.`;
 
     // Groups System
     const GroupsSystem = {
+      // Group limits for non-premium users
+      FREE_GROUP_LIMIT: 3,
+      
       init: () => {
+        // Small delay to ensure DOM elements are loaded
+        setTimeout(() => {
         GroupsSystem.displayGroups();
+        }, 100);
+      },
+
+      // Check if user can create more groups
+      canCreateGroup: () => {
+        if (AI_PREMIUM_ENABLED) return true; // Premium users have unlimited groups
+        
+        const groups = DataLayer.load("groups", []);
+        const currentMonth = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
+        
+        // Count groups created this month
+        const groupsThisMonth = groups.filter(group => {
+          const groupDate = new Date(group.createdAt);
+          const groupMonth = groupDate.getFullYear() + "-" + (groupDate.getMonth() + 1);
+          return groupMonth === currentMonth;
+        });
+        
+        return groupsThisMonth.length < GroupsSystem.FREE_GROUP_LIMIT;
+      },
+
+      // Get group usage info
+      getGroupUsage: () => {
+        const groups = DataLayer.load("groups", []);
+        const currentMonth = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
+        
+        // Count groups created this month
+        const groupsThisMonth = groups.filter(group => {
+          const groupDate = new Date(group.createdAt);
+          const groupMonth = groupDate.getFullYear() + "-" + (groupDate.getMonth() + 1);
+          return groupMonth === currentMonth;
+        });
+        
+        return {
+          current: groupsThisMonth.length,
+          limit: AI_PREMIUM_ENABLED ? "∞" : GroupsSystem.FREE_GROUP_LIMIT,
+          isPremium: AI_PREMIUM_ENABLED,
+          canCreate: GroupsSystem.canCreateGroup()
+        };
       },
 
       createGroup: (name, description, members) => {
@@ -3590,6 +4258,16 @@ Only return the JSON, no additional text.`;
         if (!personalityData) {
           NotificationSystem.show(
             "Please complete the personality assessment first!",
+            "warning"
+          );
+          return;
+        }
+
+        // Check group creation limit for non-premium users
+        if (!GroupsSystem.canCreateGroup()) {
+          const usage = GroupsSystem.getGroupUsage();
+          NotificationSystem.show(
+            `You've reached your monthly limit of ${usage.current}/${usage.limit} groups. Upgrade to Premium for unlimited groups!`,
             "warning"
           );
           return;
@@ -3609,8 +4287,12 @@ Only return the JSON, no additional text.`;
               adjustmentFactor: personalityData.adjustmentFactor,
               avatar: currentUser.avatar,
               importance: 1.0,
+              location: currentUser.location || { lat: 43.4643, lng: -80.5204 }, // Waterloo default
             },
-            ...members,
+            ...members.map(member => ({
+              ...member,
+              location: DemoUsers.users[member.userId]?.location || { lat: 43.4643, lng: -80.5204 }
+            })),
           ],
         };
 
@@ -3632,6 +4314,9 @@ Only return the JSON, no additional text.`;
         const userExperienceNames = userExperiences.map((exp) =>
           exp.name.toLowerCase()
         );
+
+        // Calculate group center for location-based scoring
+        const groupCenter = calculateGroupCenter(group);
 
         const recommendations = [];
 
@@ -3688,12 +4373,31 @@ Only return the JSON, no additional text.`;
             );
             const confidence = Math.max(0.1, 1 - scoreVariance / 10);
 
+            // Calculate location score
+            let locationScore = 1.0; // Default score for experiences without coordinates
+            if (experiences[0].coordinates) {
+              const distance = calculateDistance(
+                groupCenter.lat, groupCenter.lng,
+                experiences[0].coordinates.lat, experiences[0].coordinates.lng
+              );
+              // Score based on distance: closer = higher score
+              // 0km = 1.0, 25km = 0.5, 50km+ = 0.1
+              locationScore = Math.max(0.1, 1 - (distance / 50));
+            }
+
+            // Combine personality score with location score (70% personality, 30% location)
+            const combinedScore = (finalGroupScore * 0.7) + (locationScore * 0.3);
+
             recommendations.push({
               experience: experiences[0],
-              groupScore: finalGroupScore,
+              groupScore: combinedScore,
               confidence: confidence,
               individualScores: individualScores,
               variance: scoreVariance,
+              locationScore: locationScore,
+              distanceFromGroup: experiences[0].coordinates ? 
+                calculateDistance(groupCenter.lat, groupCenter.lng, 
+                               experiences[0].coordinates.lat, experiences[0].coordinates.lng) : null
             });
           }
         });
@@ -3716,6 +4420,58 @@ Only return the JSON, no additional text.`;
       displayGroups: () => {
         const groups = DataLayer.load("groups", []);
         const groupsContent = document.getElementById("groups-content");
+
+        // Update group usage display
+        const usage = GroupsSystem.getGroupUsage();
+        const usageText = document.getElementById("group-usage-text");
+        console.log("Usage text element found:", !!usageText, "Usage:", usage);
+        if (usageText) {
+          usageText.textContent = `${usage.current}/${usage.limit}`;
+          console.log("Updated usage text to:", `${usage.current}/${usage.limit}`);
+          
+          // Change color based on usage
+          if (usage.isPremium) {
+            usageText.style.background = "var(--primary-color)";
+            usageText.style.color = "white";
+          } else if (usage.current >= usage.limit) {
+            usageText.style.background = "#f44336";
+          } else if (usage.current >= usage.limit * 0.8) {
+            usageText.style.background = "#FF9800";
+          } else {
+            usageText.style.background = "var(--primary-color)";
+          }
+        } else {
+          console.log("Usage text element not found!");
+        }
+
+        // Update premium status display
+        const premiumStatusText = document.getElementById("premium-status-text");
+        if (premiumStatusText) {
+          if (usage.isPremium) {
+            premiumStatusText.innerHTML = "Premium - Unlimited Groups";
+          } else {
+            premiumStatusText.innerHTML = '<a href="#" onclick="showPremiumUpgradeModal()" style="color: var(--secondary-color); text-decoration: none;">Upgrade to Premium for unlimited groups</a>';
+          }
+        }
+
+        // Update create button state
+        const createBtn = document.getElementById("create-group-btn");
+        if (createBtn) {
+          if (!usage.canCreate) {
+            createBtn.style.background = "#f44336";
+            createBtn.style.cursor = "not-allowed";
+            createBtn.onclick = () => {
+              NotificationSystem.show(
+                `You've reached your monthly limit of ${usage.current}/${usage.limit} groups. Upgrade to Premium for unlimited groups!`,
+                "warning"
+              );
+            };
+          } else {
+            createBtn.style.background = "";
+            createBtn.style.cursor = "pointer";
+            createBtn.onclick = () => showCreateGroupModal();
+          }
+        }
 
         if (groups.length === 0) {
           groupsContent.innerHTML = `
@@ -3747,155 +4503,244 @@ Only return the JSON, no additional text.`;
             });
 
             return `
-        <div class="group-card" data-group-id="${group.id}">
-          <div class="group-header">
-            <div>
-              <h3>${group.name}</h3>
-              <p style="margin: 0.5rem 0; color: #666;">${group.description}</p>
-              <small style="color: #888;">Created ${new Date(
-              group.createdAt
-            ).toLocaleDateString()}</small>
-            </div>
-            <div style="display: flex; gap: 0.5rem; align-items: center;">
-              ${AI_PREMIUM_ENABLED
-                ? `
-                                <button class="btn" style="background: var(--primary-gradient); color: var(--inverted-text-color);"
-                        onclick="showAIPremiumModal(${group.id})">
-                  <i class="fa-solid fa-crown"></i> AI Trip Planner
-                </button>
-              `
-                : ""
-              }
-              <button class="edit-group-btn" onclick="GroupsSystem.editGroup(${group.id
-              })">
-                <i class="fas fa-edit"></i> Edit
-              </button>
-              <button class="btn btn-danger" onclick="GroupsSystem.deleteGroup(${group.id
-              })">Delete</button>
-            </div>
-          </div>
-
-          <div class="group-members">
-            <strong>Members (${group.members.length}):</strong>
-            <div>
-              ${group.members
-                .map(
-                  (member) => `
-                <div class="member-tag">
-                  ${member.displayName} (${member.personalityType})
-                </div>
-              `
-                )
-                .join("")}
-            </div>
-          </div>
-
-          ${renderAIItinerary(group)}
-
-          ${topRecommendations.length > 0 && !group.aiItinerary
-                ? `
-  <div style="margin-top: 1.5rem;">
-    <h4>Top Recommendations for Your Group</h4>
-    <div class="voting-section">
-      <p style="margin-bottom: 1rem; font-weight: bold; color: #333;">Vote for your preferred activity:</p>
-    </div>
-              <div class="activity-grid">
-                ${topRecommendations
-                  .map((rec) => {
-                    const activityName = rec.experience.name;
-                    const votes = group.votes[activityName] || [];
-                    const currentUserId = DataLayer.load("currentUser").id;
-                    const hasVoted = votes.includes(currentUserId);
-                    const isMostVoted =
-                      mostVoted === activityName && maxVotes > 0;
-
-                    return `
-                    <div class="activity-card ${isMostVoted ? "most-voted" : ""
-                      }" style="border: 2px solid var(--secondary-color);">
-                      <div style="background: var(--secondary-gradient); color: white; padding: 0.5rem; margin: -1.5rem -1.5rem 1rem -1.5rem; border-radius: 15px 15px 0 0;">
-                        <div style="font-weight: bold;">Group Score: ${rec.groupScore.toFixed(
-                        1
-                      )}/10</div>
-                        <div style="font-size: 0.8rem; opacity: 0.9;">Confidence: ${(
-                        rec.confidence * 100
-                      ).toFixed(0)}%</div>
-                      </div>
-                      <div class="activity-title">${rec.experience.name}</div>
-                      <div class="activity-category">${rec.experience.category
-                      } • ${rec.experience.location}</div>
-                      ${rec.experience.description
-                        ? `<p style="font-size: 0.9rem; color: #666; margin: 0.5rem 0;">${rec.experience.description}</p>`
-                        : ""
-                      }
-
-                      <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #eee;">
-                        <strong style="font-size: 0.9rem;">Individual Predictions:</strong>
-                        ${rec.individualScores
-                        .map(
-                          (score) => `
-                          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; margin-top: 0.3rem;">
-                            <span>${score.member.displayName
-                            }</span>
-                            <span style="font-weight: bold; color: ${score.score >= 7
-                              ? "#4CAF50"
-                              : score.score >= 5
-                                ? "#FF9800"
-                                : "#f44336"
-                            }">${score.score.toFixed(1)}/10</span>
-                          </div>
-                        `
-                        )
-                        .join("")}
-                        <div style="margin-top: 0.5rem; font-size: 0.8rem;">
-                          Group Compatibility: 
-                          <span style="font-weight: bold; color: ${rec.variance <= 1.5
-                        ? "#4CAF50"
-                        : rec.variance <= 3
-                          ? "#FF9800"
-                          : "#f44336"
-                      }">
-                            ${rec.variance <= 1.5
-                        ? "High"
-                        : rec.variance <= 3
-                          ? "Medium"
-                          : "Low"
-                      }
-                          </span>
-                        </div>
-                        
-                        <!-- Voting section -->
-                        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #eee;">
-                          <button class="vote-button ${hasVoted ? "voted" : ""
-                      }" 
-                                  onclick="GroupsSystem.voteForActivity(${group.id
-                      }, '${activityName}')">
-                            ${hasVoted ? "✓ Voted" : "Vote for this"}
-                          </button>
-                          <div class="vote-count">
-                            ${votes.length} vote${votes.length !== 1 ? "s" : ""}
-                            ${votes.length > 0
-                        ? `(${votes
-                          .map((userId) => {
-                            const member = group.members.find(
-                              (m) => m.userId === userId
-                            );
-                            return member ? member.avatar : "?";
-                          })
-                          .join(", ")})`
-                        : ""
-                      }
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  `;
-                  })
-                  .join("")}
+        <div class="group-card" data-group-id="${group.id}" style="
+          border: 1px solid #eee; 
+          border-radius: 16px; 
+          margin-bottom: 1.5rem; 
+          background: white;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+          overflow: hidden;
+          transition: all 0.2s ease;
+        " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'" 
+           onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.05)'">
+          
+          <!-- Collapsible Header -->
+          <div class="group-header" onclick="GroupsSystem.toggleGroupExpansion(${group.id})" style="
+            padding: 1.5rem; 
+            cursor: pointer; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            background: var(--secondary-gradient);
+            color: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+          ">
+            <div style="flex: 1;">
+              <h3 style="margin: 0; font-size: 1.4rem; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.1);">${group.name}</h3>
+              <p style="margin: 0.5rem 0 0 0; opacity: 0.95; font-size: 1rem; line-height: 1.4;">${group.description}</p>
+              <div style="display: flex; gap: 1.5rem; margin-top: 0.8rem; font-size: 0.9rem; opacity: 0.9;">
+                <span style="display: flex; align-items: center; gap: 0.3rem;"><i class="fas fa-users"></i> ${group.members.length} members</span>
+                <span style="display: flex; align-items: center; gap: 0.3rem; cursor: help;" 
+                      title="${formatFullDate(group.createdAt)}">
+                  <i class="fas fa-calendar"></i> ${new Date(group.createdAt).toLocaleDateString()}
+                </span>
               </div>
             </div>
-          `
-                : '<p style="color: #666;">No recommendations available yet. More community data needed!</p>'
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <i class="fas fa-chevron-down" id="expand-icon-${group.id}" style="
+                transition: transform 0.2s ease; 
+                font-size: 1.2rem; 
+                opacity: 0.9;
+                padding: 0.5rem;
+                border-radius: 50%;
+                background: rgba(255,255,255,0.5);
+              "></i>
+            </div>
+          </div>
+
+          <!-- Expandable Content -->
+          <div class="group-content" id="group-content-${group.id}" style="
+            max-height: 0; 
+            overflow: hidden; 
+            transition: max-height 0.3s ease;
+            background: white;
+          ">
+            <div style="padding: 1.5rem;">
+              
+              <!-- Action Buttons -->
+              <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+                ${AI_PREMIUM_ENABLED
+                  ? `<button class="btn" style="background: var(--primary-gradient); color: var(--inverted-text-color);" onclick="showAIPremiumModal(${group.id})">
+                      <i class="fa-solid fa-crown"></i> AI Trip Planner
+                    </button>`
+                  : ""
+                }
+                <button class="btn btn-info" onclick="showGroupLocationRecommendations(${group.id})" style="background: var(--info-color);">
+                  <i class="fas fa-map-marker-alt"></i> Find Places Near Group
+                </button>
+                <button class="btn btn-secondary" onclick="GroupsSystem.editGroup(${group.id})">
+                  <i class="fas fa-edit"></i> Edit Group
+                </button>
+                <button class="btn btn-danger" onclick="GroupsSystem.deleteGroup(${group.id})">
+                  <i class="fas fa-trash"></i> Delete
+                </button>
+              </div>
+
+              <!-- Members Section -->
+              <div style="margin-bottom: 1.5rem;">
+                <h4 style="margin-bottom: 1rem; color: var(--primary-color);">
+                  <i class="fas fa-users"></i> Group Members
+                </h4>
+                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                  ${group.members
+                    .map(
+                      (member) => `
+                    <div style="
+                      display: flex; 
+                      align-items: center; 
+                      gap: 0.5rem; 
+                      padding: 0.5rem 0.8rem; 
+                      background: #f8f9fa; 
+                      border-radius: 20px; 
+                      font-size: 0.9rem;
+                      border: 1px solid #e9ecef;
+                    ">
+                      <div style="
+                        width: 25px; 
+                        height: 25px; 
+                        border-radius: 50%; 
+                        background: var(--secondary-color); 
+                        color: white; 
+                        display: flex; 
+                        align-items: center; 
+                        justify-content: center; 
+                        font-size: 0.8rem;
+                      ">${member.avatar}</div>
+                      <span style="font-weight: 500;">${member.displayName}</span>
+                      <span style="color: #666; font-size: 0.8rem;">(${member.personalityType})</span>
+                    </div>
+                  `
+                    )
+                    .join("")}
+                </div>
+              </div>
+
+              <!-- AI Itinerary Section -->
+              ${renderAIItinerary(group)}
+
+              <!-- Recommendations Section -->
+              ${topRecommendations.length > 0 && !group.aiItinerary
+                ? `
+                <div style="margin-top: 1.5rem;">
+                  <h4 style="margin-bottom: 1rem; color: var(--primary-color);">
+                    <i class="fas fa-star"></i> Top Recommendations
+                  </h4>
+                  <div class="activity-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;">
+                    ${topRecommendations
+                      .map((rec) => {
+                        const activityName = rec.experience.name;
+                        const votes = group.votes[activityName] || [];
+                        const currentUserId = DataLayer.load("currentUser").id;
+                        const hasVoted = votes.includes(currentUserId);
+                        const isMostVoted =
+                          mostVoted === activityName && maxVotes > 0;
+
+                        return `
+                        <div class="activity-card ${isMostVoted ? "most-voted" : ""
+                          }" style="
+                          border: 1px solid #eee; 
+                          border-radius: 12px; 
+                          padding: 1.5rem; 
+                          background: white;
+                          box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+                          transition: all 0.2s ease;
+                          ${isMostVoted ? 'border: 2px solid var(--secondary-color);' : ''}
+                        " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'" 
+                           onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.05)'">
+                          
+                          <div style="background: var(--secondary-gradient); color: white; padding: 0.8rem; margin: -1.5rem -1.5rem 1rem -1.5rem; border-radius: 12px 12px 0 0;">
+                            <div style="font-weight: bold; font-size: 1.1rem;">Combined Score: ${rec.groupScore.toFixed(1)}/10</div>
+                            <div style="font-size: 0.9rem; opacity: 0.9;">Confidence: ${(rec.confidence * 100).toFixed(0)}%</div>
+                          </div>
+                          
+                          <div style="font-weight: bold; font-size: 1.1rem; margin-bottom: 0.5rem;">${rec.experience.name}</div>
+                          <div style="color: #666; margin-bottom: 0.5rem;">
+                            ${rec.experience.category} • ${rec.experience.location}
+                            ${rec.distanceFromGroup ? ` • <i class="fas fa-map-marker-alt"></i> ${rec.distanceFromGroup.toFixed(1)}km away` : ''}
+                          </div>
+                          ${rec.experience.description
+                            ? `<p style="font-size: 0.9rem; color: #666; margin: 0.5rem 0; line-height: 1.4;">${rec.experience.description}</p>`
+                            : ""
+                          }
+
+                          <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #eee;">
+                            <strong style="font-size: 0.9rem;">Individual Predictions:</strong>
+                            ${rec.individualScores
+                            .map(
+                              (score) => `
+                              <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-top: 0.3rem;">
+                                <span>${score.member.displayName}</span>
+                                <span style="font-weight: bold; color: ${score.score >= 7
+                                  ? "#4CAF50"
+                                  : score.score >= 5
+                                    ? "#FF9800"
+                                    : "#f44336"
+                                }">${score.score.toFixed(1)}/10</span>
+                              </div>
+                            `
+                            )
+                            .join("")}
+                            <div style="margin-top: 0.5rem; font-size: 0.85rem;">
+                              Group Compatibility: 
+                              <span style="font-weight: bold; color: ${rec.variance <= 1.5
+                            ? "#4CAF50"
+                            : rec.variance <= 3
+                              ? "#FF9800"
+                              : "#f44336"
+                          }">
+                                ${rec.variance <= 1.5
+                            ? "High"
+                            : rec.variance <= 3
+                              ? "Medium"
+                              : "Low"
+                          }
+                              </span>
+                            </div>
+                            
+                            <!-- Voting section -->
+                            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #eee;">
+                              <button class="vote-button ${hasVoted ? "voted" : ""
+                          }" 
+                                      onclick="GroupsSystem.voteForActivity(${group.id}, '${activityName}')" style="
+                                background: ${hasVoted ? 'var(--success-color)' : 'var(--primary-color)'}; 
+                                color: white; 
+                                border: none; 
+                                padding: 0.5rem 1rem; 
+                                border-radius: 6px; 
+                                cursor: pointer; 
+                                font-size: 0.9rem;
+                                transition: all 0.2s ease;
+                              ">
+                                ${hasVoted ? "✓ Voted" : "Vote for this"}
+                              </button>
+                              <div class="vote-count" style="margin-top: 0.5rem; font-size: 0.85rem; color: #666;">
+                                ${votes.length} vote${votes.length !== 1 ? "s" : ""}
+                                ${votes.length > 0
+                            ? `(${votes
+                              .map((userId) => {
+                                const member = group.members.find(
+                                  (m) => m.userId === userId
+                                );
+                                return member ? member.displayName : "Unknown";
+                              })
+                              .join(", ")})`
+                            : ""
+                          }
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      `;
+                      })
+                      .join("")}
+                  </div>
+                </div>
+              `
+                : '<p style="color: #666; text-align: center; padding: 2rem;">No recommendations available yet. More community data needed!</p>'
               }
+            </div>
+          </div>
         </div>
       `;
           })
@@ -3916,23 +4761,180 @@ Only return the JSON, no additional text.`;
 
       // Remove user's vote from all other activities first
       Object.entries(group.votes).forEach(([activity, votes]) => {
+        if (activity !== activityName) { // Only remove from other activities, not the current one
         const voteIndex = votes.indexOf(currentUserId);
         if (voteIndex > -1) {
           votes.splice(voteIndex, 1);
+          }
         }
       });
 
       // Initialize the current activity's votes array if it doesn't exist
       if (!group.votes[activityName]) group.votes[activityName] = [];
 
-      // Add vote for the new activity
-      if (!group.votes[activityName].includes(currentUserId)) {
+      // Toggle vote for the current activity (add if not voted, remove if already voted)
+      const currentVoteIndex = group.votes[activityName].indexOf(currentUserId);
+      if (currentVoteIndex > -1) {
+        // Remove vote if already voted
+        group.votes[activityName].splice(currentVoteIndex, 1);
+      } else {
+        // Add vote if not voted
         group.votes[activityName].push(currentUserId);
       }
 
       // Update groups data
       DataLayer.save("groups", groups);
-      GroupsSystem.displayGroups();
+      
+      // Update only the specific group's content instead of refreshing everything
+      GroupsSystem.updateGroupContent(groupId);
+    };
+
+    GroupsSystem.updateGroupContent = function (groupId) {
+      const groups = DataLayer.load("groups", []);
+      const group = groups.find((g) => g.id === groupId);
+      if (!group) return;
+
+      // Get the current group content element
+      const groupContent = document.getElementById(`group-content-${groupId}`);
+      if (!groupContent) return;
+
+      // Check if the group is currently expanded
+      const isExpanded = groupContent.style.maxHeight !== "0px" && groupContent.style.maxHeight !== "";
+
+      // Generate the new content for this specific group
+      const recommendations = GroupsSystem.getGroupRecommendations(group);
+      const recommendationsHtml = recommendations
+        .slice(0, 3)
+        .map((rec) => {
+          const activityName = rec.experience.name;
+          const votes = group.votes && group.votes[activityName] ? group.votes[activityName] : [];
+          const hasVoted = votes.includes(DataLayer.load("currentUser").id);
+          const maxVotes = Math.max(...Object.values(group.votes || {}).map(v => v.length));
+          const mostVoted = Object.entries(group.votes || {}).find(([name, votes]) => votes.length === maxVotes)?.[0];
+          const isMostVoted = mostVoted === activityName && maxVotes > 0;
+
+          return `
+            <div class="activity-card ${isMostVoted ? "most-voted" : ""}" style="
+              border: 1px solid #eee; 
+              border-radius: 12px; 
+              padding: 1.5rem; 
+              background: white;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+              transition: all 0.2s ease;
+              ${isMostVoted ? 'border: 2px solid var(--secondary-color);' : ''}
+            " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'" 
+               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.05)'">
+              
+              <div style="background: var(--secondary-gradient); color: white; padding: 0.8rem; margin: -1.5rem -1.5rem 1rem -1.5rem; border-radius: 12px 12px 0 0;">
+                <div style="font-weight: bold; font-size: 1.1rem;">Combined Score: ${rec.groupScore.toFixed(1)}/10</div>
+                <div style="font-size: 0.9rem; opacity: 0.9;">Confidence: ${(rec.confidence * 100).toFixed(0)}%</div>
+              </div>
+              
+              <div style="font-weight: bold; font-size: 1.1rem; margin-bottom: 0.5rem;">${rec.experience.name}</div>
+              <div style="color: #666; margin-bottom: 0.5rem;">
+                ${rec.experience.category} • ${rec.experience.location}
+                ${rec.distanceFromGroup ? ` • <i class="fas fa-map-marker-alt"></i> ${rec.distanceFromGroup.toFixed(1)}km away` : ''}
+              </div>
+              ${rec.experience.description
+                ? `<p style="font-size: 0.9rem; color: #666; margin: 0.5rem 0; line-height: 1.4;">${rec.experience.description}</p>`
+                : ""
+              }
+
+              <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #eee;">
+                <strong style="font-size: 0.9rem;">Individual Predictions:</strong>
+                ${rec.individualScores
+                .map(
+                  (score) => `
+                  <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-top: 0.3rem;">
+                    <span>${score.member.displayName}</span>
+                    <span style="font-weight: bold; color: ${score.score >= 7
+                      ? "#4CAF50"
+                      : score.score >= 5
+                        ? "#FF9800"
+                        : "#f44336"
+                    }">${score.score.toFixed(1)}/10</span>
+                  </div>
+                `
+                )
+                .join("")}
+                <div style="margin-top: 0.5rem; font-size: 0.85rem;">
+                  Group Compatibility: 
+                  <span style="font-weight: bold; color: ${rec.variance <= 1.5
+                ? "#4CAF50"
+                : rec.variance <= 3
+                  ? "#FF9800"
+                  : "#f44336"
+              }">
+                    ${rec.variance <= 1.5
+                ? "High"
+                : rec.variance <= 3
+                  ? "Medium"
+                  : "Low"
+              }
+                  </span>
+                </div>
+                
+                <!-- Voting section -->
+                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #eee;">
+                  <button class="vote-button ${hasVoted ? "voted" : ""}" 
+                          onclick="GroupsSystem.voteForActivity(${group.id}, '${activityName}')" style="
+                    background: ${hasVoted ? 'var(--success-color)' : 'var(--primary-color)'}; 
+                    color: white; 
+                    border: none; 
+                    padding: 0.5rem 1rem; 
+                    border-radius: 6px; 
+                    cursor: pointer; 
+                    font-size: 0.9rem;
+                    transition: all 0.2s ease;
+                  ">
+                    ${hasVoted ? "✓ Voted" : "Vote for this"}
+                  </button>
+                  <div class="vote-count" style="margin-top: 0.5rem; font-size: 0.85rem; color: #666;">
+                    ${votes.length} vote${votes.length !== 1 ? "s" : ""}
+                    ${votes.length > 0
+                ? `(${votes
+                  .map((userId) => {
+                    const member = group.members.find(
+                      (m) => m.userId === userId
+                    );
+                    return member ? member.displayName : "Unknown";
+                  })
+                  .join(", ")})`
+                : ""
+              }
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+        })
+        .join("");
+
+      // Find the recommendations container within this group
+      const recommendationsContainer = groupContent.querySelector('.activity-grid');
+      if (recommendationsContainer) {
+        recommendationsContainer.innerHTML = recommendationsHtml;
+      }
+
+      // If the group was expanded, maintain the expanded state
+      if (isExpanded) {
+        groupContent.style.maxHeight = groupContent.scrollHeight + "px";
+      }
+    };
+
+    GroupsSystem.toggleGroupExpansion = function (groupId) {
+      const content = document.getElementById(`group-content-${groupId}`);
+      const icon = document.getElementById(`expand-icon-${groupId}`);
+      
+      if (content.style.maxHeight === "0px" || content.style.maxHeight === "") {
+        // Expand
+        content.style.maxHeight = content.scrollHeight + "px";
+        icon.style.transform = "rotate(180deg)";
+      } else {
+        // Collapse
+        content.style.maxHeight = "0px";
+        icon.style.transform = "rotate(0deg)";
+      }
     };
 
     GroupsSystem.editGroup = function (groupId) {
@@ -4212,6 +5214,9 @@ Only return the JSON, no additional text.`;
       `;
       
       document.body.insertAdjacentHTML("beforeend", modalHtml);
+      
+      // Add ESC and click-outside functionality
+      addModalListeners("experiences-modal", closeExperiencesModal);
     }
 
     function closeExperiencesModal() {
@@ -4304,7 +5309,8 @@ Only return the JSON, no additional text.`;
       
       document.body.insertAdjacentHTML("beforeend", modalHtml);
       
-
+      // Add ESC and click-outside functionality
+      addModalListeners("edit-experience-modal", closeEditExperienceModal);
     }
 
     function closeEditExperienceModal() {
@@ -4442,6 +5448,9 @@ Only return the JSON, no additional text.`;
   `;
 
       document.body.insertAdjacentHTML("beforeend", modalHtml);
+      
+      // Add ESC and click-outside functionality
+      addModalListeners("group-modal", closeModal);
     }
 
     // Enhanced closeModal function
@@ -4489,9 +5498,7 @@ Only return the JSON, no additional text.`;
           <div style="margin-bottom: 2rem;">
             <h3>No Recommendations Yet</h3>
             <p style="color: #666;">Add friends to get personalized recommendations based on places they've visited!</p>
-            <div style="text-align: center; margin-top: 1rem;">
-              <button class="btn" onclick="showPage('feed')">Find Similar Users</button>
-            </div>
+
           </div>
         `;
           } else {
@@ -4658,10 +5665,10 @@ Only return the JSON, no additional text.`;
                   ${userExperiences.length} experiences posted
                 </div>
                 <div style="text-align: center;">
-                  <button class="btn" style="font-size: 0.8rem; padding: 6px 12px;"
-                          onclick="FriendsSystem.addFriend(${sim.user.id})">
-                    Add Friend
-                  </button>
+                  ${FriendsSystem.isFriend(sim.user.id)
+                    ? '<span style="background: #f8f9fa; color: var(--primary-color); font-size: 0.8rem; font-weight: bold; padding: 4px 8px; border-radius: 12px; border: 1px solid var(--primary-color); display: inline-block;">✓ Friend</span>'
+                    : `<button class="btn" style="font-size: 0.8rem; padding: 6px 12px;" onclick="FriendsSystem.addFriend(${sim.user.id})">Add Friend</button>`
+                  }
                 </div>
               </div>
             `;
@@ -4729,6 +5736,9 @@ Only return the JSON, no additional text.`;
         <div class="action-buttons">
           <button class="btn" onclick="showPage('activities')"><i class="fas fa-plus-circle"></i> Add Experience</button>
           <button class="btn btn-secondary" onclick="showPage('feed')"><i class="fas fa-users"></i> Explore Community</button>
+          <button class="btn btn-info" onclick="getLocationBasedRecommendations()" style="background: var(--info-color);">
+            <i class="fas fa-map-marker-alt"></i> Find Places Near Me
+          </button>
         </div>
       </div>
 
@@ -4835,7 +5845,9 @@ Only return the JSON, no additional text.`;
                   : ""
                 }
                 <div style="color: #888; font-size: 0.8rem;">
-                  ${new Date(exp.timestamp).toLocaleDateString()} •
+                  <span title="${formatFullDate(exp.timestamp)}" style="cursor: help;">
+                    ${new Date(exp.timestamp).toLocaleDateString()}
+                  </span> •
                   Social: ${exp.socialIntensity.toFixed(1)}/10 •
                   Noise: ${exp.noiseLevel.toFixed(1)}/10 •
                   Crowd: ${exp.crowdSize.toFixed(1)}/10
@@ -4902,13 +5914,10 @@ Only return the JSON, no additional text.`;
                   <div style="font-size: 0.8rem; color: #4CAF50; font-weight: bold;">${(
                 sim.similarity * 100
               ).toFixed(0)}% Match</div>
-                  <button class="btn" style="margin-top: 0.5rem; font-size: 0.8rem; padding: 6px 12px;" 
-                          onclick="FriendsSystem.addFriend(${sim.user.id})">
                     ${FriendsSystem.isFriend(sim.user.id)
-                ? '<span style="background: #f8f9fa; color: var(--primary-color); font-size: 0.8rem; font-weight: bold; padding: 4px 8px; border-radius: 12px; border: 1px solid var(--primary-color);">✓ Friend</span>'
-                : "Add Friend"
+                ? '<span style="background: #f8f9fa; color: var(--primary-color); font-size: 0.8rem; font-weight: bold; padding: 4px 8px; border-radius: 12px; border: 1px solid var(--primary-color); display: inline-block; margin-top: 0.5rem;">✓ Friend</span>'
+                : `<button class="btn" style="margin-top: 0.5rem; font-size: 0.8rem; padding: 6px 12px;" onclick="FriendsSystem.addFriend(${sim.user.id})">Add Friend</button>`
               }
-                  </button>
                 </div>
             `
           )
@@ -4960,13 +5969,62 @@ Only return the JSON, no additional text.`;
             showPage("assessment");
             return;
           }
-          setTimeout(() => initializeLocationAutocomplete(), 100);
+          // Initialize location functionality immediately
+          setTimeout(() => {
+            initializeLocationAutocomplete();
+            // Prompt user for location permission if not already granted
+            if (navigator.geolocation) {
+              navigator.geolocation.getCurrentPosition(
+                (position) => {
+                  console.log("Location permission granted");
+                  // Pre-fill location field with current location
+                  reverseGeocodeAndFillLocation(position.coords.latitude, position.coords.longitude);
+                },
+                (error) => {
+                  console.log("Location permission denied or unavailable:", error.message);
+                  // Add 1 second delay before showing any notification
+                  setTimeout(() => {
+                    // Show a helpful message to the user
+                    // NotificationSystem.show(
+                    //   "Location access denied. You can still manually enter your location.",
+                    //   "info"
+                    // );
+                  }, 1000);
+                }
+              );
+            }
+          }, 100);
           break;
         case "feed":
           FeedSystem.init();
           break;
         case "groups":
           GroupsSystem.init();
+          // Also update usage display immediately
+          setTimeout(() => {
+            const usage = GroupsSystem.getGroupUsage();
+            const usageText = document.getElementById("group-usage-text");
+            const premiumStatusText = document.getElementById("premium-status-text");
+            
+            if (usageText) {
+              usageText.textContent = `${usage.current}/${usage.limit}`;
+              if (usage.isPremium) {
+                usageText.style.background = "var(--primary-color)";
+                usageText.style.color = "white";
+              } else {
+                usageText.style.background = "var(--primary-color)";
+                usageText.style.color = "white";
+              }
+            }
+            
+            if (premiumStatusText) {
+              if (usage.isPremium) {
+                premiumStatusText.innerHTML = "Premium - Unlimited Groups";
+              } else {
+                premiumStatusText.innerHTML = '<a href="#" onclick="showPremiumUpgradeModal()" style="color: var(--secondary-color); text-decoration: none;">Upgrade to Premium for unlimited groups</a>';
+              }
+            }
+          }, 50);
           break;
         case "profile":
           updateProfile();
@@ -5010,9 +6068,208 @@ Only return the JSON, no additional text.`;
       });
     }
 
+    // Function to get location-based recommendations
+    function getLocationBasedRecommendations() {
+      locationFound = false; // Reset flag at start
+      if (!navigator.geolocation) {
+        NotificationSystem.show("Geolocation is not supported by this browser.", "error");
+        return;
+      }
+
+      NotificationSystem.show("Getting your location for nearby recommendations...", "info");
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          locationFound = true; // Set flag when location is found
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          
+          // Waterloo-specific nearby places with coordinates
+          const nearbyPlaces = [
+            { name: "University of Waterloo Campus", lat: 43.4643, lng: -80.5204, category: "University" },
+            { name: "Conestoga Mall", lat: 43.4719, lng: -80.5250, category: "Shopping" },
+            { name: "Waterloo Public Square", lat: 43.4583, lng: -80.5204, category: "Public Space" },
+            { name: "Waterloo Park", lat: 43.4700, lng: -80.5150, category: "Park/Outdoor" },
+            { name: "Uptown Waterloo", lat: 43.4667, lng: -80.5300, category: "Entertainment" },
+            { name: "St. Jacobs Farmers Market", lat: 43.4625, lng: -80.5250, category: "Market" },
+            { name: "The Museum", lat: 43.4643, lng: -80.5204, category: "Museum/Gallery" },
+            { name: "Waterloo Recreation Complex", lat: 43.4700, lng: -80.5150, category: "Recreation" }
+          ];
+          
+          // Create a modal to show nearby recommendations
+          const modalHtml = `
+            <div id="nearby-modal" class="modal">
+              <div class="modal-content" style="max-width: 600px;">
+                <button class="modal-close" onclick="closeNearbyModal()">&times;</button>
+                <div class="modal-header">
+                  <h2><i class="fas fa-map-marker-alt"></i> Places Near You</h2>
+                  <p style="margin: 0; color: #666;">Based on your current location</p>
+                </div>
+                <div class="modal-body">
+                  <div style="background: rgba(74, 144, 226, 0.1); padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem;">
+                    <p style="margin: 0; font-size: 0.9rem; color: #666;">
+                      <i class="fas fa-info-circle"></i> 
+                      These are sample places near your location. In a real app, this would show actual nearby venues.
+                    </p>
+                  </div>
+                  
+                  <div style="display: grid; gap: 1rem;">
+                    ${nearbyPlaces.map((place, index) => {
+                      const distance = calculateDistance(lat, lng, place.lat, place.lng);
+                      return `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border: 1px solid #eee; border-radius: 8px;">
+                          <div>
+                            <div style="font-weight: bold; margin-bottom: 0.3rem;">${place.name}</div>
+                            <div style="font-size: 0.8rem; color: #666;">${place.category} • ${distance.toFixed(1)}km away</div>
+                          </div>
+                          <button class="btn" style="font-size: 0.8rem; padding: 6px 12px;" 
+                                  onclick="closeNearbyModal(); fillActivityForm('${place.name}', '${place.category}', 'Waterloo, Ontario', 'Found through location-based search')">
+                            Rate This Place
+                          </button>
+                        </div>
+                      `;
+                    }).join('')}
+                  </div>
+                  
+                  <div style="text-align: center; margin-top: 2rem;">
+                    <button class="btn" onclick="closeNearbyModal(); showPage('activities');">
+                      <i class="fas fa-plus-circle"></i> Add Your Own Experience
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+          
+          document.body.insertAdjacentHTML("beforeend", modalHtml);
+          
+          // Add ESC and click-outside functionality
+          addModalListeners("nearby-modal", closeNearbyModal);
+          
+          NotificationSystem.show("Found nearby places!", "success");
+        },
+        (error) => {
+          // Add 1 second delay before showing error
+          setTimeout(() => {
+            // Only show error if location wasn't found
+            if (!locationFound) {
+              let message = 'Unable to get your location: ';
+              switch(error.code) {
+                case error.PERMISSION_DENIED:
+                  message += 'Please allow location access to find nearby places.';
+                  break;
+                case error.POSITION_UNAVAILABLE:
+                  message += 'Location information is unavailable.';
+                  break;
+                case error.TIMEOUT:
+                  message += 'Location request timed out.';
+                  break;
+                default:
+                  message += 'An unknown error occurred.';
+                  break;
+              }
+              NotificationSystem.show(message, "error");
+            }
+          }, 1000);
+        }
+      );
+    }
+
+    function closeNearbyModal() {
+      const modal = document.getElementById("nearby-modal");
+      if (modal) {
+        modal.remove();
+        // Remove any remaining event listeners
+        document.removeEventListener('keydown', (event) => {
+          if (event.key === 'Escape') closeNearbyModal();
+        });
+      }
+    }
+
+    // Function to use current location
+    function useCurrentLocation() {
+      locationFound = false; // Reset flag at start
+      const locationInput = document.getElementById("activity-location");
+      const useLocationBtn = document.getElementById("use-current-location-btn");
+      
+      if (!locationInput || !useLocationBtn) return;
+
+      // Show loading state
+      useLocationBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Getting Location...';
+      useLocationBtn.disabled = true;
+
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            locationFound = true; // Set flag when location is found
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            
+            // Use the reverse geocoding function
+            reverseGeocodeAndFillLocation(lat, lng);
+            
+            // Reset button
+            useLocationBtn.innerHTML = '<i class="fas fa-crosshairs"></i> Use Current Location';
+            useLocationBtn.disabled = false;
+          },
+          (error) => {
+            console.error('Error getting location:', error);
+            // Add 1 second delay before showing error
+            setTimeout(() => {
+              // Only show error if location wasn't found
+              if (!locationFound) {
+                let message = 'Unable to get your location: ';
+                switch(error.code) {
+                  case error.PERMISSION_DENIED:
+                    message += 'Please allow location access in your browser settings.';
+                    break;
+                  case error.POSITION_UNAVAILABLE:
+                    message += 'Location information is unavailable.';
+                    break;
+                  case error.TIMEOUT:
+                    message += 'Location request timed out.';
+                    break;
+                  default:
+                    message += 'An unknown error occurred.';
+                    break;
+                }
+                
+                NotificationSystem.show(message, "error");
+                locationInput.value = "";
+              }
+            }, 1000);
+            
+            // Reset button
+            useLocationBtn.innerHTML = '<i class="fas fa-crosshairs"></i> Use Current Location';
+            useLocationBtn.disabled = false;
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 300000 // 5 minutes
+          }
+        );
+      } else {
+        NotificationSystem.show("Geolocation is not supported by this browser.", "error");
+        useLocationBtn.innerHTML = '<i class="fas fa-crosshairs"></i> Use Current Location';
+        useLocationBtn.disabled = false;
+      }
+    }
+
     // Notification system
+    // Global variable to track if location was successfully found
+    let locationFound = false;
+    
     const NotificationSystem = {
   show: (message, type = "info", duration = 3000) => {
+    // Remove any existing notifications first
+    const existingNotifications = document.querySelectorAll('[style*="position: fixed"][style*="top: 20px"][style*="right: 20px"]');
+    existingNotifications.forEach(notification => {
+      if (notification.parentNode) {
+        notification.parentNode.removeChild(notification);
+      }
+    });
+    
     const notification = document.createElement("div");
     notification.style.cssText = `
       position: fixed;
@@ -5166,72 +6423,265 @@ Only return the JSON, no additional text.`;
     });
   },
 };
+    // Function to reverse geocode coordinates and fill location field
+    function reverseGeocodeAndFillLocation(lat, lng) {
+      const locationInput = document.getElementById("activity-location");
+      if (!locationInput) return;
+
+      // Show loading state
+      locationInput.value = "Getting your location...";
+      locationInput.disabled = true;
+
+      // Use OpenStreetMap Nominatim for reverse geocoding (free service)
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=16`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.display_name) {
+            // Extract city/area name from the full address
+            const addressParts = data.display_name.split(', ');
+            let locationName = addressParts[0]; // Start with the most specific part
+            
+            // Try to find a more meaningful location name
+            if (addressParts.length > 1) {
+              // Look for city, town, or district
+              for (let i = 1; i < Math.min(4, addressParts.length); i++) {
+                const part = addressParts[i];
+                if (part.includes('City') || part.includes('Town') || part.includes('District') || 
+                    part.includes('Neighborhood') || part.includes('Area')) {
+                  locationName = part;
+                  break;
+                }
+              }
+            }
+            
+            locationInput.value = locationName;
+            NotificationSystem.show(
+              `Location detected: ${locationName}`,
+              "success"
+            );
+          } else {
+            locationInput.value = "Location detected (coordinates)";
+          }
+        })
+        .catch(error => {
+          console.error('Error reverse geocoding:', error);
+          // Add 1 second delay before showing any error notification
+          setTimeout(() => {
+            // Could show error notification here if needed
+          }, 1000);
+          locationInput.value = "Location detected (coordinates)";
+        })
+        .finally(() => {
+          locationInput.disabled = false;
+        });
+    }
+
     // Location autocomplete functionality
     function initializeLocationAutocomplete() {
-      // Check if Google Maps API is available
-      if (
-        typeof google !== "undefined" &&
-        google.maps &&
-        google.maps.places
-      ) {
-        const locationInput = document.getElementById("activity-location");
-        if (locationInput) {
-          const autocomplete = new google.maps.places.Autocomplete(
-            locationInput,
-            {
-              types: ["establishment", "geocode"],
-              fields: ["name", "formatted_address", "place_id"],
+  // Function to get user's current location
+  function getCurrentLocation() {
+    locationFound = false; // Reset flag at start
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('Geolocation is not supported by this browser.'));
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          locationFound = true; // Set flag when location is found
+          resolve({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+        },
+        (error) => {
+          // Add 1 second delay before rejecting
+          setTimeout(() => {
+            // Only show error if location wasn't found
+            if (!locationFound) {
+          let message = 'Unable to retrieve location: ';
+          switch(error.code) {
+            case error.PERMISSION_DENIED:
+              message += 'User denied the request for Geolocation.';
+              break;
+            case error.POSITION_UNAVAILABLE:
+              message += 'Location information is unavailable.';
+              break;
+            case error.TIMEOUT:
+              message += 'The request to get user location timed out.';
+              break;
+            default:
+              message += 'An unknown error occurred.';
+              break;
+          }
+          reject(new Error(message));
             }
+          }, 1000);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 300000 // 5 minutes
+        }
+      );
+    });
+  }
+
+  // Function to reverse geocode coordinates to address
+  function reverseGeocode(lat, lng) {
+    if (typeof google !== "undefined" && google.maps && google.maps.Geocoder) {
+      const geocoder = new google.maps.Geocoder();
+      return new Promise((resolve, reject) => {
+        geocoder.geocode(
+          { location: { lat: lat, lng: lng } },
+          (results, status) => {
+            if (status === 'OK' && results[0]) {
+              resolve(results[0].formatted_address);
+            } else {
+              reject(new Error('Geocoder failed: ' + status));
+            }
+          }
+        );
+      });
+    } else {
+      // Fallback using a free geocoding service (OpenStreetMap Nominatim)
+      return fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.display_name) {
+            return data.display_name;
+          } else {
+            throw new Error('Unable to reverse geocode location');
+          }
+        });
+    }
+  }
+
+  // Check if Google Maps API is available
+  if (typeof google !== "undefined" && google.maps && google.maps.places) {
+    const locationInput = document.getElementById("activity-location");
+    if (locationInput) {
+      // Set up autocomplete with bias towards user's location
+      getCurrentLocation().then(userLocation => {
+        const autocomplete = new google.maps.places.Autocomplete(
+          locationInput,
+          {
+            types: ["establishment", "geocode"],
+            fields: ["name", "formatted_address", "place_id"],
+          }
+        );
+
+        // Bias results towards user's current location
+        const circle = new google.maps.Circle({
+          center: userLocation,
+          radius: 50000 // 50km radius
+        });
+        autocomplete.setBounds(circle.getBounds());
+
+        autocomplete.addListener("place_changed", () => {
+          const place = autocomplete.getPlace();
+          if (place.formatted_address) {
+            locationInput.value = place.formatted_address;
+          }
+        });
+
+        // Add a button or option to use current location
+        const useCurrentLocationBtn = document.createElement("button");
+        useCurrentLocationBtn.type = "button";
+        useCurrentLocationBtn.textContent = "Use Current Location";
+        useCurrentLocationBtn.style.cssText = `
+          margin-left: 8px;
+          padding: 8px 12px;
+          background: #007bff;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 12px;
+        `;
+        
+        useCurrentLocationBtn.addEventListener("click", async () => {
+          try {
+            useCurrentLocationBtn.textContent = "Getting location...";
+            useCurrentLocationBtn.disabled = true;
+            
+            const location = await getCurrentLocation();
+            const address = await reverseGeocode(location.lat, location.lng);
+            locationInput.value = address;
+            
+            useCurrentLocationBtn.textContent = "Use Current Location";
+            useCurrentLocationBtn.disabled = false;
+          } catch (error) {
+            console.error('Error getting current location:', error);
+            alert(error.message);
+            useCurrentLocationBtn.textContent = "Use Current Location";
+            useCurrentLocationBtn.disabled = false;
+          }
+        });
+
+        // Insert button after the input field
+        locationInput.parentNode.insertBefore(useCurrentLocationBtn, locationInput.nextSibling);
+
+      }).catch(error => {
+        console.warn('Could not get user location for autocomplete bias:', error);
+        
+        // Set up autocomplete without location bias
+        const autocomplete = new google.maps.places.Autocomplete(
+          locationInput,
+          {
+            types: ["establishment", "geocode"],
+            fields: ["name", "formatted_address", "place_id"],
+          }
+        );
+
+        autocomplete.addListener("place_changed", () => {
+          const place = autocomplete.getPlace();
+          if (place.formatted_address) {
+            locationInput.value = place.formatted_address;
+          }
+        });
+      });
+    }
+  } else {
+    // Fallback: Simple location suggestions with current location option
+    const locationInput = document.getElementById("activity-location");
+    if (locationInput) {
+      const commonLocations = [
+        "Use Current Location",
+        "Downtown",
+        "City Center",
+        "University District",
+        "Arts District",
+        "Entertainment District",
+        "Shopping District",
+        "Financial District",
+        "Old Town",
+        "Midtown",
+        "Uptown",
+        "Suburbs",
+        "Waterfront",
+        "North Side",
+        "South Side",
+        "East Side",
+        "West Side",
+      ];
+
+      locationInput.addEventListener("input", (e) => {
+        const value = e.target.value.toLowerCase();
+        if (value.length > 0) {
+          const matches = commonLocations.filter((loc) =>
+            loc.toLowerCase().includes(value)
           );
 
-          autocomplete.addListener("place_changed", () => {
-            const place = autocomplete.getPlace();
-            if (place.formatted_address) {
-              locationInput.value = place.formatted_address;
-            }
-          });
-        }
-      } else {
-        // Fallback: Simple location suggestions (common areas)
-        const locationInput = document.getElementById("activity-location");
-        if (locationInput) {
-          const commonLocations = [
-            "Downtown",
-            "City Center",
-            "University District",
-            "Arts District",
-            "Entertainment District",
-            "Shopping District",
-            "Financial District",
-            "Old Town",
-            "Midtown",
-            "Uptown",
-            "Suburbs",
-            "Waterfront",
-            "North Side",
-            "South Side",
-            "East Side",
-            "West Side",
-          ];
+          // Create simple dropdown (basic implementation)
+          let dropdown = document.getElementById("location-dropdown");
+          if (dropdown) dropdown.remove();
 
-          locationInput.addEventListener("input", (e) => {
-            const value = e.target.value.toLowerCase();
-            if (value.length > 0) {
-              const matches = commonLocations.filter((loc) =>
-                loc.toLowerCase().includes(value)
-              );
-
-              // Create simple dropdown (basic implementation)
-              let dropdown = document.getElementById("location-dropdown");
-              if (dropdown) dropdown.remove();
-
-              if (
-                matches.length > 0 &&
-                matches.length < commonLocations.length
-              ) {
-                dropdown = document.createElement("div");
-                dropdown.id = "location-dropdown";
-                dropdown.style.cssText = `
+          if (matches.length > 0 && matches.length < commonLocations.length) {
+            dropdown = document.createElement("div");
+            dropdown.id = "location-dropdown";
+            dropdown.style.cssText = `
               position: absolute;
               top: 100%;
               left: 0;
@@ -5246,48 +6696,60 @@ Only return the JSON, no additional text.`;
               box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             `;
 
-                matches.slice(0, 5).forEach((match) => {
-                  const option = document.createElement("div");
-                  option.style.cssText = `
+            matches.slice(0, 5).forEach((match) => {
+              const option = document.createElement("div");
+              option.style.cssText = `
                 padding: 12px;
                 cursor: pointer;
                 border-bottom: 1px solid #eee;
               `;
-                  option.textContent = match;
-                  option.addEventListener("mouseenter", () => {
-                    option.style.background = "#f5f5f5";
-                  });
-                  option.addEventListener("mouseleave", () => {
-                    option.style.background = "white";
-                  });
-                  option.addEventListener("click", () => {
-                    locationInput.value = match;
-                    dropdown.remove();
-                  });
-                  dropdown.appendChild(option);
-                });
+              option.textContent = match;
+              option.addEventListener("mouseenter", () => {
+                option.style.background = "#f5f5f5";
+              });
+              option.addEventListener("mouseleave", () => {
+                option.style.background = "white";
+              });
+              option.addEventListener("click", async () => {
+                if (match === "Use Current Location") {
+                  try {
+                    option.textContent = "Getting location...";
+                    const location = await getCurrentLocation();
+                    const address = await reverseGeocode(location.lat, location.lng);
+                    locationInput.value = address;
+                  } catch (error) {
+                    console.error('Error getting current location:', error);
+                    alert(error.message);
+                    locationInput.value = "";
+                  }
+                } else {
+                  locationInput.value = match;
+                }
+                dropdown.remove();
+              });
+              dropdown.appendChild(option);
+            });
 
-                locationInput.parentNode.style.position = "relative";
-                locationInput.parentNode.appendChild(dropdown);
-              }
-            }
-          });
-
-          // Close dropdown when clicking outside
-          document.addEventListener("click", (e) => {
-            const dropdown = document.getElementById("location-dropdown");
-            if (
-              dropdown &&
-              !locationInput.contains(e.target) &&
-              !dropdown.contains(e.target)
-            ) {
-              dropdown.remove();
-            }
-          });
+            locationInput.parentNode.style.position = "relative";
+            locationInput.parentNode.appendChild(dropdown);
+          }
         }
-      }
-    }
+      });
 
+      // Close dropdown when clicking outside
+      document.addEventListener("click", (e) => {
+        const dropdown = document.getElementById("location-dropdown");
+        if (
+          dropdown &&
+          !locationInput.contains(e.target) &&
+          !dropdown.contains(e.target)
+        ) {
+          dropdown.remove();
+        }
+      });
+    }
+  }
+}
     // Initialize app
     document.addEventListener("DOMContentLoaded", () => {
       // Initialize demo data in memory to make the app feel populated
