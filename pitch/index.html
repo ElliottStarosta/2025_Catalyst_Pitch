@@ -2824,9 +2824,14 @@
         return { ...exp, distanceFromGroup: Infinity };
       });
 
-      // Filter experiences within 25km of group center and sort by distance
+      // Get current user's experiences to exclude them
+      const currentUser = DataLayer.load("currentUser");
+      const userExperiences = DataLayer.load("userExperiences", []);
+      const userExperienceNames = userExperiences.map(exp => exp.name.toLowerCase());
+      
+      // Filter experiences within 25km of group center, exclude user's own experiences, and sort by distance
       const nearbyExperiences = experiencesWithDistance
-        .filter(exp => exp.distanceFromGroup <= 25)
+        .filter(exp => exp.distanceFromGroup <= 25 && !userExperienceNames.includes(exp.name.toLowerCase()))
         .sort((a, b) => a.distanceFromGroup - b.distanceFromGroup)
         .slice(0, 10);
 
@@ -3991,6 +3996,9 @@ Only return the JSON, no additional text.`;
 
       document.body.insertAdjacentHTML("beforeend", modalHtml);
       
+      // Prevent body scrolling when modal is open
+      document.body.classList.add('modal-open');
+      
       // Add ESC and click-outside functionality
       addModalListeners("ai-premium-modal", closeAIPremiumModal);
     }
@@ -5109,6 +5117,9 @@ Only return the JSON, no additional text.`;
 
       document.body.insertAdjacentHTML("beforeend", modalHtml);
       
+      // Prevent body scrolling when modal is open
+      document.body.classList.add('modal-open');
+      
       // Add ESC and click-outside functionality
       addModalListeners("ai-edit-modal", closeAIEditModal);
     }
@@ -5443,6 +5454,9 @@ Only return the JSON, no additional text.`;
       `;
 
       document.body.insertAdjacentHTML('beforeend', modalHtml);
+      
+      // Prevent body scrolling when modal is open
+      document.body.classList.add('modal-open');
       
       // Add ESC and click-outside functionality
       addModalListeners("premium-upgrade-modal", closePremiumUpgradeModal);
@@ -5882,6 +5896,15 @@ Only return the JSON, no additional text.`;
       displayGroups: () => {
         const groups = DataLayer.load("groups", []);
         const groupsContent = document.getElementById("groups-content");
+        
+        // Store which groups are currently expanded
+        const expandedGroups = new Set();
+        groups.forEach(group => {
+          const groupContent = document.getElementById(`group-content-${group.id}`);
+          if (groupContent && groupContent.style.maxHeight !== "0px" && groupContent.style.maxHeight !== "") {
+            expandedGroups.add(group.id);
+          }
+        });
 
         // Update group usage display
         const usage = GroupsSystem.getGroupUsage();
@@ -6278,6 +6301,18 @@ Only return the JSON, no additional text.`;
               });
             }
           });
+          
+          // Restore expanded state for groups that were expanded before
+          setTimeout(() => {
+            expandedGroups.forEach(groupId => {
+              const groupContent = document.getElementById(`group-content-${groupId}`);
+              const expandIcon = document.getElementById(`expand-icon-${groupId}`);
+              if (groupContent && expandIcon) {
+                groupContent.style.maxHeight = groupContent.scrollHeight + "px";
+                expandIcon.style.transform = "rotate(180deg)";
+              }
+            });
+          }, 200); // Wait a bit longer for scheduling to load
         }, 100);
       },
     };
@@ -7148,13 +7183,11 @@ Only return the JSON, no additional text.`;
                   .join("")}
                 <div style="text-align: center; margin-top: 1rem;">
                   <button class="btn" style="font-size: 0.9rem; padding: 8px 16px;"
-                          onclick="fillActivityForm('${rec.experience.name
-                }', '${rec.experience.category}', '${rec.experience.location
-                }', '${rec.experience.description.replace(/'/g, "\\'")}')">
+                          onclick="fillActivityForm('${rec.experience.name.replace(/'/g, "\\'")}', '${rec.experience.category.replace(/'/g, "\\'")}', '${rec.experience.location.replace(/'/g, "\\'")}', '${rec.experience.description ? rec.experience.description.replace(/'/g, "\\'") : ""}')">
                     Rate This Place
                   </button>
                 </div>
-              </div>
+              </div>  
             </div>
           `
             )
@@ -7694,12 +7727,17 @@ Only return the JSON, no additional text.`;
           const friends = FriendsSystem.getFriends();
           const friendIds = friends.map(friend => friend.id);
           
-          // Filter experiences that are within 50km of user's location
+          // Get user's experience names to exclude them
+          const userExperienceNames = userExperiences.map(exp => exp.name.toLowerCase());
+          
+          // Filter experiences that are within 50km of user's location and exclude user's own experiences
           const nearbyExperiences = allExperiences.filter(exp => {
             if (!exp.coordinates) return false;
             
             const distance = calculateDistance(lat, lng, exp.coordinates.lat, exp.coordinates.lng);
-            return distance <= 50; // Within 50km
+            const isUserExperience = userExperienceNames.includes(exp.name.toLowerCase());
+            
+            return distance <= 50 && !isUserExperience; // Within 50km and not user's own experience
           });
           
           // Sort by distance and rating
@@ -7803,14 +7841,19 @@ Only return the JSON, no additional text.`;
                             </div>
                           </div>
                           <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-                            <button class="btn" style="font-size: 0.8rem; padding: 6px 12px; flex: 1;" 
-                                    onclick="closeNearbyModal(); fillActivityForm('${exp.name}', '${exp.category}', '${exp.location}', 'Found through location-based search')">
-                              Rate This Place
+                            ${hasVisited ? 
+                              `<span style="background: #e8f5e8; color: #2e7d32; font-size: 0.8rem; font-weight: bold; padding: 6px 12px; border-radius: 12px; border: 1px solid #4caf50; flex: 1; text-align: center;">
+                                ✓ Already Rated
+                              </span>` :
+                              `<button class="btn" style="font-size: 0.8rem; padding: 6px 12px; flex: 1;" 
+                                      onclick="closeNearbyModal(); fillActivityForm('${exp.name}', '${exp.category}', '${exp.location}', 'Found through location-based search')">
+                                Rate This Place
+                              </button>`
+                            }
+                            <button class="btn btn-secondary" style="font-size: 0.8rem; padding: 6px 12px;" 
+                                    data-user-id="${exp.userId}" data-experience-name="${exp.name}" onclick="closeNearbyModal(); showExperienceDetailsFromButton(this);">
+                              View Details
                             </button>
-                                                         <button class="btn btn-secondary" style="font-size: 0.8rem; padding: 6px 12px;" 
-                                     data-user-id="${exp.userId}" data-experience-name="${exp.name}" onclick="closeNearbyModal(); showExperienceDetailsFromButton(this);">
-                               View Details
-                             </button>
                           </div>
                         </div>
                       `;
