@@ -4961,16 +4961,20 @@ Only return the JSON, no additional text.`;
       // Update only the specific group content instead of re-rendering all groups
       await GroupsSystem.updateGroupContent(groupId);
       
-      // Restore expansion state if it was expanded
+      // Restore expansion state if it was expanded - use a longer delay to ensure all async updates are complete
       if (wasExpanded) {
         setTimeout(() => {
           const newContent = document.getElementById(`group-content-${groupId}`);
           const newIcon = document.getElementById(`expand-icon-${groupId}`);
           if (newContent && newIcon) {
-            newContent.style.maxHeight = newContent.scrollHeight + "px";
-            newIcon.style.transform = "rotate(180deg)";
+            // Force a recalculation of the height
+            newContent.style.maxHeight = "none";
+            requestAnimationFrame(() => {
+              newContent.style.maxHeight = newContent.scrollHeight + "px";
+              newIcon.style.transform = "rotate(180deg)";
+            });
           }
-        }, 100); // Small delay to ensure DOM is updated
+        }, 200); // Increased delay to ensure all async updates are complete
       }
       
       NotificationSystem.show("Availability updated successfully!", "success");
@@ -6359,23 +6363,38 @@ Only return the JSON, no additional text.`;
         aiItinerarySection.innerHTML = renderAIItinerary(group);
       }
 
-              // Update group scheduling section if it exists
-        const groupSchedulingSection = groupContent.querySelector('.group-scheduling-section');
-        if (groupSchedulingSection) {
-          // Render the scheduling section asynchronously
-          renderGroupScheduling(group).then(schedulingHtml => {
-            groupSchedulingSection.innerHTML = schedulingHtml;
-            
-
-          }).catch(error => {
-            console.error('Error rendering group scheduling:', error);
-            groupSchedulingSection.innerHTML = '<p style="color: #666;">Unable to load scheduling information.</p>';
+      // Update group scheduling section if it exists
+      const groupSchedulingSection = groupContent.querySelector('.group-scheduling-section');
+      if (groupSchedulingSection) {
+        // Render the scheduling section asynchronously
+        renderGroupScheduling(group).then(schedulingHtml => {
+          groupSchedulingSection.innerHTML = schedulingHtml;
+          
+          // After updating the scheduling section, recalculate the height if expanded
+          if (isExpanded) {
+            // Use requestAnimationFrame to ensure DOM updates are complete
+            requestAnimationFrame(() => {
+              groupContent.style.maxHeight = groupContent.scrollHeight + "px";
+            });
+          }
+        }).catch(error => {
+          console.error('Error rendering group scheduling:', error);
+          groupSchedulingSection.innerHTML = '<p style="color: #666;">Unable to load scheduling information.</p>';
+          
+          // Even if there's an error, still recalculate height if expanded
+          if (isExpanded) {
+            requestAnimationFrame(() => {
+              groupContent.style.maxHeight = groupContent.scrollHeight + "px";
+            });
+          }
+        });
+      } else {
+        // If no scheduling section to update, still recalculate height if expanded
+        if (isExpanded) {
+          requestAnimationFrame(() => {
+            groupContent.style.maxHeight = groupContent.scrollHeight + "px";
           });
         }
-
-      // If the group was expanded, maintain the expanded state
-      if (isExpanded) {
-        groupContent.style.maxHeight = groupContent.scrollHeight + "px";
       }
     };
 
