@@ -1488,6 +1488,21 @@
      // AI Premium Feature Configuration
     const AI_PREMIUM_ENABLED = true; // Set to false to disable premium features
 
+    // Helper function to add crown to premium users
+    function addCrownToPremiumUser(displayName, userId) {
+      // Get current user safely
+      const currentUser = DataLayer.load("currentUser");
+      
+      const isPremium = userId === (currentUser ? currentUser.id : null) ? 
+        (currentUser ? currentUser.isPremium : false) : 
+        (DemoUsers.users[userId] ? DemoUsers.users[userId].isPremium : false);
+      
+      if (isPremium) {
+        return `${displayName} <i class="fas fa-crown" style="color: #FFD700; margin-left: 0.3rem;"></i>`;
+      }
+      return displayName;
+    }
+
     
     // Function to handle rating a place from the community feed
     function ratePlace(name, category, location, description) {
@@ -1548,7 +1563,7 @@
 
         DataLayer.push("friends", friendData);
         NotificationSystem.show(
-          `Added ${user.displayName} as a friend!`,
+                          `Added ${addCrownToPremiumUser(user.displayName, user.id)} as a friend!`,
           "success"
         );
 
@@ -1626,7 +1641,7 @@
 
         DataLayer.remove("friends", (friend) => friend.id === userId);
         NotificationSystem.show(
-          `Removed ${friendToRemove.displayName} from friends!`,
+                          `Removed ${addCrownToPremiumUser(friendToRemove.displayName, friendToRemove.id)} from friends!`,
           "success"
         );
 
@@ -2167,8 +2182,30 @@
 
     // Helper functions for edit modal
     function closeEditModal() {
+      console.log('Closing edit modal');
       const modal = document.getElementById("edit-group-modal");
-      if (modal) modal.remove();
+      if (modal) {
+        console.log('Modal found, removing with animation');
+        modal.style.animation = "fadeOut 0.3s ease forwards";
+        setTimeout(() => {
+          if (modal.parentNode) {
+            modal.remove();
+            console.log('Modal removed from DOM');
+          }
+        }, 300);
+      } else {
+        console.log('Modal not found');
+      }
+      // Re-enable body scrolling
+      document.body.classList.remove('modal-open');
+    }
+
+    function handleEditModalBackdropClick(event) {
+      console.log('Modal backdrop clicked:', event.target);
+      if (event.target.classList.contains('modal')) {
+        console.log('Closing edit modal via backdrop click');
+        closeEditModal();
+      }
     }
 
     function handleEditGroup(event, groupId) {
@@ -2844,6 +2881,195 @@
         FeedSystem.displayFeed();
       },
 
+      displaySortedExperiences: (experiences, filterType) => {
+        const personalityData = DataLayer.load("personalityScore");
+        const userExperiences = DataLayer.load("userExperiences", []);
+        const userExperienceNames = userExperiences.map((exp) =>
+          exp.name.toLowerCase()
+        );
+
+        const feedContent = document.getElementById("feed-content");
+
+        if (experiences.length === 0) {
+          if (filterType === "nearby") {
+            feedContent.innerHTML = `
+              <div class="empty-state">
+                <h3>No nearby experiences found</h3>
+                <p>Try expanding your search radius or check if you have location access enabled.</p>
+                <div style="margin-top: 1rem;">
+                  <button class="btn btn-secondary" onclick="FeedSystem.setFilter('all')">
+                    <i class="fas fa-globe"></i> Show All Experiences
+                  </button>
+                </div>
+              </div>
+            `;
+          } else {
+            feedContent.innerHTML = `
+              <div class="empty-state">
+                <h3>No activities found</h3>
+                <p>Try adjusting your search or filters to see more results.</p>
+              </div>
+            `;
+          }
+          return;
+        }
+
+        // Add location info for nearby filter
+        let locationInfo = "";
+        if (filterType === "nearby") {
+          locationInfo = `
+            <div style="background: rgba(74, 144, 226, 0.1); padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem;">
+              <p style="margin: 0; font-size: 0.9rem; color: #666;">
+                <i class="fas fa-map-marker-alt"></i> 
+                Showing ${experiences.length} experiences within 50km of your location. Sorted by distance.
+              </p>
+            </div>
+          `;
+        }
+
+        feedContent.innerHTML = locationInfo + experiences
+          .map((exp) => {
+            const user =
+              exp.userId === "user-main"
+                ? DataLayer.load("currentUser")
+                : DemoUsers.users[exp.userId];
+
+            if (!user) return "";
+
+            // Check if user has been to this place
+            const hasBeenThere = userExperienceNames.includes(
+              exp.name.toLowerCase()
+            );
+            const isFriend = FriendsSystem.isFriend(exp.userId);
+
+            // Calculate prediction for current user
+            let predictionHtml = "";
+            if (personalityData && exp.userId !== "user-main") {
+              const prediction = ActivitySystem.predictRating(
+                personalityData.adjustmentFactor,
+                exp,
+                user.adjustmentFactor,
+                exp.rawScore
+              );
+
+              predictionHtml = `
+                <div class="prediction-card">
+                  <div class="prediction-score">Predicted for you: ${prediction.prediction.toFixed(
+                    1
+                  )}/10</div>
+                  <div class="prediction-confidence">Confidence: ${(
+                    prediction.confidence * 100
+                  ).toFixed(0)}%</div>
+                </div>
+              `;
+            }
+
+            // Add distance info for nearby filter
+            let distanceInfo = "";
+            if (filterType === "nearby" && exp.coordinates) {
+              // Get user's current location to calculate distance
+              if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                  (position) => {
+                    const distance = calculateDistance(
+                      position.coords.latitude, position.coords.longitude,
+                      exp.coordinates.lat, exp.coordinates.lng
+                    );
+                    // Update the distance display for this experience
+                    const distanceElement = document.getElementById(`distance-${exp.id}`);
+                    if (distanceElement) {
+                      distanceElement.textContent = `${distance.toFixed(1)}km away`;
+                    }
+                  }
+                );
+              }
+              distanceInfo = `<div id="distance-${exp.id}" style="font-size: 0.8rem; color: var(--secondary-color); margin-top: 0.3rem;">Calculating distance...</div>`;
+            }
+
+            // Add friend status and rate button
+            let actionButtons = "";
+            if (exp.userId !== "user-main") {
+              if (!isFriend) {
+                actionButtons += `
+                  <button class="btn btn-secondary" style="font-size: 0.8rem; padding: 6px 12px; margin-right: 0.5rem;"
+                    onclick="FriendsSystem.addFriend(${exp.userId})">
+                    <i class="fas fa-user-plus"></i> Add Friend
+                  </button>
+                `;
+              } else {
+                actionButtons += `
+                  <span style="background: #f8f9fa; color: var(--primary-color); font-size: 0.8rem; font-weight: bold; padding: 4px 8px; border-radius: 12px; border: 1px solid var(--primary-color); display: inline-block; margin-right: 0.5rem;">
+                    ✓ Friend
+                  </span>
+                `;
+              }
+            }
+
+            if (!hasBeenThere) {
+              actionButtons += `
+                <button class="btn" style="font-size: 0.8rem; padding: 6px 12px;"
+                  onclick="ratePlace('${exp.name.replace(/'/g, "\\'")}', '${exp.category.replace(/'/g, "\\'")}', '${exp.location.replace(/'/g, "\\'")}', '${exp.description ? exp.description.replace(/'/g, "\\'") : ""}')">
+                  <i class="fas fa-star"></i> Rate This Place
+                </button>
+              `;
+            } else {
+              actionButtons += `
+                <span style="background: #e8f5e8; color: #2e7d32; font-size: 0.8rem; font-weight: bold; padding: 4px 8px; border-radius: 12px; border: 1px solid #4caf50;">
+                  ✓ Been There
+                </span>
+              `;
+            }
+
+            return `
+              <div class="experience-card" style="
+                border: 1px solid #eee; 
+                border-radius: 12px; 
+                padding: 1.5rem; 
+                background: white;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+                transition: all 0.2s ease;
+                margin-bottom: 1rem;
+              " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'" 
+                 onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.05)'">
+                
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                  <div style="flex: 1;">
+                    <h4>${addCrownToPremiumUser(user.displayName, exp.userId)} ${isFriend ? '<span style="color: var(--primary-color);">★</span>' : ""}</h4>
+                    <div style="display: flex; gap: 1rem; margin-bottom: 0.5rem; font-size: 0.9rem;">
+                      <span style="background: var(--secondary-color); color: white; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.8rem;">
+                        ${exp.category}
+                      </span>
+                      <span style="color: #666;">
+                        <i class="fas fa-map-marker-alt"></i> ${exp.location}
+                      </span>
+                    </div>
+                    <h3 style="margin: 0 0 0.5rem 0; color: var(--primary-color); font-size: 1.2rem;">
+                      ${exp.name}
+                    </h3>
+                    <p style="margin: 0; color: #555; line-height: 1.5; font-size: 0.95rem;">
+                      ${exp.description}
+                    </p>
+                    ${distanceInfo}
+                  </div>
+                  <div style="text-align: right; min-width: 80px;">
+                    <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary-color);">
+                      ${exp.adjustedScore.toFixed(1)}
+                    </div>
+                    <div style="font-size: 0.8rem; color: #666;">Rating</div>
+                  </div>
+                </div>
+                
+                ${predictionHtml}
+                
+                <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem;">
+                  ${actionButtons}
+                </div>
+              </div>
+            `;
+          })
+          .join("");
+      },
+
       displayFilteredExperiences: (experiences, filterType) => {
         const personalityData = DataLayer.load("personalityScore");
         const userExperiences = DataLayer.load("userExperiences", []);
@@ -2851,10 +3077,46 @@
           exp.name.toLowerCase()
         );
 
-        // Sort by timestamp (newest first)
-        experiences.sort(
-          (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
-        );
+        // Sort by distance for nearby filter, otherwise by timestamp
+        if (filterType === "nearby") {
+          // Get user's current location and sort by distance
+          getUserLocationWithFallback()
+            .then((position) => {
+              const userLat = position.coords.latitude;
+              const userLng = position.coords.longitude;
+              
+              // Sort by distance
+              experiences.sort((a, b) => {
+                if (!a.coordinates || !b.coordinates) return 0;
+                const distanceA = calculateDistance(
+                  userLat, userLng,
+                  a.coordinates.lat, a.coordinates.lng
+                );
+                const distanceB = calculateDistance(
+                  userLat, userLng,
+                  b.coordinates.lat, b.coordinates.lng
+                );
+                return distanceA - distanceB;
+              });
+              
+              // Display the sorted experiences
+              FeedSystem.displaySortedExperiences(experiences, filterType);
+            })
+            .catch((error) => {
+              console.error('Error getting location for sorting:', error);
+              // Fallback: sort by timestamp
+              experiences.sort(
+                (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
+              );
+              FeedSystem.displaySortedExperiences(experiences, filterType);
+            });
+          return; // Exit early since we're handling the display asynchronously
+        } else {
+          // Sort by timestamp (newest first) for non-nearby filters
+          experiences.sort(
+            (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
+          );
+        }
 
         const feedContent = document.getElementById("feed-content");
 
@@ -2985,7 +3247,7 @@
                 <div class="feed-header">
                   <div class="feed-avatar">${user.avatar}</div>
                   <div class="feed-user-info">
-                    <h4>${user.displayName} ${isFriend ? '<span style="color: var(--primary-color);">★</span>' : ""}</h4>
+                    <h4>${addCrownToPremiumUser(user.displayName, exp.userId)} ${isFriend ? '<span style="color: var(--primary-color);">★</span>' : ""}</h4>
                     <div class="personality-type">${user.personalityType || "Unknown Type"}</div>
                     <div class="feed-timestamp" title="${formatFullDate(exp.timestamp)}" style="cursor: help;">
                   ${new Date(exp.timestamp).toLocaleDateString()}
@@ -3060,56 +3322,48 @@
           );
         } else if (FeedSystem.currentFilter === "nearby") {
           // Get user's current location and filter by actual distance
-          if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-              (position) => {
-                const userLat = position.coords.latitude;
-                const userLng = position.coords.longitude;
+          getUserLocationWithFallback()
+            .then((position) => {
+              const userLat = position.coords.latitude;
+              const userLng = position.coords.longitude;
+              
+              // Filter experiences by actual distance (within 50km)
+              const nearbyExperiences = filteredExperiences.filter((exp) => {
+                if (!exp.coordinates) return false;
                 
-                // Filter experiences by actual distance (within 50km)
-                const nearbyExperiences = filteredExperiences.filter((exp) => {
-                  if (!exp.coordinates) return false;
-                  
-                  const distance = calculateDistance(
-                    userLat, userLng,
-                    exp.coordinates.lat, exp.coordinates.lng
-                  );
-                  
-                  return distance <= 50; // Within 50km
-                });
-                
-                // Sort by distance
-                nearbyExperiences.sort((a, b) => {
-                  const distanceA = calculateDistance(
-                    userLat, userLng,
-                    a.coordinates.lat, a.coordinates.lng
-                  );
-                  const distanceB = calculateDistance(
-                    userLat, userLng,
-                    b.coordinates.lat, b.coordinates.lng
-                  );
-                  return distanceA - distanceB;
-                });
-                
-                // Update the feed with nearby experiences
-                FeedSystem.displayFilteredExperiences(nearbyExperiences, "nearby");
-              },
-              (error) => {
-                console.error('Error getting location for nearby filter:', error);
-                // Fallback: show experiences with location data
-                const locationExperiences = filteredExperiences.filter(
-                  (exp) => exp.location && exp.location !== "Not specified"
+                const distance = calculateDistance(
+                  userLat, userLng,
+                  exp.coordinates.lat, exp.coordinates.lng
                 );
-                FeedSystem.displayFilteredExperiences(locationExperiences, "nearby");
-              }
-            );
-            return; // Exit early since we're handling the display asynchronously
-          } else {
-            // Fallback: show experiences with location data
-            filteredExperiences = filteredExperiences.filter(
-              (exp) => exp.location && exp.location !== "Not specified"
-            );
-          }
+                
+                return distance <= 50; // Within 50km
+              });
+              
+              // Sort by distance
+              nearbyExperiences.sort((a, b) => {
+                const distanceA = calculateDistance(
+                  userLat, userLng,
+                  a.coordinates.lat, a.coordinates.lng
+                );
+                const distanceB = calculateDistance(
+                  userLat, userLng,
+                  b.coordinates.lat, b.coordinates.lng
+                );
+                return distanceA - distanceB;
+              });
+              
+              // Update the feed with nearby experiences
+              FeedSystem.displayFilteredExperiences(nearbyExperiences, "nearby");
+            })
+            .catch((error) => {
+              console.error('Error getting location for nearby filter:', error);
+              // Fallback: show experiences with location data
+              const locationExperiences = filteredExperiences.filter(
+                (exp) => exp.location && exp.location !== "Not specified"
+              );
+              FeedSystem.displayFilteredExperiences(locationExperiences, "nearby");
+            });
+          return; // Exit early since we're handling the display asynchronously
         }
 
         // Sort by timestamp (newest first)
@@ -3201,7 +3455,7 @@
           <div class="feed-header">
             <div class="feed-avatar">${user.avatar}</div>
             <div class="feed-user-info">
-              <h4>${user.displayName} ${isFriend ? '<span style="color: var(--primary-color);">★</span>' : ""
+              <h4>${addCrownToPremiumUser(user.displayName, exp.userId)} ${isFriend ? '<span style="color: var(--primary-color);">★</span>' : ""
               }</h4>
               <div class="personality-type">${user.personalityType || "Unknown Type"
               }</div>
@@ -3366,18 +3620,20 @@
         
         // Precipitation considerations
         if (activityType.includes('outdoor') || activityType.includes('park') || activityType.includes('hiking')) {
-          if (precipitation < 20) score += 2; // Low chance of rain
+          if (precipitation < 20) score += 3; // Low chance of rain - clear weather bonus
           else if (precipitation < 50) score += 0; // Moderate chance
           else score -= 3; // High chance of rain
         }
         
         // Indoor activities are less affected by weather
         if (activityType.includes('indoor') || activityType.includes('museum') || activityType.includes('cafe') || activityType.includes('restaurant')) {
-          if (isRainy || isSnowy) score += 1; // Good for indoor activities
-          else score += 0; // Neutral
+          // Indoor activities are neutral to weather - no bonus for rain
+          score += 0; // Neutral
         }
         
-        // Extreme weather penalties
+        // General weather bonuses/penalties
+        if (precipitation < 20 && !isRainy && !isSnowy) score += 2; // Strong bonus for clear weather
+        if (isRainy) score -= 1; // Penalty for rainy weather
         if (isStormy) score -= 2;
         if (temp < -10 || temp > 35) score -= 1;
         
@@ -3386,6 +3642,12 @@
 
       // Get best weather day from multiple options
       async getBestWeatherDay(lat, lng, dates, activities) {
+        // Validate that we have dates to process
+        if (!dates || dates.length === 0) {
+          console.error(`🌤️ No dates provided to getBestWeatherDay`);
+          return null;
+        }
+        
         const weatherData = await this.getWeatherForDays(lat, lng, dates);
         const scores = [];
         
@@ -3394,7 +3656,6 @@
           
           // Skip if no weather data for this day
           if (!weather) {
-            console.log(`🌤️ No weather data for day ${i}, skipping`);
             continue;
           }
           
@@ -3405,10 +3666,18 @@
             dayScore += this.getActivityWeatherScore(activity, weather);
           }
           
+          const finalScore = dayScore / activities.length;
+          
+          // Ensure the date is one of the input dates
+          if (!dates.includes(dates[i])) {
+            console.error(`🌤️ Date ${dates[i]} is not in input dates:`, dates);
+            continue;
+          }
+          
           scores.push({
             date: dates[i],
             weather: weather,
-            score: dayScore / activities.length,
+            score: finalScore,
             weatherDescription: weather ? this.getWeatherDescription(weather.weatherCode) : 'Unknown'
           });
         }
@@ -3424,9 +3693,17 @@
           current.score > best.score ? current : best
         );
         
+
+        
         // Validate bestDay has weather data
         if (!bestDay || !bestDay.weather) {
           console.log(`🌤️ Best day has no weather data`);
+          return null;
+        }
+        
+        // Ensure the selected date is one of the input dates
+        if (!dates.includes(bestDay.date)) {
+          console.error(`🌤️ Selected date ${bestDay.date} is not in input dates:`, dates);
           return null;
         }
         
@@ -3488,7 +3765,7 @@ Group Information:
 ${groupData.members
             .map(
               (member) =>
-                `  • ${member.displayName}: ${member.personalityType} (Adjustment Factor: ${member.adjustmentFactor})`
+                `  • ${addCrownToPremiumUser(member.displayName, member.userId)}: ${member.personalityType} (Adjustment Factor: ${member.adjustmentFactor})`
             )
             .join("\n")}
 
@@ -3745,57 +4022,77 @@ Only return the JSON, no additional text.`;
       document.getElementById("ai-trip-form").style.display = "none";
       document.getElementById("ai-loading").style.display = "block";
 
-      try {
-        const tripDetails = {
-          duration,
-          budget,
-          location,
-          interests,
-          requirements,
-        };
-        const itinerary = await AIItineraryGenerator.generateItinerary(
-          group,
-          tripDetails
-        );
+      const tripDetails = {
+        duration,
+        budget,
+        location,
+        interests,
+        requirements,
+      };
 
-        // Save itinerary to group
-        const groupIndex = groups.findIndex((g) => g.id === groupId);
-        if (groupIndex !== -1) {
-          groups[groupIndex].aiItinerary = {
-            ...itinerary,
-            tripDetails,
-            generatedAt: new Date().toISOString(),
-          };
-          DataLayer.save("groups", groups);
-        }
-
-        closeAIPremiumModal();
-        GroupsSystem.displayGroups();
-        NotificationSystem.show(
-          "AI Itinerary generated successfully!",
-          "success"
-        );
-
-        // Scroll to the group with the new itinerary
-        setTimeout(() => {
-          const groupCard = document.querySelector(
-            `[data-group-id="${groupId}"]`
+      // Retry logic - try up to 3 times
+      let lastError = null;
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+          console.log(`AI Itinerary generation attempt ${attempt}/3`);
+          
+          const itinerary = await AIItineraryGenerator.generateItinerary(
+            group,
+            tripDetails
           );
-          if (groupCard) {
-            groupCard.scrollIntoView({ behavior: "smooth" });
-          }
-        }, 500);
-      } catch (error) {
-        console.error("Error generating itinerary:", error);
-        NotificationSystem.show(
-          "Failed to generate itinerary. Please try again.",
-          "error"
-        );
 
-        // Reset form
-        document.getElementById("ai-loading").style.display = "none";
-        document.getElementById("ai-trip-form").style.display = "block";
+          // Save itinerary to group
+          const groupIndex = groups.findIndex((g) => g.id === groupId);
+          if (groupIndex !== -1) {
+            groups[groupIndex].aiItinerary = {
+              ...itinerary,
+              tripDetails,
+              generatedAt: new Date().toISOString(),
+            };
+            DataLayer.save("groups", groups);
+          }
+
+          closeAIPremiumModal();
+          GroupsSystem.displayGroups();
+          NotificationSystem.show(
+            "AI Itinerary generated successfully!",
+            "success"
+          );
+
+          // Scroll to the group with the new itinerary
+          setTimeout(() => {
+            const groupCard = document.querySelector(
+              `[data-group-id="${groupId}"]`
+            );
+            if (groupCard) {
+              groupCard.scrollIntoView({ behavior: "smooth" });
+            }
+          }, 500);
+          
+          return; // Success - exit the function
+          
+        } catch (error) {
+          console.error(`AI Itinerary generation attempt ${attempt}/3 failed:`, error);
+          lastError = error;
+          
+          // If this is not the last attempt, wait a bit before retrying
+          if (attempt < 3) {
+            console.log(`Retrying in 2 seconds...`);
+            await new Promise(resolve => setTimeout(resolve, 2000));
+          }
+        }
       }
+
+      // All attempts failed
+      console.error("All AI Itinerary generation attempts failed:", lastError);
+      NotificationSystem.show(
+        "Failed to generate itinerary after 3 attempts. Please try again later.",
+        "error"
+      );
+
+      // Reset form
+      document.getElementById("ai-loading").style.display = "none";
+      document.getElementById("ai-trip-form").style.display = "block";
     }
 
     function renderAIItinerary(group) {
@@ -3952,15 +4249,35 @@ Only return the JSON, no additional text.`;
       // Get current week dates (next 7 days)
       const weekDates = [];
       const today = new Date();
+      console.log('Today is:', today.toISOString().split('T')[0], '(', today.toLocaleDateString('en-US', { weekday: 'long' }), ')');
+      console.log('Today raw:', today);
+      console.log('Today getTime():', today.getTime());
+      console.log('Today getDate():', today.getDate());
+      console.log('Today getMonth():', today.getMonth());
+      console.log('Today getFullYear():', today.getFullYear());
+      
       for (let i = 0; i < 7; i++) {
         const date = new Date(today);
         date.setDate(today.getDate() + i);
-        weekDates.push({
+        
+        // Ensure we're getting the correct day name by using the date object directly
+        const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+        const fullDate = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        
+        // Use local date methods to avoid timezone issues
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const dateString = `${year}-${month}-${day}`;
+        
+        const dayInfo = {
           date: date,
-          dayName: date.toLocaleDateString('en-US', { weekday: 'short' }),
-          fullDate: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-          dateString: date.toISOString().split('T')[0]
-        });
+          dayName: dayName,
+          fullDate: fullDate,
+          dateString: dateString
+        };
+        weekDates.push(dayInfo);
+        console.log(`Day ${i}: ${dayInfo.dayName} (${dayInfo.dateString}) - ${date.toLocaleDateString('en-US', { weekday: 'long' })}`);
       }
 
       // Count available members for each day
@@ -3975,32 +4292,122 @@ Only return the JSON, no additional text.`;
           totalCount: group.members.length
         };
       });
-
-      // Find best meeting day (most members available)
-      let bestDay = availabilityCounts.reduce((best, current) => {
-        if (current.availableCount > best.availableCount) {
-          return current;
+      
+      // Debug: Log availability counts for each day
+      console.log('Availability counts by day:');
+      availabilityCounts.forEach(day => {
+        console.log(`${day.dayName} (${day.dateString}): ${day.availableCount}/${day.totalCount} votes`);
+      });
+      
+      // Debug: Log current user's availability
+      const currentUserAvailability = group.availability[currentUser.id] || [];
+      console.log('Current user availability:', currentUserAvailability);
+      console.log('All group availability:', group.availability);
+      
+      // Debug: Check what each selected date corresponds to
+      console.log('Week dates generated:');
+      weekDates.forEach((day, index) => {
+        console.log(`Day ${index}: ${day.dayName} (${day.dateString}) - ${day.date.toLocaleDateString('en-US', { weekday: 'long' })}`);
+      });
+      
+      currentUserAvailability.forEach(dateString => {
+        const dayInfo = weekDates.find(day => day.dateString === dateString);
+        if (dayInfo) {
+          console.log(`Selected date ${dateString} corresponds to ${dayInfo.dayName} (${dayInfo.fullDate})`);
+        } else {
+          console.log(`Selected date ${dateString} not found in week dates`);
         }
-        return best;
+      });
+      console.log('Group members:', group.members.map(m => ({ id: m.userId, name: m.displayName })));
+      
+      // Debug: Log each member's availability
+      group.members.forEach(member => {
+        const memberAvailability = group.availability[member.userId] || [];
+        console.log(`Member ${member.displayName} (${member.userId}) availability:`, memberAvailability);
       });
 
-      // Check for ties (multiple days with same availability count)
-      const tiedDays = availabilityCounts.filter(day => 
-        day.availableCount === bestDay.availableCount && day.availableCount > 0
-      );
+      // Find best meeting day (most members available)
+      // First, filter to only days that have at least 1 vote
+      const daysWithVotes = availabilityCounts.filter(day => day.availableCount > 0);
+      
+      // If no days have votes, return null or default
+      if (daysWithVotes.length === 0) {
+        return `
+          <div class="group-scheduling-section" style="margin-top: 2rem; padding: 1.5rem; background: linear-gradient(135deg, rgba(74, 144, 226, 0.05) 0%, rgba(160, 200, 240, 0.05) 100%); border-radius: 15px; border: 2px solid rgba(74, 144, 226, 0.2);">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+              <h4 style="margin: 0; color: var(--primary-color); display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-calendar-alt"></i> Group Scheduling
+              </h4>
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <div style="background: var(--primary-gradient); color: var(--inverted-text-color); padding: 0.2rem 0.6rem; border-radius: 10px; font-size: 0.7rem; font-weight: bold;">
+                  PREMIUM
+                </div>
+                ${allMembersHavePremium ? `
+                  <button class="btn btn-secondary" onclick="showAvailabilityModal(${group.id})" style="font-size: 0.8rem; padding: 8px 16px;">
+                    <i class="fas fa-edit"></i> Set My Availability
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+            <div style="background: white; padding: 1rem; border-radius: 10px; margin-bottom: 1rem;">
+              <h5 style="margin: 0 0 1rem 0; color: var(--primary-color);">This Week's Availability</h5>
+              <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5rem;">
+                ${availabilityCounts.map(day => `
+                  <div style="
+                    text-align: center; 
+                    padding: 0.8rem 0.5rem; 
+                    border-radius: 8px; 
+                    border: 2px solid #e0e0e0;
+                    background: white;
+                    position: relative;
+                  ">
+                    <div style="font-weight: bold; font-size: 0.9rem; color: var(--primary-color);">${day.dayName}</div>
+                    <div style="font-size: 0.8rem; color: #666; margin: 0.3rem 0;">${day.fullDate}</div>
+                    <div style="font-size: 0.7rem; color: #666;">
+                      ${day.availableCount}/${day.totalCount}
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+            <div style="background: white; padding: 1rem; border-radius: 10px; border-left: 4px solid var(--warning-color);">
+              <h5 style="margin: 0 0 0.5rem 0; color: var(--warning-color);">
+                <i class="fas fa-info-circle"></i> No Availability Set
+              </h5>
+              <p style="margin: 0; font-size: 0.9rem; color: #666;">
+                No members have set their availability for this week. Please set your availability to see recommendations.
+              </p>
+            </div>
+          </div>
+        `;
+      }
+      
+      // Find the maximum availability count among days with votes
+      const maxAvailability = Math.max(...daysWithVotes.map(day => day.availableCount));
+      
+      // Find all days that have the maximum availability count
+      const tiedDays = daysWithVotes.filter(day => day.availableCount === maxAvailability);
+      
+      // Select the first tied day as the initial best day
+      let bestDay = tiedDays[0];
+      
+      // Debug logging to understand what's happening
+      console.log('Days with votes:', daysWithVotes.map(d => `${d.dayName}: ${d.availableCount}`));
+      console.log('Tied days:', tiedDays.map(d => `${d.dayName}: ${d.availableCount}`));
+      console.log('Selected best day:', bestDay.dayName);
 
       // Store tie information for display
       const wasTie = tiedDays.length > 1;
       const tieCount = tiedDays.length;
 
-      // If there are ties and we have activities, use weather to break the tie
-      if (tiedDays.length > 1 && group.activities && group.activities.length > 0) {
+      // If there are ties, use weather to break the tie
+      if (tiedDays.length > 1) {
         try {
           // Get location from group activities, user location, or group center
           let lat, lng;
           
           // Try to get location from first activity
-          const firstActivity = group.activities[0];
+          const firstActivity = group.activities && group.activities.length > 0 ? group.activities[0] : null;
           if (firstActivity && firstActivity.coordinates) {
             lat = firstActivity.coordinates.lat;
             lng = firstActivity.coordinates.lng;
@@ -4035,11 +4442,30 @@ Only return the JSON, no additional text.`;
           }
           
           const tiedDates = tiedDays.map(day => day.dateString);
-          const weatherBestDay = await WeatherSystem.getBestWeatherDay(lat, lng, tiedDates, group.activities);
+          
+          console.log('Weather tie-breaker: evaluating dates:', tiedDates);
+          console.log('Tied days for weather evaluation:', tiedDays.map(d => `${d.dayName} (${d.dateString}): ${d.availableCount} votes`));
+          
+          // Use group activities or create default activities for weather comparison
+          let activitiesForWeather = group.activities || [];
+          if (activitiesForWeather.length === 0) {
+            activitiesForWeather = [
+              { name: "Outdoor Activity", category: "Outdoor", coordinates: null },
+              { name: "Park Visit", category: "Outdoor", coordinates: null },
+              { name: "Restaurant", category: "Restaurant", coordinates: null },
+              { name: "Cafe", category: "Cafe", coordinates: null }
+            ];
+          }
+          
+          const weatherBestDay = await WeatherSystem.getBestWeatherDay(lat, lng, tiedDates, activitiesForWeather);
           
           if (weatherBestDay) {
+            console.log('Weather system selected:', weatherBestDay.date);
             bestDay = availabilityCounts.find(day => day.dateString === weatherBestDay.date) || bestDay;
             bestDay.weatherInfo = weatherBestDay;
+            console.log('Final best day after weather:', bestDay.dayName);
+          } else {
+            console.log('No weather data available, keeping original selection:', bestDay.dayName);
           }
         } catch (error) {
           console.error('Error getting weather data for tie-breaking:', error);
@@ -4116,7 +4542,7 @@ Only return the JSON, no additional text.`;
                     (DemoUsers.users[member.userId] ? DemoUsers.users[member.userId].isPremium : false);
                   return `
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem; font-size: 0.8rem;">
-                      <span>${member.displayName}</span>
+                      <span>${addCrownToPremiumUser(member.displayName, member.userId)}</span>
                       <span style="color: ${isPremium ? 'var(--success-color)' : 'var(--warning-color)'}; font-weight: bold;">
                         ${isPremium ? '✓ Premium' : '✗ Free'}
                       </span>
@@ -4138,18 +4564,18 @@ Only return the JSON, no additional text.`;
                 </h5>
                 <p style="margin: 0; font-size: 0.9rem; color: #666;">
                   <strong>${bestDay.dayName}, ${bestDay.fullDate}</strong> - ${bestDay.availableCount} out of ${bestDay.totalCount} members available
-                  ${bestDay.weatherInfo ? ` <span style="color: var(--primary-color); font-weight: bold;">🌤️ Weather tie-breaker: ${bestDay.weatherInfo.weatherDescription}</span>` : ''}
+                  
                 </p>
                 <div style="margin-top: 0.5rem; font-size: 0.8rem; color: #666;">
                   Available members: ${group.members.filter(member => {
                     const memberAvailability = group.availability[member.userId] || [];
                     return memberAvailability.includes(bestDay.dateString);
-                  }).map(member => member.displayName).join(', ')}
+                  }).map(member => addCrownToPremiumUser(member.displayName, member.userId)).join(', ')}
                 </div>
                 ${bestDay.weatherInfo ? `
                   <div style="margin-top: 0.5rem; padding: 0.5rem; background: rgba(74, 144, 226, 0.1); border-radius: 5px; font-size: 0.8rem;">
                                     <div style="margin-bottom: 0.5rem; font-weight: bold; color: var(--primary-color);">
-                  🌤️ Weather Tie-Breaker Applied
+                  <i class="fas fa-cloud-sun"></i> Weather Tie-Breaker Applied
                 </div>
                 <div style="margin-bottom: 0.3rem; font-size: 0.75rem; color: #666;">
                   ${tieCount} days had the same availability (${bestDay.availableCount}/${bestDay.totalCount}). 
@@ -4175,20 +4601,7 @@ Only return the JSON, no additional text.`;
               </div>
             `}
 
-            <!-- Weather-based activity recommendations -->
-            ${(() => {
-              console.log(`🌤️ Group ${group.id} has ${group.activities ? group.activities.length : 0} activities`);
-              return true; // Always show weather recommendations, even without activities
-            })() ? `
-              <div id="weather-recommendations-${group.id}" style="background: white; padding: 1rem; border-radius: 10px; margin-bottom: 1rem; border-left: 4px solid var(--info-color);">
-                <h5 style="margin: 0 0 0.5rem 0; color: var(--info-color);">
-                  <i class="fas fa-cloud-sun"></i> Weather-Based Activity Suggestions
-                </h5>
-                <div id="weather-recommendations-content-${group.id}" style="font-size: 0.9rem; color: #666;">
-                  <p>Loading weather-based activity suggestions...</p>
-                </div>
-              </div>
-            ` : ''}
+
           ` : ''}
         </div>
       `;
@@ -4209,197 +4622,27 @@ Only return the JSON, no additional text.`;
 
     // Function to get user's current location
     function getUserLocation() {
-      return new Promise((resolve, reject) => {
-        if (!navigator.geolocation) {
-          reject(new Error('Geolocation not supported'));
-          return;
-        }
-        
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const location = {
-              lat: position.coords.latitude,
-              lng: position.coords.longitude
-            };
-            
-            // Update current user's location
-            const currentUser = DataLayer.load("currentUser");
-            currentUser.location = location;
-            DataLayer.save("currentUser", currentUser);
-            
-            resolve(location);
-          },
-          (error) => {
-            reject(error);
-          }
-        );
-      });
-    }
-
-    // Function to load and display weather recommendations (only for tied votes)
-    async function loadWeatherRecommendations(groupId) {
-      console.log(`🌤️ Loading weather recommendations for group:`, groupId);
-      
-      const groups = DataLayer.load("groups", []);
-      const group = groups.find((g) => g.id === groupId);
-      console.log(`🌤️ Found group:`, group);
-      
-      if (!group) {
-        console.log(`🌤️ No group found`);
-        return;
-      }
-
-      const recommendationsElement = document.getElementById(`weather-recommendations-content-${groupId}`);
-      console.log(`🌤️ Recommendations element:`, recommendationsElement);
-      
-      if (!recommendationsElement) {
-        console.log(`🌤️ No recommendations element found`);
-        return;
-      }
-
-      // Check if there are tied votes in the group scheduling
-      const weekDates = [];
-      const today = new Date();
-      for (let i = 0; i < 7; i++) {
-        const date = new Date(today);
-        date.setDate(today.getDate() + i);
-        weekDates.push({
-          date: date,
-          dateString: date.toISOString().split('T')[0]
-        });
-      }
-
-      // Count available members for each day
-      const availabilityCounts = weekDates.map(weekDate => {
-        const availableMembers = group.members.filter(member => {
-          const memberAvailability = (group.availability && group.availability[member.userId]) || [];
-          return memberAvailability.includes(weekDate.dateString);
-        });
-        return {
-          ...weekDate,
-          availableCount: availableMembers.length,
-          totalCount: group.members.length
-        };
-      });
-
-      // Find best meeting day and check for ties
-      let bestDay = availabilityCounts.reduce((best, current) => {
-        if (current.availableCount > best.availableCount) {
-          return current;
-        }
-        return best;
-      });
-
-      const tiedDays = availabilityCounts.filter(day => 
-        day.availableCount === bestDay.availableCount && day.availableCount > 0
-      );
-
-      // Only show weather recommendations if there are tied votes
-      if (tiedDays.length > 1) {
-        console.log(`🌤️ Found ${tiedDays.length} tied days, showing weather recommendations`);
-        
-        // Make sure the weather recommendations div is visible
-        const weatherRecommendationsDiv = document.getElementById(`weather-recommendations-${groupId}`);
-        if (weatherRecommendationsDiv) {
-          weatherRecommendationsDiv.style.display = 'block';
-        }
-        
+      return new Promise(async (resolve, reject) => {
         try {
-          // Get location for weather data
-          let lat, lng;
-          const firstActivity = group.activities && group.activities.length > 0 ? group.activities[0] : null;
-          if (firstActivity && firstActivity.coordinates) {
-            lat = firstActivity.coordinates.lat;
-            lng = firstActivity.coordinates.lng;
-          } else {
-            const currentUser = DataLayer.load("currentUser");
-            if (currentUser && currentUser.location) {
-              lat = currentUser.location.lat;
-              lng = currentUser.location.lng;
-            } else {
-              // Fallback to Waterloo if no location data available
-              lat = 43.4643;
-              lng = -80.5204;
-            }
-          }
+          const position = await getUserLocationWithFallback();
+          const location = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
           
-          const tiedDates = tiedDays.map(day => day.dateString);
+          // Update current user's location
+          const currentUser = DataLayer.load("currentUser");
+          currentUser.location = location;
+          DataLayer.save("currentUser", currentUser);
           
-          // Use group activities or create general activities for weather comparison
-          let activitiesForWeather = group.activities || [];
-          if (activitiesForWeather.length === 0) {
-            activitiesForWeather = [
-              { name: "Outdoor Activity", category: "Outdoor", coordinates: null },
-              { name: "Indoor Activity", category: "Indoor", coordinates: null },
-              { name: "Restaurant", category: "Restaurant", coordinates: null },
-              { name: "Cafe", category: "Cafe", coordinates: null },
-              { name: "Entertainment", category: "Entertainment", coordinates: null }
-            ];
-          }
-          
-          const weatherBestDay = await WeatherSystem.getBestWeatherDay(lat, lng, tiedDates, activitiesForWeather);
-          
-          if (weatherBestDay) {
-            const selectedDate = new Date(weatherBestDay.date).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
-            const recommendationsHtml = `
-              <div style="background: white; padding: 1rem; border-radius: 10px; margin-bottom: 1rem; border-left: 4px solid var(--primary-color);">
-                <h5 style="margin: 0 0 0.5rem 0; color: var(--primary-color);">
-                  🌤️ Weather Tie-Breaker Applied
-                </h5>
-                <div style="margin-bottom: 0.5rem; font-size: 0.9rem; color: #666;">
-                  <strong>${tiedDays.length} days had the same availability (${bestDay.availableCount}/${bestDay.totalCount}).</strong>
-                  This day was selected based on weather conditions for your group's activities.
-                </div>
-                <div style="font-size: 0.8rem; color: #666; margin-bottom: 0.5rem;">
-                  <strong>Selected Day:</strong> ${selectedDate}
-                </div>
-                <div style="font-size: 0.8rem; color: #666; margin-bottom: 0.5rem;">
-                  <strong>Weather Forecast:</strong> ${weatherBestDay.weatherDescription} | 
-                  High: ${weatherBestDay.weather.maxTemp}°C | 
-                  Low: ${weatherBestDay.weather.minTemp}°C | 
-                  Rain: ${weatherBestDay.weather.precipitation}%
-                </div>
-                <div style="font-size: 0.8rem;">
-                  <strong>Why This Day:</strong> ${weatherBestDay.reason}
-                </div>
-              </div>
-            `;
-            recommendationsElement.innerHTML = recommendationsHtml;
-          } else {
-            recommendationsElement.innerHTML = `
-              <div style="background: white; padding: 1rem; border-radius: 10px; margin-bottom: 1rem; border-left: 4px solid var(--warning-color);">
-                <h5 style="margin: 0 0 0.5rem 0; color: var(--warning-color);">
-                  ⚠️ Weather Data Unavailable for Tie-Breaking
-                </h5>
-                <div style="font-size: 0.8rem; color: #666;">
-                  Unable to use weather data to break the tie between ${tiedDays.length} days with equal availability.
-                </div>
-              </div>
-            `;
-          }
+          resolve(location);
         } catch (error) {
-          console.error('Error loading weather recommendations for tie-breaking:', error);
-          recommendationsElement.innerHTML = `
-            <div style="background: white; padding: 1rem; border-radius: 10px; margin-bottom: 1rem; border-left: 4px solid var(--warning-color);">
-              <h5 style="margin: 0 0 0.5rem 0; color: var(--warning-color);">
-                ⚠️ Error Loading Weather Data
-              </h5>
-              <div style="font-size: 0.8rem; color: #666;">
-                Unable to load weather data for tie-breaking. The first available day will be selected.
-              </div>
-            </div>
-          `;
+          reject(error);
         }
-      } else {
-        // No tied votes or no activities, hide the entire weather recommendations section
-        const weatherRecommendationsDiv = document.getElementById(`weather-recommendations-${groupId}`);
-        if (weatherRecommendationsDiv) {
-          weatherRecommendationsDiv.style.display = 'none';
-        } else {
-          recommendationsElement.innerHTML = '';
-        }
-      }
+      });
     }
+
+
 
     // Function to recommend activities based on weather
     async function recommendActivitiesForWeather(group) {
@@ -4568,14 +4811,26 @@ Only return the JSON, no additional text.`;
       // Get current week dates (next 7 days)
       const weekDates = [];
       const today = new Date();
+      
       for (let i = 0; i < 7; i++) {
         const date = new Date(today);
         date.setDate(today.getDate() + i);
+        
+        // Ensure we're getting the correct day name by using the date object directly
+        const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+        const fullDate = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        
+        // Use local date methods to avoid timezone issues
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const dateString = `${year}-${month}-${day}`;
+        
         weekDates.push({
           date: date,
-          dayName: date.toLocaleDateString('en-US', { weekday: 'long' }),
-          fullDate: date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
-          dateString: date.toISOString().split('T')[0]
+          dayName: dayName,
+          fullDate: fullDate,
+          dateString: dateString
         });
       }
 
@@ -5175,7 +5430,7 @@ Current Group Information:
 ${group.members
             .map(
               (member) =>
-                `  • ${member.displayName}: ${member.personalityType} (Adjustment Factor: ${member.adjustmentFactor})`
+                `  • ${addCrownToPremiumUser(member.displayName, member.userId)}: ${member.personalityType} (Adjustment Factor: ${member.adjustmentFactor})`
             )
             .join("\n")}
 
@@ -5759,7 +6014,7 @@ Only return the JSON, no additional text.`;
                         justify-content: center; 
                         font-size: 0.8rem;
                       ">${member.avatar}</div>
-                      <span style="font-weight: 500;">${member.displayName}</span>
+                      <span style="font-weight: 500;">${addCrownToPremiumUser(member.displayName, member.userId)}</span>
                       <span style="color: #666; font-size: 0.8rem;">(${member.personalityType})</span>
                     </div>
                   `
@@ -5830,7 +6085,7 @@ Only return the JSON, no additional text.`;
                             .map(
                               (score) => `
                               <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-top: 0.3rem;">
-                                <span>${score.member.displayName}</span>
+                                <span>${addCrownToPremiumUser(score.member.displayName, score.member.userId)}</span>
                                 <span style="font-weight: bold; color: ${score.score >= 7
                                   ? "#4CAF50"
                                   : score.score >= 5
@@ -5862,7 +6117,7 @@ Only return the JSON, no additional text.`;
                             <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #eee;">
                               <button class="vote-button ${hasVoted ? "voted" : ""
                           }" 
-                                      onclick="GroupsSystem.voteForActivity(${group.id}, '${activityName}')" style="
+                                      onclick="GroupsSystem.voteForActivity(${group.id}, '${activityName.replace(/'/g, "\\'")}')" style="
                                 background: ${hasVoted ? 'var(--success-color)' : 'var(--primary-color)'}; 
                                 color: white; 
                                 border: none; 
@@ -5882,7 +6137,7 @@ Only return the JSON, no additional text.`;
                                 const member = group.members.find(
                                   (m) => m.userId === userId
                                 );
-                                return member ? member.displayName : "Unknown";
+                                return member ? addCrownToPremiumUser(member.displayName, member.userId) : "Unknown";
                               })
                               .join(", ")})`
                             : ""
@@ -5914,10 +6169,7 @@ Only return the JSON, no additional text.`;
               renderGroupScheduling(group).then(schedulingHtml => {
                 placeholder.outerHTML = schedulingHtml;
                 
-                // Load weather recommendations after scheduling is loaded
-                setTimeout(() => {
-                  loadWeatherRecommendations(group.id);
-                }, 100);
+
               }).catch(error => {
                 console.error('Error rendering group scheduling:', error);
                 placeholder.innerHTML = '<p style="color: #666; text-align: center;">Unable to load scheduling information.</p>';
@@ -5930,9 +6182,13 @@ Only return the JSON, no additional text.`;
 
     //GroupsSystem object
     GroupsSystem.voteForActivity = function (groupId, activityName) {
+      console.log('Voting for activity:', activityName, 'in group:', groupId);
       const groups = DataLayer.load("groups", []);
       const group = groups.find((g) => g.id === groupId);
-      if (!group) return;
+      if (!group) {
+        console.error('Group not found:', groupId);
+        return;
+      }
 
       // Initialize votes if not exists
       if (!group.votes) group.votes = {};
@@ -5966,6 +6222,7 @@ Only return the JSON, no additional text.`;
       DataLayer.save("groups", groups);
       
       // Update only the specific group's content instead of refreshing everything
+      console.log('Updating group content for:', groupId);
       GroupsSystem.updateGroupContent(groupId);
     };
 
@@ -6026,7 +6283,7 @@ Only return the JSON, no additional text.`;
                 .map(
                   (score) => `
                   <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-top: 0.3rem;">
-                    <span>${score.member.displayName}</span>
+                                                    <span>${addCrownToPremiumUser(score.member.displayName, score.member.userId)}</span>
                     <span style="font-weight: bold; color: ${score.score >= 7
                       ? "#4CAF50"
                       : score.score >= 5
@@ -6057,7 +6314,7 @@ Only return the JSON, no additional text.`;
                 <!-- Voting section -->
                 <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #eee;">
                   <button class="vote-button ${hasVoted ? "voted" : ""}" 
-                          onclick="GroupsSystem.voteForActivity(${group.id}, '${activityName}')" style="
+                          onclick="GroupsSystem.voteForActivity(${group.id}, '${activityName.replace(/'/g, "\\'")}')" style="
                     background: ${hasVoted ? 'var(--success-color)' : 'var(--primary-color)'}; 
                     color: white; 
                     border: none; 
@@ -6077,7 +6334,7 @@ Only return the JSON, no additional text.`;
                     const member = group.members.find(
                       (m) => m.userId === userId
                     );
-                    return member ? member.displayName : "Unknown";
+                    return member ? addCrownToPremiumUser(member.displayName, member.userId) : "Unknown";
                   })
                   .join(", ")})`
                 : ""
@@ -6109,10 +6366,7 @@ Only return the JSON, no additional text.`;
           renderGroupScheduling(group).then(schedulingHtml => {
             groupSchedulingSection.innerHTML = schedulingHtml;
             
-            // Load weather recommendations after updating the scheduling section
-            setTimeout(() => {
-              loadWeatherRecommendations(group.id);
-            }, 100);
+
           }).catch(error => {
             console.error('Error rendering group scheduling:', error);
             groupSchedulingSection.innerHTML = '<p style="color: #666;">Unable to load scheduling information.</p>';
@@ -6151,8 +6405,8 @@ Only return the JSON, no additional text.`;
       );
 
       const modalHtml = `
-    <div id="edit-group-modal" class="modal">
-      <div class="modal-content">
+    <div id="edit-group-modal" class="modal" onclick="handleEditModalBackdropClick(event)">
+      <div class="modal-content" onclick="event.stopPropagation()">
         <button class="modal-close" onclick="closeEditModal()">&times;</button>
         <div class="modal-header">
           <h2>Edit Group</h2>
@@ -6178,7 +6432,7 @@ Only return the JSON, no additional text.`;
                   <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem; padding: 0.5rem; border: 1px solid #eee; border-radius: 8px;">
                     <input type="checkbox" id="keep-member-${member.userId}" checked>
                     <div class="feed-avatar" style="width: 30px; height: 30px; font-size: 0.8rem;">${member.avatar}</div>
-                    <span>${member.displayName} (${member.personalityType})</span>
+                    <span>${addCrownToPremiumUser(member.displayName, member.userId)} (${member.personalityType})</span>
                   </div>
                 `
           )
@@ -6194,7 +6448,7 @@ Only return the JSON, no additional text.`;
                 <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem; padding: 0.5rem; border: 1px solid #eee; border-radius: 8px;">
                   <input type="checkbox" id="add-member-${friend.id}">
                   <div class="feed-avatar" style="width: 30px; height: 30px; font-size: 0.8rem;">${friend.avatar}</div>
-                  <span>${friend.displayName} (${friend.personalityType})</span>
+                  <span>${addCrownToPremiumUser(friend.displayName, friend.id)} (${friend.personalityType})</span>
                 </div>
               `
           )
@@ -6211,6 +6465,8 @@ Only return the JSON, no additional text.`;
   `;
 
       document.body.insertAdjacentHTML("beforeend", modalHtml);
+      // Prevent body scrolling when modal is open
+      document.body.classList.add('modal-open');
     };
 
     // Modal system for creating groups
@@ -6256,7 +6512,7 @@ Only return the JSON, no additional text.`;
                     <div class="feed-avatar" style="width: 35px; height: 35px; font-size: 1rem;">${friend.avatar
               }</div>
                     <div style="flex: 1;">
-                      <strong>${friend.displayName}</strong>
+                      <strong>${addCrownToPremiumUser(friend.displayName, friend.id)}</strong>
                       <div style="font-size: 0.8rem; color: var(--secondary-color);">${friend.personalityType
               }</div>
                       <div style="font-size: 0.8rem; color: #888;">AF: ${friend.adjustmentFactor.toFixed(
@@ -6374,7 +6630,7 @@ Only return the JSON, no additional text.`;
                         </div>
                       </div>
                       
-                      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; margin: 1rem 0; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
+                      <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; margin: 1rem 0; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
                         <div style="text-align: center;">
                           <div style="font-size: 0.9rem; color: #666; margin-bottom: 0.2rem;">Energy</div>
                           <div style="font-weight: bold; color: var(--primary-color);">${experience.responses.energy}/10</div>
@@ -6386,6 +6642,10 @@ Only return the JSON, no additional text.`;
                         <div style="text-align: center;">
                           <div style="font-size: 0.9rem; color: #666; margin-bottom: 0.2rem;">Comfort</div>
                           <div style="font-weight: bold; color: var(--primary-color);">${experience.responses.comfort}/10</div>
+                        </div>
+                        <div style="text-align: center;">
+                          <div style="font-size: 0.9rem; color: #666; margin-bottom: 0.2rem;">Overwhelm</div>
+                          <div style="font-weight: bold; color: var(--primary-color);">${experience.responses.overwhelm}/10</div>
                         </div>
                         <div style="text-align: center;">
                           <div style="font-size: 0.9rem; color: #666; margin-bottom: 0.2rem;">Return</div>
@@ -6627,7 +6887,7 @@ Only return the JSON, no additional text.`;
                       <div class="feed-avatar" style="width: 35px; height: 35px; font-size: 1rem;">${friend.avatar
               }</div>
                                           <div style="flex: 1;">
-                      <strong>${friend.displayName}</strong>
+                      <strong>${addCrownToPremiumUser(friend.displayName, friend.id)}</strong>
                       <div style="font-size: 0.8rem; color: var(--secondary-color);">${friend.personalityType
               }</div>
                       <div style="font-size: 0.8rem; color: #888;">AF: ${friend.adjustmentFactor.toFixed(
@@ -6763,7 +7023,7 @@ Only return the JSON, no additional text.`;
                   .map(
                     (p) => `
                   <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; margin-bottom: 0.3rem;">
-                    <span>${p.user.displayName} (${p.user.personalityType})</span>
+                    <span>${addCrownToPremiumUser(p.user.displayName, p.user.id)} (${p.user.personalityType})</span>
                     <span style="font-weight: bold;">${p.experience.adjustedScore}/10</span>
                   </div>
                 `
@@ -6822,7 +7082,7 @@ Only return the JSON, no additional text.`;
                   <div style="width: 20px; height: 20px; border-radius: 50%; background: var(--secondary-gradient); color: white; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold;">
                     ${friend.avatar}
                   </div>
-                  ${friend.displayName}
+                  ${addCrownToPremiumUser(friend.displayName, friend.id)}
                   <button 
                     onclick="FriendsSystem.removeFriend(${friend.id})"
                     style="background: none; border: none; color: #999; cursor: pointer; font-size: 1rem; margin-left: 0.3rem; padding: 0; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s;"
@@ -6855,7 +7115,7 @@ Only return the JSON, no additional text.`;
                     ${sim.user.avatar}
                   </div>
                   <div style="text-align: left;">
-                    <div style="font-weight: bold;">${sim.user.displayName
+                    <div style="font-weight: bold;">${addCrownToPremiumUser(sim.user.displayName, sim.user.id)
                 }</div>
                     <div style="font-size: 0.8rem; color: var(--highlight);">${sim.user.personalityType
                 }</div>
@@ -7051,7 +7311,7 @@ Only return the JSON, no additional text.`;
         <div class="stat-value">${groups.length}</div>
         <div class="stat-label">Groups</div>
       </div>
-      <div class="stat-card" onclick="showPage('dashboard')" style="cursor: pointer;">
+      <div class="stat-card" onclick="getLocationBasedRecommendations()" style="cursor: pointer;">
         <div class="stat-value">${unratedRecommendations.length}</div>
         <div class="stat-label">New Recommendations</div>
       </div>
@@ -7138,7 +7398,7 @@ Only return the JSON, no additional text.`;
                   <div style="width: 50px; height: 50px; border-radius: 50%; background: var(--secondary-gradient); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; margin: 0 auto 0.5rem;">
                     ${sim.user.avatar}
                   </div>
-                  <div style="font-weight: bold; margin-bottom: 0.2rem;">${sim.user.displayName
+                  <div style="font-weight: bold; margin-bottom: 0.2rem;">${addCrownToPremiumUser(sim.user.displayName, sim.user.id)
               }</div>
                   <div style="font-size: 0.8rem; color: var(--secondary-color); margin-bottom: 0.3rem;">${sim.user.personalityType
               }</div>
@@ -7302,30 +7562,76 @@ Only return the JSON, no additional text.`;
     // Function to get location-based recommendations
     function getLocationBasedRecommendations() {
       locationFound = false; // Reset flag at start
-      if (!navigator.geolocation) {
-        NotificationSystem.show("Geolocation is not supported by this browser.", "error");
-        return;
-      }
 
       NotificationSystem.show("Getting your location for nearby recommendations...", "info");
 
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
+      getUserLocationWithFallback()
+        .then((position) => {
           locationFound = true; // Set flag when location is found
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
           
-          // Waterloo-specific nearby places with coordinates
-          const nearbyPlaces = [
-            { name: "University of Waterloo Campus", lat: 43.4643, lng: -80.5204, category: "University" },
-            { name: "Conestoga Mall", lat: 43.4719, lng: -80.5250, category: "Shopping" },
-            { name: "Waterloo Public Square", lat: 43.4583, lng: -80.5204, category: "Public Space" },
-            { name: "Waterloo Park", lat: 43.4700, lng: -80.5150, category: "Park/Outdoor" },
-            { name: "Uptown Waterloo", lat: 43.4667, lng: -80.5300, category: "Entertainment" },
-            { name: "St. Jacobs Farmers Market", lat: 43.4625, lng: -80.5250, category: "Market" },
-            { name: "The Museum", lat: 43.4643, lng: -80.5204, category: "Museum/Gallery" },
-            { name: "Waterloo Recreation Complex", lat: 43.4700, lng: -80.5150, category: "Recreation" }
-          ];
+          // Get all experiences from the community
+          const allExperiences = ActivitySystem.getAllExperiences();
+          const userExperiences = DataLayer.load("userExperiences", []);
+          const friends = FriendsSystem.getFriends();
+          const friendIds = friends.map(friend => friend.id);
+          
+          // Filter experiences that are within 50km of user's location
+          const nearbyExperiences = allExperiences.filter(exp => {
+            if (!exp.coordinates) return false;
+            
+            const distance = calculateDistance(lat, lng, exp.coordinates.lat, exp.coordinates.lng);
+            return distance <= 50; // Within 50km
+          });
+          
+          // Sort by distance and rating
+          nearbyExperiences.sort((a, b) => {
+            const distanceA = calculateDistance(lat, lng, a.coordinates.lat, a.coordinates.lng);
+            const distanceB = calculateDistance(lat, lng, b.coordinates.lat, b.coordinates.lng);
+            
+            // Prioritize by rating first, then distance
+            if (Math.abs(a.adjustedScore - b.adjustedScore) > 1) {
+              return b.adjustedScore - a.adjustedScore; // Higher rating first
+            }
+            return distanceA - distanceB; // Closer distance first
+          });
+          
+          // Get top 10 nearby experiences
+          const topNearbyExperiences = nearbyExperiences.slice(0, 10);
+          
+          if (topNearbyExperiences.length === 0) {
+            // No nearby experiences found
+            const modalHtml = `
+              <div id="nearby-modal" class="modal">
+                <div class="modal-content" style="max-width: 600px;">
+                  <button class="modal-close" onclick="closeNearbyModal()">&times;</button>
+                  <div class="modal-header">
+                    <h2><i class="fas fa-map-marker-alt"></i> Places Near You</h2>
+                    <p style="margin: 0; color: #666;">Based on your current location</p>
+                  </div>
+                  <div class="modal-body">
+                    <div style="text-align: center; padding: 3rem 1rem;">
+                      <div style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;">📍</div>
+                      <h3 style="color: #666; margin-bottom: 0.5rem;">No Nearby Experiences Yet</h3>
+                      <p style="color: #888; margin-bottom: 2rem;">
+                        No places have been rated by the community within 50km of your location. 
+                        Be the first to share experiences in your area!
+                      </p>
+                      <button class="btn" onclick="closeNearbyModal(); showPage('activities');">
+                        <i class="fas fa-plus-circle"></i> Add Your First Experience
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `;
+            
+            document.body.insertAdjacentHTML("beforeend", modalHtml);
+            addModalListeners("nearby-modal", closeNearbyModal);
+            NotificationSystem.show("No nearby experiences found. Be the first to share!", "info");
+            return;
+          }
           
           // Create a modal to show nearby recommendations
           const modalHtml = `
@@ -7334,29 +7640,61 @@ Only return the JSON, no additional text.`;
                 <button class="modal-close" onclick="closeNearbyModal()">&times;</button>
                 <div class="modal-header">
                   <h2><i class="fas fa-map-marker-alt"></i> Places Near You</h2>
-                  <p style="margin: 0; color: #666;">Based on your current location</p>
+                  <p style="margin: 0; color: #666;">Rated by friends and community within 50km</p>
                 </div>
                 <div class="modal-body">
                   <div style="background: rgba(74, 144, 226, 0.1); padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem;">
                     <p style="margin: 0; font-size: 0.9rem; color: #666;">
                       <i class="fas fa-info-circle"></i> 
-                      These are sample places near your location. In a real app, this would show actual nearby venues.
+                      Showing ${topNearbyExperiences.length} places rated by the community near your location.
                     </p>
                   </div>
                   
                   <div style="display: grid; gap: 1rem;">
-                    ${nearbyPlaces.map((place, index) => {
-                      const distance = calculateDistance(lat, lng, place.lat, place.lng);
+                    ${topNearbyExperiences.map((exp, index) => {
+                      const distance = calculateDistance(lat, lng, exp.coordinates.lat, exp.coordinates.lng);
+                      const user = DemoUsers.users[exp.userId];
+                      const isFriend = friendIds.includes(exp.userId);
+                      const hasVisited = userExperiences.some(userExp => 
+                        userExp.name.toLowerCase() === exp.name.toLowerCase()
+                      );
+                      
                       return `
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border: 1px solid #eee; border-radius: 8px;">
-                          <div>
-                            <div style="font-weight: bold; margin-bottom: 0.3rem;">${place.name}</div>
-                            <div style="font-size: 0.8rem; color: #666;">${place.category} • ${distance.toFixed(1)}km away</div>
+                        <div style="border: 1px solid #eee; border-radius: 8px; padding: 1rem; background: white;">
+                          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                            <div style="flex: 1;">
+                              <div style="font-weight: bold; margin-bottom: 0.3rem; font-size: 1.1rem;">
+                                ${exp.name} ${hasVisited ? '<span style="color: var(--primary-color);">✓ Visited</span>' : ''}
+                              </div>
+                              <div style="font-size: 0.8rem; color: #666; margin-bottom: 0.5rem;">
+                                ${exp.category} • ${exp.location} • ${distance.toFixed(1)}km away
+                              </div>
+                              <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; font-size: 0.8rem;">
+                                <div style="width: 20px; height: 20px; border-radius: 50%; background: var(--secondary-gradient); color: white; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold;">
+                                  ${user ? user.avatar : '?'}
+                                </div>
+                                <span>${addCrownToPremiumUser(user ? user.displayName : 'Unknown', exp.userId)}</span>
+                                ${isFriend ? '<span style="color: var(--primary-color);">★</span>' : ''}
+                                <span style="color: #888;">• Rated ${exp.adjustedScore}/10</span>
+                              </div>
+                              ${exp.description ? `<p style="font-size: 0.9rem; color: #666; margin: 0.5rem 0; font-style: italic;">"${exp.description}"</p>` : ''}
+                            </div>
+                            <div style="text-align: right;">
+                              <div style="font-weight: bold; color: ${exp.adjustedScore >= 7 ? '#4CAF50' : exp.adjustedScore >= 5 ? '#FF9800' : '#f44336'}; font-size: 1.2rem;">
+                                ${exp.adjustedScore}/10
+                              </div>
+                            </div>
                           </div>
-                          <button class="btn" style="font-size: 0.8rem; padding: 6px 12px;" 
-                                  onclick="closeNearbyModal(); fillActivityForm('${place.name}', '${place.category}', 'Waterloo, Ontario', 'Found through location-based search')">
-                            Rate This Place
-                          </button>
+                          <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                            <button class="btn" style="font-size: 0.8rem; padding: 6px 12px; flex: 1;" 
+                                    onclick="closeNearbyModal(); fillActivityForm('${exp.name}', '${exp.category}', '${exp.location}', 'Found through location-based search')">
+                              Rate This Place
+                            </button>
+                                                         <button class="btn btn-secondary" style="font-size: 0.8rem; padding: 6px 12px;" 
+                                     data-user-id="${exp.userId}" data-experience-name="${exp.name}" onclick="closeNearbyModal(); showExperienceDetailsFromButton(this);">
+                               View Details
+                             </button>
+                          </div>
                         </div>
                       `;
                     }).join('')}
@@ -7377,33 +7715,37 @@ Only return the JSON, no additional text.`;
           // Add ESC and click-outside functionality
           addModalListeners("nearby-modal", closeNearbyModal);
           
-          NotificationSystem.show("Found nearby places!", "success");
-        },
-        (error) => {
+          NotificationSystem.show(`Found ${topNearbyExperiences.length} nearby places rated by the community!`, "success");
+        })
+        .catch((error) => {
+          console.error('Location error:', error);
           // Add 1 second delay before showing error
           setTimeout(() => {
             // Only show error if location wasn't found
             if (!locationFound) {
               let message = 'Unable to get your location: ';
-              switch(error.code) {
-                case error.PERMISSION_DENIED:
-                  message += 'Please allow location access to find nearby places.';
-                  break;
-                case error.POSITION_UNAVAILABLE:
-                  message += 'Location information is unavailable.';
-                  break;
-                case error.TIMEOUT:
-                  message += 'Location request timed out.';
-                  break;
-                default:
-                  message += 'An unknown error occurred.';
-                  break;
+              if (error.code) {
+                switch(error.code) {
+                  case error.PERMISSION_DENIED:
+                    message += 'Please allow location access to find nearby places.';
+                    break;
+                  case error.POSITION_UNAVAILABLE:
+                    message += 'Location information is unavailable.';
+                    break;
+                  case error.TIMEOUT:
+                    message += 'Location request timed out.';
+                    break;
+                  default:
+                    message += 'An unknown error occurred.';
+                    break;
+                }
+              } else {
+                message += error.message || 'An unknown error occurred.';
               }
               NotificationSystem.show(message, "error");
             }
           }, 1000);
-        }
-      );
+        });
     }
 
     function closeNearbyModal() {
@@ -7419,6 +7761,280 @@ Only return the JSON, no additional text.`;
       document.body.classList.remove('modal-open');
     }
 
+    // Function to show detailed experience information
+    function showExperienceDetails(userId, experienceName) {
+      console.log('🔍 Looking for experience:', { userId, experienceName });
+      
+      // Find the experience in all experiences
+      const allExperiences = ActivitySystem.getAllExperiences();
+      console.log('🔍 All experiences:', allExperiences);
+      
+      // Try different matching strategies
+      let experience = allExperiences.find(exp => 
+        String(exp.userId) === String(userId) && exp.name === experienceName
+      );
+      
+      // If not found, try partial name matching
+      if (!experience) {
+        experience = allExperiences.find(exp => 
+          String(exp.userId) === String(userId) && 
+          exp.name.toLowerCase().includes(experienceName.toLowerCase())
+        );
+      }
+      
+      // If still not found, try just by name
+      if (!experience) {
+        experience = allExperiences.find(exp => 
+          exp.name === experienceName
+        );
+      }
+      
+      console.log('🔍 Found experience:', experience);
+      
+      if (!experience) {
+        console.log('❌ Experience not found. Available experiences:', allExperiences.map(exp => ({ userId: exp.userId, name: exp.name })));
+        NotificationSystem.show("Experience details not found.", "error");
+        return;
+      }
+
+      const user = DemoUsers.users[userId];
+      const friends = FriendsSystem.getFriends();
+      const isFriend = friends.some(friend => friend.id === userId);
+      
+      // Map the experience data to the expected format
+      const mappedExperience = {
+        ...experience,
+        energyLevel: experience.responses?.energy || 0,
+        socialSatisfaction: experience.responses?.social || 0,
+        comfortLevel: experience.responses?.comfort || 0,
+        overwhelmLevel: experience.responses?.overwhelm || 0,
+        returnLikelihood: experience.responses?.return || 0
+      };
+      
+      // Calculate confidence based on rating consistency
+      const ratings = [
+        mappedExperience.energyLevel,
+        mappedExperience.socialSatisfaction,
+        mappedExperience.comfortLevel,
+        mappedExperience.overwhelmLevel,
+        mappedExperience.returnLikelihood
+      ];
+      
+      const averageRating = ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
+      const variance = ratings.reduce((sum, rating) => sum + Math.pow(rating - averageRating, 2), 0) / ratings.length;
+      const confidence = Math.max(0.1, Math.min(1.0, 1 - (variance / 25))); // Higher variance = lower confidence
+      
+      mappedExperience.confidence = confidence;
+      
+      const modalHtml = `
+        <div id="experience-details-modal" class="modal">
+          <div class="modal-content" style="max-width: 700px; max-height: 90vh; overflow-y: auto;">
+            <button class="modal-close" onclick="closeExperienceDetailsModal()">&times;</button>
+            <div class="modal-header">
+              <h2><i class="fas fa-star"></i> Experience Details</h2>
+              <p style="margin: 0; color: #666;">Detailed rating and experience information</p>
+            </div>
+            <div class="modal-body">
+              <!-- User Info Section -->
+              <div style="background: rgba(74, 144, 226, 0.1); padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem;">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                  <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--secondary-gradient); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                    ${user ? user.avatar : '?'}
+                  </div>
+                  <div>
+                    <div style="font-weight: bold; font-size: 1.1rem;">
+                      ${addCrownToPremiumUser(user ? user.displayName : 'Unknown', userId)}
+                      ${isFriend ? '<span style="color: var(--primary-color);">★</span>' : ''}
+                    </div>
+                    <div style="font-size: 0.9rem; color: #666;">
+                      ${user ? user.personalityType : 'Unknown Type'} • ${new Date(mappedExperience.timestamp).toLocaleDateString()}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Experience Basic Info -->
+              <div style="background: white; padding: 1.5rem; border-radius: 10px; margin-bottom: 1.5rem; border: 1px solid #eee;">
+                <h3 style="margin: 0 0 1rem 0; color: var(--primary-color);">${mappedExperience.name}</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                  <div>
+                    <strong>Category:</strong> ${mappedExperience.category}
+                  </div>
+                  <div>
+                    <strong>Location:</strong> ${mappedExperience.location}
+                  </div>
+                  <div>
+                    <strong>Overall Rating:</strong> 
+                    <span style="font-weight: bold; color: ${mappedExperience.adjustedScore >= 7 ? '#4CAF50' : mappedExperience.adjustedScore >= 5 ? '#FF9800' : '#f44336'};">
+                      ${mappedExperience.adjustedScore}/10
+                    </span>
+                  </div>
+                  <div>
+                    <strong>Confidence:</strong> ${(mappedExperience.confidence * 100).toFixed(0)}%
+                  </div>
+                </div>
+                ${mappedExperience.description ? `
+                  <div style="margin-top: 1rem; padding: 1rem; background: rgba(74, 144, 226, 0.05); border-radius: 8px;">
+                    <strong>Description:</strong>
+                    <p style="margin: 0.5rem 0 0 0; font-style: italic; color: #666;">"${mappedExperience.description}"</p>
+                  </div>
+                ` : ''}
+              </div>
+
+              <!-- Detailed Rating Breakdown -->
+              <div style="background: white; padding: 1.5rem; border-radius: 10px; margin-bottom: 1.5rem; border: 1px solid #eee;">
+                <h4 style="margin: 0 0 1rem 0; color: var(--primary-color);">
+                  <i class="fas fa-chart-bar"></i> Detailed Rating Breakdown
+                </h4>
+                
+                <div style="display: grid; gap: 1rem;">
+                  <!-- Energy Level -->
+                  <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                      <strong>Energy Level:</strong>
+                      <span style="font-weight: bold; color: ${mappedExperience.energyLevel >= 7 ? '#4CAF50' : mappedExperience.energyLevel >= 5 ? '#FF9800' : '#f44336'};">
+                        ${mappedExperience.energyLevel}/10
+                      </span>
+                    </div>
+                    <div style="background: #f0f0f0; height: 8px; border-radius: 4px; overflow: hidden;">
+                      <div style="background: var(--secondary-gradient); height: 100%; width: ${mappedExperience.energyLevel * 10}%;"></div>
+                    </div>
+                  </div>
+
+                  <!-- Social Satisfaction -->
+                  <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                      <strong>Social Satisfaction:</strong>
+                      <span style="font-weight: bold; color: ${mappedExperience.socialSatisfaction >= 7 ? '#4CAF50' : mappedExperience.socialSatisfaction >= 5 ? '#FF9800' : '#f44336'};">
+                        ${mappedExperience.socialSatisfaction}/10
+                      </span>
+                    </div>
+                    <div style="background: #f0f0f0; height: 8px; border-radius: 4px; overflow: hidden;">
+                      <div style="background: var(--secondary-gradient); height: 100%; width: ${mappedExperience.socialSatisfaction * 10}%;"></div>
+                    </div>
+                  </div>
+
+                  <!-- Comfort Level -->
+                  <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                      <strong>Comfort Level:</strong>
+                      <span style="font-weight: bold; color: ${mappedExperience.comfortLevel >= 7 ? '#4CAF50' : mappedExperience.comfortLevel >= 5 ? '#FF9800' : '#f44336'};">
+                        ${mappedExperience.comfortLevel}/10
+                      </span>
+                    </div>
+                    <div style="background: #f0f0f0; height: 8px; border-radius: 4px; overflow: hidden;">
+                      <div style="background: var(--secondary-gradient); height: 100%; width: ${mappedExperience.comfortLevel * 10}%;"></div>
+                    </div>
+                  </div>
+
+                  <!-- Overwhelm Level -->
+                  <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                      <strong>Overwhelm Level:</strong>
+                      <span style="font-weight: bold; color: ${mappedExperience.overwhelmLevel >= 7 ? '#f44336' : mappedExperience.overwhelmLevel >= 5 ? '#FF9800' : '#4CAF50'};">
+                        ${mappedExperience.overwhelmLevel}/10
+                      </span>
+                    </div>
+                    <div style="background: #f0f0f0; height: 8px; border-radius: 4px; overflow: hidden;">
+                      <div style="background: var(--secondary-gradient); height: 100%; width: ${mappedExperience.overwhelmLevel * 10}%;"></div>
+                    </div>
+                  </div>
+
+                  <!-- Return Likelihood -->
+                  <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                      <strong>Return Likelihood:</strong>
+                      <span style="font-weight: bold; color: ${mappedExperience.returnLikelihood >= 7 ? '#4CAF50' : mappedExperience.returnLikelihood >= 5 ? '#FF9800' : '#f44336'};">
+                        ${mappedExperience.returnLikelihood}/10
+                      </span>
+                    </div>
+                    <div style="background: #f0f0f0; height: 8px; border-radius: 4px; overflow: hidden;">
+                      <div style="background: var(--secondary-gradient); height: 100%; width: ${mappedExperience.returnLikelihood * 10}%;"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Environment Metrics -->
+              <div style="background: white; padding: 1.5rem; border-radius: 10px; margin-bottom: 1.5rem; border: 1px solid #eee;">
+                <h4 style="margin: 0 0 1rem 0; color: var(--primary-color);">
+                  <i class="fas fa-users"></i> Environment Metrics
+                </h4>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                  <div>
+                    <strong>Social Intensity:</strong> ${mappedExperience.socialIntensity.toFixed(1)}/10
+                  </div>
+                  <div>
+                    <strong>Noise Level:</strong> ${mappedExperience.noiseLevel.toFixed(1)}/10
+                  </div>
+                  <div>
+                    <strong>Crowd Size:</strong> ${mappedExperience.crowdSize.toFixed(1)}/10
+                  </div>
+                  <div>
+                    <strong>Activity Type:</strong> ${mappedExperience.activityType || 'Not specified'}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Personality Adjustment -->
+              <div style="background: white; padding: 1.5rem; border-radius: 10px; margin-bottom: 1.5rem; border: 1px solid #eee;">
+                <h4 style="margin: 0 0 1rem 0; color: var(--primary-color);">
+                  <i class="fas fa-brain"></i> Personality Adjustment
+                </h4>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                  <div>
+                    <strong>Raw Score:</strong> ${mappedExperience.rawScore.toFixed(1)}/10
+                  </div>
+                  <div>
+                    <strong>Adjustment Factor:</strong> ${user ? user.adjustmentFactor.toFixed(2) : 'Unknown'}
+                  </div>
+                  <div>
+                    <strong>Personality Type:</strong> ${user ? user.personalityType : 'Unknown'}
+                  </div>
+                  <div>
+                    <strong>Adjusted Score:</strong> 
+                    <span style="font-weight: bold; color: ${mappedExperience.adjustedScore >= 7 ? '#4CAF50' : mappedExperience.adjustedScore >= 5 ? '#FF9800' : '#f44336'};">
+                      ${mappedExperience.adjustedScore}/10
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div style="text-align: center; margin-top: 2rem;">
+                <button class="btn" onclick="closeExperienceDetailsModal(); fillActivityForm('${mappedExperience.name}', '${mappedExperience.category}', '${mappedExperience.location}', 'Found through experience details')">
+                  <i class="fas fa-star"></i> Rate This Place Too
+                </button>
+                <button class="btn btn-secondary" onclick="closeExperienceDetailsModal();">
+                  <i class="fas fa-times"></i> Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.insertAdjacentHTML("beforeend", modalHtml);
+      addModalListeners("experience-details-modal", closeExperienceDetailsModal);
+    }
+
+    function closeExperienceDetailsModal() {
+      const modal = document.getElementById("experience-details-modal");
+      if (modal) {
+        modal.remove();
+      }
+      document.body.classList.remove('modal-open');
+    }
+
+    // Helper function to get experience details from button data attributes
+    function showExperienceDetailsFromButton(button) {
+      const userId = button.getAttribute('data-user-id');
+      const experienceName = button.getAttribute('data-experience-name');
+      showExperienceDetails(userId, experienceName);
+    }
+
     // Function to use current location
     function useCurrentLocation() {
       locationFound = false; // Reset flag at start
@@ -7431,27 +8047,27 @@ Only return the JSON, no additional text.`;
       useLocationBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Getting Location...';
       useLocationBtn.disabled = true;
 
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            locationFound = true; // Set flag when location is found
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
-            
-            // Use the reverse geocoding function
-            reverseGeocodeAndFillLocation(lat, lng);
-            
-            // Reset button
-            useLocationBtn.innerHTML = '<i class="fas fa-crosshairs"></i> Use Current Location';
-            useLocationBtn.disabled = false;
-          },
-          (error) => {
-            console.error('Error getting location:', error);
-            // Add 1 second delay before showing error
-            setTimeout(() => {
-              // Only show error if location wasn't found
-              if (!locationFound) {
-                let message = 'Unable to get your location: ';
+      getUserLocationWithFallback()
+        .then((position) => {
+          locationFound = true; // Set flag when location is found
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          
+          // Use the reverse geocoding function
+          reverseGeocodeAndFillLocation(lat, lng);
+          
+          // Reset button
+          useLocationBtn.innerHTML = '<i class="fas fa-crosshairs"></i> Use Current Location';
+          useLocationBtn.disabled = false;
+        })
+        .catch((error) => {
+          console.error('Error getting location:', error);
+          // Add 1 second delay before showing error
+          setTimeout(() => {
+            // Only show error if location wasn't found
+            if (!locationFound) {
+              let message = 'Unable to get your location: ';
+              if (error.code) {
                 switch(error.code) {
                   case error.PERMISSION_DENIED:
                     message += 'Please allow location access in your browser settings.';
@@ -7466,37 +8082,85 @@ Only return the JSON, no additional text.`;
                     message += 'An unknown error occurred.';
                     break;
                 }
-                
-                NotificationSystem.show(message, "error");
-                locationInput.value = "";
+              } else {
+                message += error.message || 'An unknown error occurred.';
               }
-            }, 1000);
-            
-            // Reset button
-            useLocationBtn.innerHTML = '<i class="fas fa-crosshairs"></i> Use Current Location';
-            useLocationBtn.disabled = false;
-          },
-          {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 300000 // 5 minutes
-          }
-        );
-      } else {
-        NotificationSystem.show("Geolocation is not supported by this browser.", "error");
-        useLocationBtn.innerHTML = '<i class="fas fa-crosshairs"></i> Use Current Location';
-        useLocationBtn.disabled = false;
-      }
+              
+              NotificationSystem.show(message, "error");
+              locationInput.value = "";
+            }
+          }, 1000);
+          
+          // Reset button
+          useLocationBtn.innerHTML = '<i class="fas fa-crosshairs"></i> Use Current Location';
+          useLocationBtn.disabled = false;
+        });
     }
 
     // Notification system
     // Global variable to track if location was successfully found
     let locationFound = false;
+
+    // Helper function to get user location (with demo user fallback)
+    async function getUserLocationWithFallback() {
+      const currentUser = DataLayer.load("currentUser");
+      console.log('📍 Current user for location:', currentUser);
+      
+      // If current user is a demo user, use their predefined location
+      if (currentUser && currentUser.id && DemoUsers.users[currentUser.id]) {
+        const demoUser = DemoUsers.users[currentUser.id];
+        if (demoUser && demoUser.location) {
+          console.log(`📍 Using demo user location for ${demoUser.displayName}:`, demoUser.location);
+          return {
+            coords: {
+              latitude: demoUser.location.lat,
+              longitude: demoUser.location.lng
+            }
+          };
+        }
+      }
+      
+      // If current user has a saved location, use that
+      if (currentUser && currentUser.location) {
+        console.log(`📍 Using saved location for ${currentUser.displayName}:`, currentUser.location);
+        return {
+          coords: {
+            latitude: currentUser.location.lat,
+            longitude: currentUser.location.lng
+          }
+        };
+      }
+      
+      // Check if we're in a demo environment (no real user)
+      if (!currentUser || !currentUser.id) {
+        console.log(`📍 No current user found, using default Waterloo location`);
+        return {
+          coords: {
+            latitude: 43.4643, // Waterloo University District
+            longitude: -80.5204
+          }
+        };
+      }
+      
+      // Otherwise, try to get real location
+      return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+          reject(new Error("Geolocation is not supported by this browser."));
+          return;
+        }
+        
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 300000 // 5 minutes
+        });
+      });
+    }
     
     const NotificationSystem = {
   show: (message, type = "info", duration = 3000) => {
     // Remove any existing notifications first
-    const existingNotifications = document.querySelectorAll('[style*="position: fixed"][style*="top: 20px"][style*="right: 20px"]');
+    const existingNotifications = document.querySelectorAll('[style*="position: fixed"][style*="bottom: 20px"][style*="right: 20px"]');
     existingNotifications.forEach(notification => {
       if (notification.parentNode) {
         notification.parentNode.removeChild(notification);
@@ -7506,7 +8170,7 @@ Only return the JSON, no additional text.`;
     const notification = document.createElement("div");
     notification.style.cssText = `
       position: fixed;
-      top: 20px;
+      bottom: 20px;
       right: 20px;
       padding: 16px 20px;
       border-radius: 12px;
@@ -7575,7 +8239,7 @@ Only return the JSON, no additional text.`;
 
     // Create message element
     const messageEl = document.createElement("div");
-    messageEl.textContent = message;
+    messageEl.innerHTML = message;
     messageEl.style.cssText = `
       color: var(--primary-color);
       font-weight: 500;
@@ -8053,8 +8717,21 @@ Only return the JSON, no additional text.`;
         } else if (currentPage === "profile") {
           // Look for "Take Assessment" button on profile
           const takeAssessmentBtn = document.querySelector('button[onclick="showPage(\'assessment\')"]');
+          console.log('Profile page - Found assessment button:', takeAssessmentBtn);
+          console.log('Button visible:', takeAssessmentBtn && takeAssessmentBtn.offsetParent !== null);
+          
           if (takeAssessmentBtn && takeAssessmentBtn.offsetParent !== null) {
             takeAssessmentBtn.click();
+          } else {
+            // Fallback: look for any button with "Take Assessment" text
+            const allButtons = document.querySelectorAll('button');
+            const assessmentBtn = Array.from(allButtons).find(btn => 
+              btn.textContent.includes('Take Assessment') && btn.offsetParent !== null
+            );
+            console.log('Fallback - Found assessment button:', assessmentBtn);
+            if (assessmentBtn) {
+              assessmentBtn.click();
+            }
           }
         } else if (currentPage === "results") {
           // Look for "Continue to Dashboard" button on results page
