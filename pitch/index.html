@@ -2678,58 +2678,41 @@
     function fillActivityForm(name, category, location, description = "") {
       console.log("fillActivityForm called with:", name, category, location);
       
-      // Close nearby modal if it's open - multiple approaches to ensure it closes
+      // Close nearby modal if it's open
       const nearbyModal = document.getElementById("nearby-modal");
-      console.log("Found nearby modal:", nearbyModal);
-      
       if (nearbyModal) {
-        console.log("Attempting to close modal...");
-        // Try multiple methods to ensure modal closes
-        nearbyModal.style.display = 'none';
-        nearbyModal.style.visibility = 'hidden';
-        nearbyModal.style.opacity = '0';
         nearbyModal.remove();
-        console.log("Modal removal attempted");
       }
       
-      // Also try to close any modal with class 'modal'
+      // Close any other modals
       const allModals = document.querySelectorAll('.modal');
-      console.log("Found", allModals.length, "modals with .modal class");
-      allModals.forEach((modal, index) => {
-        console.log("Closing modal", index);
-        modal.style.display = 'none';
-        modal.style.visibility = 'hidden';
-        modal.style.opacity = '0';
+      allModals.forEach((modal) => {
         modal.remove();
       });
       
-      // Force a reflow
-      document.body.offsetHeight;
-      
-      // Small delay to ensure modal is removed before page switch
-      setTimeout(() => {
-        console.log("Switching to activities page");
-      // Switch to activities page
+      // Navigate to activities page
       showPage("activities");
-      }, 200);
-
-      // Pre-fill the form
+      
+      // Fill the form after a short delay to ensure the page is loaded
       setTimeout(() => {
-        document.getElementById("activity-name").value = name;
-        document.getElementById("activity-category").value = category;
-        document.getElementById("activity-location").value = location;
-        document.getElementById("activity-description").value = description;
-
+        const nameInput = document.getElementById("activity-name");
+        const categoryInput = document.getElementById("activity-category");
+        const locationInput = document.getElementById("activity-location");
+        const descriptionInput = document.getElementById("activity-description");
+        
+        if (nameInput) nameInput.value = name;
+        if (categoryInput) categoryInput.value = category;
+        if (locationInput) locationInput.value = location;
+        if (descriptionInput) descriptionInput.value = description;
+        
         // Scroll to form
-        document
-          .getElementById("activity-form")
-          .scrollIntoView({ behavior: "smooth" });
+        const form = document.getElementById("activity-form");
+        if (form) {
+          form.scrollIntoView({ behavior: "smooth" });
+        }
 
-        NotificationSystem.show(
-          "Form pre-filled! Add your ratings below.",
-          "info"
-        );
-      }, 100);
+        NotificationSystem.show("Form pre-filled! Add your ratings below.", "success");
+      }, 300);
     }
 
     // Function to format date with full month name
@@ -3886,6 +3869,40 @@ Only return the JSON, no additional text.`;
       const group = groups.find((g) => g.id === groupId);
       if (!group) return;
 
+      const currentUser = DataLayer.load("currentUser");
+      
+      // Check if all group members have premium access
+      const allMembersHavePremium = group.members.every(member => {
+        if (member.userId === currentUser.id) {
+          return currentUser.isPremium;
+        } else {
+          const demoUser = DemoUsers.users[member.userId];
+          return demoUser ? demoUser.isPremium : false;
+        }
+      });
+      
+      // Check if any members have premium access
+      const anyMembersHavePremium = group.members.some(member => {
+        if (member.userId === currentUser.id) {
+          return currentUser.isPremium;
+        } else {
+          const demoUser = DemoUsers.users[member.userId];
+          return demoUser ? demoUser.isPremium : false;
+        }
+      });
+      
+      // If no members have premium, show upgrade modal
+      if (!anyMembersHavePremium) {
+        showPremiumUpgradeModal();
+        return;
+      }
+      
+      // If not all members have premium, show upgrade modal
+      if (!allMembersHavePremium) {
+        showPremiumUpgradeModal();
+        return;
+      }
+
       const modalHtml = `
     <div id="ai-premium-modal" class="modal">
       <div class="modal-content" style="max-width: 600px;">
@@ -4241,6 +4258,65 @@ Only return the JSON, no additional text.`;
         }
       });
       
+      // Check if any members have premium access
+      const anyMembersHavePremium = group.members.some(member => {
+        if (member.userId === currentUser.id) {
+          return currentUser.isPremium;
+        } else {
+          const demoUser = DemoUsers.users[member.userId];
+          return demoUser ? demoUser.isPremium : false;
+        }
+      });
+      
+      // If no members have premium, don't show the scheduling section at all
+      if (!anyMembersHavePremium) {
+        return "";
+      }
+      
+      // If not all members have premium, show upgrade message
+      if (!allMembersHavePremium) {
+        return `
+          <div class="group-scheduling-section" style="margin-top: 2rem; padding: 1.5rem; background: linear-gradient(135deg, rgba(74, 144, 226, 0.05) 0%, rgba(160, 200, 240, 0.05) 100%); border-radius: 15px; border: 2px solid rgba(74, 144, 226, 0.2);">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+              <h4 style="margin: 0; color: var(--primary-color); display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-calendar-alt"></i> Group Scheduling
+              </h4>
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <div style="background: var(--primary-gradient); color: var(--inverted-text-color); padding: 0.2rem 0.6rem; border-radius: 10px; font-size: 0.7rem; font-weight: bold;">
+                  PREMIUM
+                </div>
+              </div>
+            </div>
+            <div style="background: white; padding: 2rem; border-radius: 10px; margin-bottom: 1rem; text-align: center;">
+              <div style="font-size: 3rem; margin-bottom: 1rem;"><i class="fas fa-crown"></i></div>
+              <h5 style="margin: 0 0 1rem 0; color: var(--primary-color);">Premium Feature</h5>
+              <p style="margin: 0 0 1.5rem 0; color: #666; font-size: 0.9rem; line-height: 1.5;">
+                All group members need Premium to use Group Scheduling. This ensures everyone can coordinate their availability together!
+              </p>
+              <div style="margin-top: 1rem; padding: 1rem; background: rgba(74, 144, 226, 0.1); border-radius: 8px;">
+                <h6 style="margin: 0 0 0.5rem 0; color: var(--primary-color);">Group Members Premium Status:</h6>
+                ${group.members.map(member => {
+                  const isPremium = member.userId === currentUser.id ? 
+                    currentUser.isPremium : 
+                    (DemoUsers.users[member.userId] ? DemoUsers.users[member.userId].isPremium : false);
+                  return `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem; font-size: 0.8rem;">
+                      <span>${addCrownToPremiumUser(member.displayName, member.userId)}</span>
+                      <span style="color: ${isPremium ? 'var(--success-color)' : 'var(--warning-color)'}; font-weight: bold;">
+                        ${isPremium ? '✓ Premium' : '✗ Free'}
+                      </span>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+              <button class="btn" onclick="showPremiumUpgradeModal()" style="background: var(--primary-gradient); margin-top: 1rem;">
+                <i class="fas fa-crown"></i> Upgrade to Premium
+              </button>
+            </div>
+          </div>
+        `;
+      }
+      
       // Initialize availability if not exists
       if (!group.availability) {
         group.availability = {};
@@ -4486,11 +4562,7 @@ Only return the JSON, no additional text.`;
                 <button class="btn btn-secondary" onclick="showAvailabilityModal(${group.id})" style="font-size: 0.8rem; padding: 8px 16px;">
                   <i class="fas fa-edit"></i> Set My Availability
                 </button>
-              ` : `
-                <button class="btn btn-secondary" onclick="showPremiumUpgradeModal()" style="font-size: 0.8rem; padding: 8px 16px;">
-                  <i class="fas fa-crown"></i> All Members Need Premium
-                </button>
-              `}
+              ` : ''}
             </div>
           </div>
           
@@ -4529,7 +4601,7 @@ Only return the JSON, no additional text.`;
             </div>
           ` : `
             <div style="background: white; padding: 2rem; border-radius: 10px; margin-bottom: 1rem; text-align: center;">
-              <div style="font-size: 3rem; margin-bottom: 1rem;">👑</div>
+              <div style="font-size: 3rem; margin-bottom: 1rem;"><i class="fas fa-crown"></i></div>
               <h5 style="margin: 0 0 1rem 0; color: var(--primary-color);">Premium Feature</h5>
               <p style="margin: 0 0 1.5rem 0; color: #666; font-size: 0.9rem; line-height: 1.5;">
                 All group members need Premium to use Group Scheduling. This ensures everyone can coordinate their availability together!
@@ -5389,28 +5461,7 @@ Only return the JSON, no additional text.`;
       document.body.classList.remove('modal-open');
     }
 
-    function fillActivityForm(name, category, location, description) {
-      // Close the modal first
-      closeGroupLocationModal();
-      
-      // Navigate to activities page
-      showPage("activities");
-      
-      // Fill the form after a short delay to ensure the page is loaded
-      setTimeout(() => {
-        const nameInput = document.getElementById("activity-name");
-        const categoryInput = document.getElementById("activity-category");
-        const locationInput = document.getElementById("activity-location");
-        const descriptionInput = document.getElementById("activity-description");
-        
-        if (nameInput) nameInput.value = name;
-        if (categoryInput) categoryInput.value = category;
-        if (locationInput) locationInput.value = location;
-        if (descriptionInput) descriptionInput.value = description;
-        
-        NotificationSystem.show("Form filled with place details! Complete your rating.", "success");
-      }, 300);
-    }
+
 
     async function handleAIAssistantRequest(event, groupId) {
       event.preventDefault();
@@ -5896,6 +5947,7 @@ Only return the JSON, no additional text.`;
 
         groupsContent.innerHTML = groups
           .map((group) => {
+            const currentUser = DataLayer.load("currentUser");
             const recommendations =
               GroupsSystem.getGroupRecommendations(group);
             const topRecommendations = recommendations.slice(0, 3);
@@ -5971,12 +6023,41 @@ Only return the JSON, no additional text.`;
               
               <!-- Action Buttons -->
               <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
-                ${AI_PREMIUM_ENABLED
-                  ? `<button class="btn" style="background: var(--primary-gradient); color: var(--inverted-text-color);" onclick="showAIPremiumModal(${group.id})">
+                ${(() => {
+                  // Check if all group members have premium access
+                  const allMembersHavePremium = group.members.every(member => {
+                    if (member.userId === currentUser.id) {
+                      return currentUser.isPremium;
+                    } else {
+                      const demoUser = DemoUsers.users[member.userId];
+                      return demoUser ? demoUser.isPremium : false;
+                    }
+                  });
+                  
+                  // Check if any members have premium access
+                  const anyMembersHavePremium = group.members.some(member => {
+                    if (member.userId === currentUser.id) {
+                      return currentUser.isPremium;
+                    } else {
+                      const demoUser = DemoUsers.users[member.userId];
+                      return demoUser ? demoUser.isPremium : false;
+                    }
+                  });
+                  
+                  if (!anyMembersHavePremium) {
+                    return `<button class="btn btn-secondary" onclick="showPremiumUpgradeModal()" style="background: var(--warning-color); color: var(--inverted-text-color);">
+                      <i class="fas fa-crown"></i> Get Premium for AI Trip Planner
+                    </button>`;
+                  } else if (!allMembersHavePremium) {
+                    return "";
+                  } else if (AI_PREMIUM_ENABLED) {
+                    return `<button class="btn" style="background: var(--primary-gradient); color: var(--inverted-text-color);" onclick="showAIPremiumModal(${group.id})">
                       <i class="fa-solid fa-crown"></i> AI Trip Planner
-                    </button>`
-                  : ""
-                }
+                    </button>`;
+                  } else {
+                    return "";
+                  }
+                })()}
                 <button class="btn btn-info" onclick="showGroupLocationRecommendations(${group.id})" style="background: var(--info-color);">
                   <i class="fas fa-map-marker-alt"></i> Find Places Near Group
                 </button>
@@ -6028,12 +6109,29 @@ Only return the JSON, no additional text.`;
               </div>
 
               <!-- Group Scheduling Section -->
-              <div id="scheduling-placeholder-${group.id}" style="margin-top: 2rem; padding: 1.5rem; background: linear-gradient(135deg, rgba(74, 144, 226, 0.05) 0%, rgba(160, 200, 240, 0.05) 100%); border-radius: 15px; border: 2px solid rgba(74, 144, 226, 0.2);">
-                <div style="text-align: center; color: #666;">
-                  <i class="fas fa-spinner fa-spin" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
-                  <p>Loading scheduling information...</p>
-                </div>
-              </div>
+              ${(() => {
+                // Check if any members have premium access
+                const anyMembersHavePremium = group.members.some(member => {
+                  if (member.userId === currentUser.id) {
+                    return currentUser.isPremium;
+                  } else {
+                    const demoUser = DemoUsers.users[member.userId];
+                    return demoUser ? demoUser.isPremium : false;
+                  }
+                });
+                
+                // Only show scheduling section if at least one member has premium
+                if (anyMembersHavePremium) {
+                  return `<div id="scheduling-placeholder-${group.id}" style="margin-top: 2rem; padding: 1.5rem; background: linear-gradient(135deg, rgba(74, 144, 226, 0.05) 0%, rgba(160, 200, 240, 0.05) 100%); border-radius: 15px; border: 2px solid rgba(74, 144, 226, 0.2);">
+                    <div style="text-align: center; color: #666;">
+                      <i class="fas fa-spinner fa-spin" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
+                      <p>Loading scheduling information...</p>
+                    </div>
+                  </div>`;
+                } else {
+                  return "";
+                }
+              })()}
 
               <!-- AI Itinerary Section -->
               ${renderAIItinerary(group)}
