@@ -1486,7 +1486,60 @@
   <script>
 
      // AI Premium Feature Configuration
-    const AI_PREMIUM_ENABLED = false; // Set to false to disable premium features
+    let AI_PREMIUM_ENABLED = true; // Set to false to disable premium features
+
+    // Console command to toggle AI Premium features
+    window.toggleAIPremium = function() {
+        AI_PREMIUM_ENABLED = !AI_PREMIUM_ENABLED;
+        console.log(`🎭 AI Premium features ${AI_PREMIUM_ENABLED ? 'ENABLED' : 'DISABLED'}`);
+        
+        // Update current user premium status
+        const currentUser = DataLayer.load("currentUser");
+        if (currentUser) {
+            currentUser.isPremium = AI_PREMIUM_ENABLED;
+            DataLayer.save("currentUser", currentUser);
+        }
+        
+        // Refresh the current page to reflect changes
+        const currentPage = document.querySelector(".page:not(.hidden)").id;
+        if (currentPage) {
+            showPage(currentPage);
+        }
+        
+        return AI_PREMIUM_ENABLED;
+    };
+
+    // Console command to set AI Premium features to specific value
+    window.setAIPremium = function(enabled) {
+        if (typeof enabled !== 'boolean') {
+            console.error('❌ Please provide a boolean value (true or false)');
+            return false;
+        }
+        
+        AI_PREMIUM_ENABLED = enabled;
+        console.log(`🎭 AI Premium features ${AI_PREMIUM_ENABLED ? 'ENABLED' : 'DISABLED'}`);
+        
+        // Update current user premium status
+        const currentUser = DataLayer.load("currentUser");
+        if (currentUser) {
+            currentUser.isPremium = AI_PREMIUM_ENABLED;
+            DataLayer.save("currentUser", currentUser);
+        }
+        
+        // Refresh the current page to reflect changes
+        const currentPage = document.querySelector(".page:not(.hidden)").id;
+        if (currentPage) {
+            showPage(currentPage);
+        }
+        
+        return AI_PREMIUM_ENABLED;
+    };
+
+    // Console command to check current AI Premium status
+    window.getAIPremiumStatus = function() {
+        console.log(`🎭 AI Premium features are currently ${AI_PREMIUM_ENABLED ? 'ENABLED' : 'DISABLED'}`);
+        return AI_PREMIUM_ENABLED;
+    };
 
     // Helper function to add crown to premium users
     function addCrownToPremiumUser(displayName, userId) {
