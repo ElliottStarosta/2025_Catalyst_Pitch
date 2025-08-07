@@ -235,13 +235,55 @@
     }
 
     .btn-success {
-      background: linear-gradient(135deg, var(--success-color) 0%, #2ecc71 100%);
+      background: linear-gradient(135deg, var(--secondary-color) 0%, #2980b9 100%);
       color: var(--inverted-text-color);
     }
 
     .btn-info {
       background: linear-gradient(135deg, var(--info-color) 0%, #2980b9 100%);
       color: var(--inverted-text-color);
+    }
+    
+    .btn-google {
+      background: white;
+      color: #333;
+      border: 1px solid #ddd;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-weight: 500;
+      margin-top: 10px;
+    }
+    
+    .btn-google:hover {
+      background: #f8f9fa;
+      border-color: #ccc;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-small);
+    }
+    
+    .form-divider {
+      text-align: center;
+      margin: 20px 0;
+      position: relative;
+    }
+    
+    .form-divider::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: #ddd;
+    }
+    
+    .form-divider span {
+      background: white;
+      padding: 0 15px;
+      color: #666;
+      font-size: 14px;
     }
 
     /* Personality assessment */
@@ -967,6 +1009,39 @@
       text-align: center;
     }
 
+    .community-section {
+      transition: all 0.3s ease;
+    }
+
+    .community-nav-tabs {
+      text-align: center;
+      margin: 2rem 0;
+    }
+
+    .community-nav-tabs .btn {
+      background: var(--primary-gradient);
+      color: white;
+      padding: 1rem 2rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      border-radius: 12px;
+      box-shadow: var(--shadow-medium);
+      transition: all 0.3s ease;
+      margin: 0 0.5rem;
+    }
+
+    .community-nav-tabs .btn.btn-secondary {
+      background: var(--background-alt-color);
+      color: var(--text-color);
+      border: 2px solid var(--border-color);
+      box-shadow: var(--shadow-small);
+    }
+
+    .community-nav-tabs .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-large);
+    }
+
     .action-buttons {
       display: flex;
       gap: 1rem;
@@ -1186,9 +1261,11 @@
         <li>
           <a href="#" onclick="showPage('groups')" id="nav-groups">Groups</a>
         </li>
+
         <li>
           <a href="#" onclick="showPage('profile')" id="nav-profile">Profile</a>
         </li>
+
       </ul>
     </nav>
 
@@ -1382,39 +1459,96 @@
     <div id="feed" class="page hidden">
       <div class="card">
         <div class="card-header">
-          <h2>Community Activity Feed</h2>
+          <h2>Community</h2>
           <p>
-            See what others in the community are experiencing and discover new
-            places.
+            Discover activities and connect with people in your community.
           </p>
         </div>
 
-        <div class="search-box">
-          <input type="text" class="search-input" id="feed-search" placeholder="Search activities, places, or users..."
-            onkeyup="FeedSystem.filterFeed()" />
-          <span class="search-icon"><i class="fas fa-search"></i></span>
+        <!-- Community Navigation Tabs -->
+        <div class="community-nav-tabs">
+          <button class="btn active" onclick="CommunitySystem.showSection('activities')" id="activities-tab">
+            <i class="fas fa-star"></i> Activities
+          </button>
+          <button class="btn btn-secondary" onclick="CommunitySystem.showSection('friendship')" id="friendship-tab" style="position: relative;">
+            <i class="fas fa-users"></i> Friendship
+            <span id="friend-request-badge" style="
+              display: none;
+              background: #ff4757;
+              color: white;
+              border-radius: 50%;
+              width: 25px;
+              height: 25px;
+              font-size: 12px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              position: absolute;
+              top: -8px;
+              right: -8px;
+              font-weight: bold;
+              border: 2px solid white;
+            ">0</span>
+          </button>
         </div>
 
-        <div class="filter-tabs">
-          <button class="filter-tab active" onclick="FeedSystem.setFilter('all')">
-            All Activities
-          </button>
-          <button class="filter-tab" onclick="FeedSystem.setFilter('similar')">
-            Similar Users
-          </button>
-          <button class="filter-tab" onclick="FeedSystem.setFilter('high-rated')">
-            Top Rated
-          </button>
-          <button class="filter-tab" onclick="FeedSystem.setFilter('recent')">
-            Recent
-          </button>
-          <button class="filter-tab" onclick="FeedSystem.setFilter('nearby')" id="nearby-filter-btn">
-            <i class="fas fa-map-marker-alt"></i> Near Me
-          </button>
+        <!-- Activities Section -->
+        <div id="activities-section" class="community-section">
+          <div class="search-box">
+            <input type="text" class="search-input" id="feed-search" placeholder="Search activities, places, or users..."
+              onkeyup="FeedSystem.filterFeed()" />
+            <span class="search-icon"><i class="fas fa-search"></i></span>
+          </div>
+
+          <div class="filter-tabs">
+            <button class="filter-tab active" onclick="FeedSystem.setFilter('all')">
+              All Activities
+            </button>
+            <button class="filter-tab" onclick="FeedSystem.setFilter('similar')">
+              Similar Users
+            </button>
+            <button class="filter-tab" onclick="FeedSystem.setFilter('high-rated')">
+              Top Rated
+            </button>
+            <button class="filter-tab" onclick="FeedSystem.setFilter('recent')">
+              Recent
+            </button>
+            <button class="filter-tab" onclick="FeedSystem.setFilter('nearby')" id="nearby-filter-btn">
+              <i class="fas fa-map-marker-alt"></i> Near Me
+            </button>
+          </div>
+
+          <div id="feed-content">
+            <!-- Feed items will be dynamically inserted here -->
+          </div>
         </div>
 
-        <div id="feed-content">
-          <!-- Feed items will be dynamically inserted here -->
+        <!-- Friendship Section -->
+        <div id="friendship-section" class="community-section" style="display: none;">
+          <div class="search-box">
+            <input type="text" class="search-input" id="friendship-search" placeholder="Search users by name, username, or personality type..."
+              onkeyup="FriendsDiscoverySystem.filterUsers()" />
+            <span class="search-icon"><i class="fas fa-search"></i></span>
+          </div>
+
+          <div class="filter-tabs">
+            <button class="filter-tab active" onclick="FriendsDiscoverySystem.setFilter('all')">
+              All Users
+            </button>
+            <button class="filter-tab" onclick="FriendsDiscoverySystem.setFilter('similar')">
+              Similar to You
+            </button>
+            <button class="filter-tab" onclick="FriendsDiscoverySystem.setFilter('friends')">
+              My Friends
+            </button>
+            <button class="filter-tab" onclick="FriendsDiscoverySystem.setFilter('requests')">
+              Friend Requests
+            </button>
+          </div>
+
+          <div id="friendship-content">
+            <!-- Friendship content will be dynamically inserted here -->
+          </div>
         </div>
       </div>
     </div>
@@ -1469,11 +1603,147 @@
       </div>
     </div>
 
+    <!-- Login Page -->
+    <div id="login" class="page">
+      <div class="card">
+        <div class="card-header">
+          <h2>Welcome to Senergy</h2>
+          <p>Sign in to your account or create a new one to get started.</p>
+        </div>
+        
+        <div id="login-content">
+          <!-- Login Form -->
+          <div id="login-form-container">
+            <h3 style="margin-bottom: 1.5rem; color: var(--primary-color);">Sign In</h3>
+            <form id="login-form" onsubmit="handleLogin(event)">
+              <div class="form-group">
+                <label for="login-email">Email Address *</label>
+                <input type="email" id="login-email" class="form-control" placeholder="Enter your email" required>
+              </div>
+              <div class="form-group">
+                <label for="login-password">Password *</label>
+                <input type="password" id="login-password" class="form-control" placeholder="Enter your password" required>
+              </div>
+              <div class="action-buttons">
+                <button type="submit" class="btn">
+                  <i class="fas fa-sign-in-alt"></i> Sign In
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="showRegisterForm()">
+                  <i class="fas fa-user-plus"></i> Create Account
+                </button>
+              </div>
+              
+              <div class="form-divider">
+                <span>or</span>
+              </div>
+              
+              <button type="button" class="btn btn-google" onclick="handleGoogleSignIn()">
+                <svg width="20" height="20" viewBox="0 0 24 24" style="margin-right: 8px;">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                Sign in with Google
+              </button>
+            </form>
+          </div>
+
+          <!-- Register Form -->
+          <div id="register-form-container" style="display: none;">
+            <h3 style="margin-bottom: 1.5rem; color: var(--primary-color);">Create Account</h3>
+            <form id="register-form" onsubmit="handleRegister(event)">
+              <div class="form-group">
+                <label for="register-email">Email Address *</label>
+                <input type="email" id="register-email" class="form-control" placeholder="Enter your email" required>
+              </div>
+              <div class="form-group">
+                <label for="register-password">Password *</label>
+                <input type="password" id="register-password" class="form-control" placeholder="Create a password (min 6 characters)" required minlength="6">
+              </div>
+              <div class="form-group">
+                <label for="register-username">Username *</label>
+                <input type="text" id="register-username" class="form-control" placeholder="Choose a unique username" required>
+              </div>
+              <div class="form-group">
+                <label for="register-displayName">Display Name *</label>
+                <input type="text" id="register-displayName" class="form-control" placeholder="Your full name" required>
+              </div>
+              <div class="form-group">
+                <label for="register-bio">Bio (Optional)</label>
+                <textarea id="register-bio" class="form-control" placeholder="Tell us about yourself..." rows="3"></textarea>
+              </div>
+              <div class="action-buttons">
+                <button type="submit" class="btn">
+                  <i class="fas fa-user-plus"></i> Create Account
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="showLoginForm()">
+                  <i class="fas fa-sign-in-alt"></i> Back to Sign In
+                </button>
+              </div>
+              
+              <div class="form-divider">
+                <span>or</span>
+              </div>
+              
+              <button type="button" class="btn btn-google" onclick="handleGoogleSignIn()">
+                <svg width="20" height="20" viewBox="0 0 24 24" style="margin-right: 8px;">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                Sign up with Google
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Friends Page -->
+    <div id="friends" class="page hidden">
+      <div class="card">
+        <div class="card-header">
+          <h2>Friends & Discovery</h2>
+          <p>Connect with other users and discover people with similar social energy preferences.</p>
+        </div>
+
+        <div class="search-box">
+          <input type="text" class="search-input" id="friends-search" placeholder="Search users by name, username, or personality type..."
+            onkeyup="FriendsDiscoverySystem.filterUsers()" />
+          <span class="search-icon"><i class="fas fa-search"></i></span>
+        </div>
+
+        <div class="filter-tabs">
+          <button class="filter-tab active" onclick="FriendsDiscoverySystem.setFilter('all')">
+            All Users
+          </button>
+          <button class="filter-tab" onclick="FriendsDiscoverySystem.setFilter('similar')">
+            Similar to You
+          </button>
+          <button class="filter-tab" onclick="FriendsDiscoverySystem.setFilter('friends')">
+            My Friends
+          </button>
+          <button class="filter-tab" onclick="FriendsDiscoverySystem.setFilter('requests')">
+            Friend Requests
+          </button>
+        </div>
+
+        <div id="friends-content">
+          <!-- Friends and user discovery content will be dynamically inserted here -->
+        </div>
+      </div>
+    </div>
+
     <!-- Profile Page -->
     <div id="profile" class="page hidden">
       <div class="card">
-        <div class="card-header">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
           <h2>Your Profile</h2>
+          <button class="btn btn-danger" onclick="handleLogout()" style="font-size: 0.9rem; padding: 8px 16px;">
+            <i class="fas fa-sign-out-alt"></i> Sign Out
+          </button>
         </div>
         <div id="profile-content">
           <!-- Profile content will be dynamically inserted here -->
@@ -1556,6 +1826,18 @@
       return displayName;
     }
 
+    // Helper function to add online status indicator
+    function addOnlineStatusIndicator(displayName, userId, isOnline = false) {
+      if (userId === (DataLayer.load("currentUser") ? DataLayer.load("currentUser").id : null)) {
+        return displayName; // Don't show online status for current user
+      }
+      
+      if (isOnline) {
+        return `${displayName} <i class="fas fa-circle" style="color: #27ae60; font-size: 0.7rem; margin-left: 0.3rem;" title="Online"></i>`;
+      }
+      return displayName;
+    }
+
     
     // Function to handle rating a place from the community feed
     function ratePlace(name, category, location, description) {
@@ -1591,45 +1873,32 @@
     };
 
     const FriendsSystem = {
-      addFriend: (userId) => {
-        const user = DemoUsers.users[userId];
-        if (!user) return false;
-
-        const friends = DataLayer.load("friends", []);
-        if (friends.some((friend) => friend.id === userId)) {
-          NotificationSystem.show(
-            "Already friends with this user!",
-            "warning"
-          );
+      async addFriend(userId) {
+        if (!currentFirebaseUser) {
+          NotificationSystem.show('Please sign in to add friends.', 'warning');
           return false;
         }
 
-        const friendData = {
-          id: userId,
-          username: user.username,
-          displayName: user.displayName,
-          personalityType: user.personalityType,
-          adjustmentFactor: user.adjustmentFactor,
-          avatar: user.avatar,
-          addedAt: new Date().toISOString(),
-        };
+        try {
+          const { collection, addDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+          
+          // Create friend request
+          const requestData = {
+            fromUserId: currentFirebaseUser.uid,
+            toUserId: userId,
+            status: 'pending',
+            createdAt: serverTimestamp()
+          };
 
-        DataLayer.push("friends", friendData);
-        NotificationSystem.show(
-                          `Added ${addCrownToPremiumUser(user.displayName, user.id)} as a friend!`,
-          "success"
-        );
-
-        // Update the button immediately with animation
-        FriendsSystem.updateFriendButton(userId, true);
-
-        // Refresh current page to show updated recommendations
-        const currentPage = document.querySelector(".page:not(.hidden)").id;
-        if (currentPage === "dashboard" || currentPage === "profile") {
-          showPage(currentPage);
+          await addDoc(collection(authManager.db, 'friendRequests'), requestData);
+          
+          NotificationSystem.show('Friend request sent!', 'success');
+          return true;
+        } catch (error) {
+          console.error('Error adding friend:', error);
+          NotificationSystem.show('Failed to send friend request.', 'error');
+          return false;
         }
-
-        return true;
       },
 
       updateFriendButton: (userId, isFriend) => {
@@ -1671,43 +1940,115 @@
         });
       },
 
-      getFriends: () => {
-        return DataLayer.load("friends", []);
+      async getFriends() {
+        if (!currentFirebaseUser) return [];
+
+        try {
+          const { collection, query, where, getDocs, getDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+          
+          const friendsCollection = collection(authManager.db, 'friends');
+          const queries = [
+            query(friendsCollection, where('user1Id', '==', currentFirebaseUser.uid)),
+            query(friendsCollection, where('user2Id', '==', currentFirebaseUser.uid))
+          ];
+
+          const friends = [];
+          const friendIds = new Set();
+
+          for (const q of queries) {
+            const querySnapshot = await getDocs(q);
+            
+            for (const docSnap of querySnapshot.docs) {
+              const friendshipData = docSnap.data();
+              const friendId = friendshipData.user1Id === currentFirebaseUser.uid 
+                ? friendshipData.user2Id 
+                : friendshipData.user1Id;
+              
+              if (!friendIds.has(friendId)) {
+                friendIds.add(friendId);
+                
+                const friendDoc = await getDoc(doc(authManager.db, 'users', friendId));
+                if (friendDoc.exists()) {
+                  friends.push({
+                    id: friendDoc.id,
+                    ...friendDoc.data()
+                  });
+                }
+              }
+            }
+          }
+
+          return friends;
+        } catch (error) {
+          console.error('Error getting friends:', error);
+          return [];
+        }
       },
 
-      getFriendIds: () => {
-        return FriendsSystem.getFriends().map((friend) => friend.id);
+      getFriendIds: async () => {
+        const friends = await FriendsSystem.getFriends();
+        return friends.map((friend) => friend.id);
       },
 
-      isFriend: (userId) => {
-        return FriendsSystem.getFriendIds().includes(userId);
+      async isFriend(userId) {
+        if (!currentFirebaseUser) return false;
+
+        try {
+          const { collection, query, where, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+          
+          const friendsCollection = collection(authManager.db, 'friends');
+          const queries = [
+            query(friendsCollection, where('user1Id', '==', currentFirebaseUser.uid), where('user2Id', '==', userId)),
+            query(friendsCollection, where('user1Id', '==', userId), where('user2Id', '==', currentFirebaseUser.uid))
+          ];
+
+          for (const q of queries) {
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+              return true;
+            }
+          }
+
+          return false;
+        } catch (error) {
+          console.error('Error checking friendship:', error);
+          return false;
+        }
       },
 
-      removeFriend: (userId) => {
-        const friends = DataLayer.load("friends", []);
-        const friendToRemove = friends.find(friend => friend.id === userId);
-        
-        if (!friendToRemove) {
-          NotificationSystem.show("Friend not found!", "error");
+      async removeFriend(userId) {
+        if (!currentFirebaseUser) {
+          NotificationSystem.show('Please sign in to remove friends.', 'warning');
           return false;
         }
 
-        DataLayer.remove("friends", (friend) => friend.id === userId);
-        NotificationSystem.show(
-                          `Removed ${addCrownToPremiumUser(friendToRemove.displayName, friendToRemove.id)} from friends!`,
-          "success"
-        );
+        try {
+          const { collection, query, where, getDocs, deleteDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+          
+          const friendsCollection = collection(authManager.db, 'friends');
+          const queries = [
+            query(friendsCollection, where('user1Id', '==', currentFirebaseUser.uid), where('user2Id', '==', userId)),
+            query(friendsCollection, where('user1Id', '==', userId), where('user2Id', '==', currentFirebaseUser.uid))
+          ];
 
-        // Update the button immediately
-        FriendsSystem.updateFriendButton(userId, false);
+          for (const q of queries) {
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+              const friendshipDoc = querySnapshot.docs[0];
+              await deleteDoc(doc(authManager.db, 'friends', friendshipDoc.id));
+              
+              NotificationSystem.show('Friend removed successfully!', 'success');
+              return true;
+            }
+          }
 
-        // Refresh current page to show updated recommendations
-        const currentPage = document.querySelector(".page:not(.hidden)").id;
-        if (currentPage === "dashboard" || currentPage === "profile") {
-          showPage(currentPage);
+          NotificationSystem.show('Friend not found!', 'error');
+          return false;
+        } catch (error) {
+          console.error('Error removing friend:', error);
+          NotificationSystem.show('Failed to remove friend.', 'error');
+          return false;
         }
-
-        return true;
       },
     };
 
@@ -1909,7 +2250,7 @@
         };
       },
 
-      showResults: () => {
+      showResults: async () => {
         const scores = PersonalityAssessment.calculateScore();
         const personality = PersonalityAssessment.getPersonalityType(
           scores.adjustmentFactor
@@ -1922,11 +2263,22 @@
         document.getElementById("personality-description").textContent =
           personality.description;
 
-        // Save results
+        // Save results locally
         DataLayer.save("personalityScore", scores);
         DataLayer.save("personalityType", personality);
+        
+        console.log('Personality assessment completed:', {
+          scores,
+          personality,
+          currentUser: currentFirebaseUser?.uid
+        });
+        
+        // Force reload the data to ensure it's available
+        const reloadedScores = DataLayer.load("personalityScore");
+        const reloadedType = DataLayer.load("personalityType");
+        console.log('Reloaded data:', { reloadedScores, reloadedType });
 
-        // Update current user
+        // Update current user locally
         let currentUser = DataLayer.load("currentUser");
         if (!currentUser) {
           currentUser = {
@@ -1940,17 +2292,50 @@
         currentUser.personalityType = personality.type;
         currentUser.avatar = personality.type.charAt(0);
         
-        // Don't set a default location - let geolocation handle it
+        // Save to Firebase if user is authenticated
+        if (currentFirebaseUser && authManager) {
+          try {
+            const { doc, updateDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            
+            await updateDoc(doc(authManager.db, 'users', currentFirebaseUser.uid), {
+              adjustmentFactor: scores.adjustmentFactor,
+              personalityType: personality.type,
+              avatar: personality.type.charAt(0),
+              updatedAt: serverTimestamp()
+            });
+            
+            console.log('Personality assessment saved to Firebase');
+          } catch (error) {
+            console.error('Error saving personality assessment to Firebase:', error);
+          }
+        }
         
         // Try to get user's actual location if geolocation is available
         if (navigator.geolocation) {
           navigator.geolocation.getCurrentPosition(
-            (position) => {
+            async (position) => {
               currentUser.location = {
                 lat: position.coords.latitude,
                 lng: position.coords.longitude
               };
               DataLayer.save("currentUser", currentUser);
+              
+              // Save location to Firebase if user is authenticated
+              if (currentFirebaseUser && authManager) {
+                try {
+                  const { doc, updateDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                  
+                  await updateDoc(doc(authManager.db, 'users', currentFirebaseUser.uid), {
+                    location: {
+                      lat: position.coords.latitude,
+                      lng: position.coords.longitude
+                    },
+                    updatedAt: serverTimestamp()
+                  });
+                } catch (error) {
+                  console.error('Error saving location to Firebase:', error);
+                }
+              }
             },
             (error) => {
               console.log("Could not get user location:", error.message);
@@ -2403,7 +2788,7 @@
         { id: "return", text: "How likely are you to return?", weight: 0.05 },
       ],
 
-      submitNewExperience: (event) => {
+      submitNewExperience: async (event) => {
         event.preventDefault();
 
         const personalityData = DataLayer.load("personalityScore");
@@ -2510,8 +2895,27 @@
           );
         }
 
-        // Save experience
+        // Save experience locally
         DataLayer.push("userExperiences", experience);
+
+        // Save to Firebase if user is authenticated
+        if (currentFirebaseUser && authManager) {
+          try {
+            const { collection, addDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            
+            const experienceData = {
+              ...experience,
+              userId: currentFirebaseUser.uid,
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp()
+            };
+            
+            await addDoc(collection(authManager.db, 'experiences'), experienceData);
+            console.log('Experience saved to Firebase');
+          } catch (error) {
+            console.error('Error saving experience to Firebase:', error);
+          }
+        }
 
         // Show success message
         NotificationSystem.show("Experience added successfully!", "success");
@@ -2621,10 +3025,10 @@
         };
       },
 
-      // Get all experiences (user + demo)
+      // Get all experiences (only real users)
       getAllExperiences: () => {
         const userExperiences = DataLayer.load("userExperiences", []);
-        return [...DemoUsers.experiences, ...userExperiences];
+        return userExperiences; // Only return real user experiences
       },
 
       // Activity Recommendation Engine
@@ -2634,7 +3038,7 @@
         const userExperienceNames = userExperiences.map((exp) =>
           exp.name.toLowerCase()
         );
-        const friendIds = FriendsSystem.getFriendIds();
+        const friendIds = []; // Fallback to empty array for now
 
         // Only include experiences from friends
         const friendExperiences = allExperiences.filter((exp) =>
@@ -2707,24 +3111,11 @@
         );
       },
 
-      // Find Similar Users
+      // Find Similar Users (only real users)
       findSimilarUsers: (userAdjustmentFactor) => {
-        const similarities = Object.values(DemoUsers.users)
-          .map((user) => {
-            const personalityDifference = Math.abs(
-              user.adjustmentFactor - userAdjustmentFactor
-            );
-            const similarity = Math.max(0, 1 - personalityDifference / 2); // 0 to 1 scale
-
-            return {
-              user: user,
-              similarity: similarity,
-              personalityDifference: personalityDifference,
-            };
-          })
-          .sort((a, b) => b.similarity - a.similarity);
-
-        return similarities;
+        // For now, return empty array since we're only using real users
+        // This will be populated when we have real user data
+        return [];
       },
     };
 
@@ -2894,6 +3285,57 @@
       };
     }
 
+    // Community System
+    const CommunitySystem = {
+      currentSection: 'activities',
+
+      showSection: (section) => {
+        CommunitySystem.currentSection = section;
+        
+        // Update tab styling
+        document.querySelectorAll('#activities-tab, #friendship-tab').forEach(tab => {
+          tab.classList.remove('active');
+          tab.classList.remove('btn');
+          tab.classList.remove('btn-secondary');
+          tab.classList.add('filter-tab');
+        });
+        
+        const activeTab = document.getElementById(`${section}-tab`);
+        activeTab.classList.remove('filter-tab');
+        activeTab.classList.add('btn');
+        if (section === 'friendship') {
+          activeTab.classList.add('btn-secondary');
+        }
+        activeTab.classList.add('active');
+        
+        // Show/hide sections
+        document.getElementById('activities-section').style.display = section === 'activities' ? 'block' : 'none';
+        document.getElementById('friendship-section').style.display = section === 'friendship' ? 'block' : 'none';
+        
+        // Initialize the appropriate system
+        if (section === 'activities') {
+          FeedSystem.init();
+        } else if (section === 'friendship') {
+          FriendsDiscoverySystem.init();
+        }
+      },
+
+      init: () => {
+        // Set up initial button styling
+        const activitiesTab = document.getElementById('activities-tab');
+        const friendshipTab = document.getElementById('friendship-tab');
+        
+        if (activitiesTab && friendshipTab) {
+          activitiesTab.classList.remove('filter-tab');
+          activitiesTab.classList.add('btn');
+          friendshipTab.classList.remove('filter-tab');
+          friendshipTab.classList.add('btn', 'btn-secondary');
+        }
+        
+        CommunitySystem.showSection('activities');
+      }
+    };
+
     // Feed System
     const FeedSystem = {
       currentFilter: "all",
@@ -3055,9 +3497,9 @@
               `;
             } else {
               actionButtons += `
-                <span style="background: #e8f5e8; color: #2e7d32; font-size: 0.8rem; font-weight: bold; padding: 4px 8px; border-radius: 12px; border: 1px solid #4caf50;">
-                  ✓ Been There
-                </span>
+                                  <span style="background: rgba(74, 144, 226, 0.1); color: var(--primary-color); font-size: 0.8rem; font-weight: bold; padding: 4px 8px; border-radius: 12px; border: 1px solid var(--primary-color);">
+                    ✓ Been There
+                  </span>
               `;
             }
 
@@ -3495,9 +3937,9 @@
         <div class="feed-item">
           <div class="feed-header">
             <div class="feed-avatar">${user.avatar}</div>
-            <div class="feed-user-info">
-              <h4>${addCrownToPremiumUser(user.displayName, exp.userId)} ${isFriend ? '<span style="color: var(--primary-color);">★</span>' : ""
-              }</h4>
+                              <div class="feed-user-info">
+                    <h4>${addOnlineStatusIndicator(addCrownToPremiumUser(user.displayName, exp.userId), exp.userId, user.isOnline)} ${isFriend ? '<span style="color: var(--primary-color);">★</span>' : ""
+                    }</h4>
               <div class="personality-type">${user.personalityType || "Unknown Type"
               }</div>
               <div class="feed-timestamp" title="${formatFullDate(exp.timestamp)}" style="cursor: help;">
@@ -7156,7 +7598,7 @@ Only return the JSON, no additional text.`;
         const recommendations = ActivitySystem.getRecommendations(
           personalityData.adjustmentFactor
         );
-        const friends = FriendsSystem.getFriends();
+        const friends = []; // Fallback to empty array for now
 
         if (recommendations.length === 0) {
           if (friends.length === 0) {
@@ -7251,8 +7693,8 @@ Only return the JSON, no additional text.`;
         const similarUsers = ActivitySystem.findSimilarUsers(
           personalityData.adjustmentFactor
         );
-        const friends = FriendsSystem.getFriends();
-        const friendIds = FriendsSystem.getFriendIds();
+        const friends = []; // Fallback to empty array for now
+        const friendIds = []; // Fallback to empty array for now
 
         // Filter out users who are already friends
         const nonFriendUsers = similarUsers.filter(
@@ -7329,7 +7771,7 @@ Only return the JSON, no additional text.`;
                   ${userExperiences.length} experiences posted
                 </div>
                 <div style="text-align: center;">
-                  ${FriendsSystem.isFriend(sim.user.id)
+                  ${false // Fallback to false for now
                     ? '<span style="background: #f8f9fa; color: var(--primary-color); font-size: 0.8rem; font-weight: bold; padding: 4px 8px; border-radius: 12px; border: 1px solid var(--primary-color); display: inline-block;">✓ Friend</span>'
                     : `<button class="btn" style="font-size: 0.8rem; padding: 6px 12px;" onclick="FriendsSystem.addFriend(${sim.user.id})">Add Friend</button>`
                   }
@@ -7358,11 +7800,17 @@ Only return the JSON, no additional text.`;
       const personalityType = DataLayer.load("personalityType");
       const currentUser = DataLayer.load("currentUser");
 
-      if (
-        personalityData &&
-        personalityType &&
-        DataLayer.exists("currentUser")
-      ) {
+      console.log('updateDashboard called with:', { personalityData, personalityType, currentUser });
+
+      // Check if user has completed personality assessment
+      const hasCompletedAssessment = personalityData && 
+                                   personalityType && 
+                                   personalityData.adjustmentFactor !== undefined &&
+                                   personalityType.type !== 'Not Set';
+      
+      console.log('hasCompletedAssessment:', hasCompletedAssessment);
+
+      if (hasCompletedAssessment && DataLayer.exists("currentUser")) {
         document.getElementById("user-avatar").textContent =
           currentUser.avatar;
         document.getElementById(
@@ -7377,9 +7825,7 @@ Only return the JSON, no additional text.`;
         <h2>Your Social Energy Profile</h2>
         <div class="stats-grid">
           <div class="stat-card">
-            <div class="stat-value">${personalityData.adjustmentFactor.toFixed(
-          2
-        )}</div>
+            <div class="stat-value">${personalityData?.adjustmentFactor?.toFixed(2) || '0.00'}</div>
             <div class="stat-label">Adjustment Factor</div>
           </div>
           <div class="stat-card" onclick="showExperiencesModal()" style="cursor: pointer;">
@@ -7395,8 +7841,7 @@ Only return the JSON, no additional text.`;
             <div class="stat-label">Personality Type</div>
           </div>
         </div>
-        <p style="font-style: italic; color: #666; margin: 1.5rem 0; text-align: center;">"${personalityType.description
-          }"</p>
+        <p style="font-style: italic; color: #666; margin: 1.5rem 0; text-align: center;">"${personalityType?.description || 'You have a balanced approach to social energy.'}"</p>
         <div class="action-buttons">
           <button class="btn" onclick="showPage('activities')"><i class="fas fa-plus-circle"></i> Add Experience</button>
           <button class="btn btn-secondary" onclick="showPage('feed')"><i class="fas fa-users"></i> Explore Community</button>
@@ -7406,9 +7851,28 @@ Only return the JSON, no additional text.`;
         </div>
       </div>
 
-      ${RecommendationSystem.displayRecommendations()}
-      ${SimilarUsersSystem.displaySimilarUsers()}
-    `;
+              ${RecommendationSystem.displayRecommendations()}
+        ${SimilarUsersSystem.displaySimilarUsers()}
+      `;
+      } else {
+        // User hasn't completed assessment yet
+        document.getElementById("user-avatar").textContent = currentUser?.avatar || "?";
+        document.getElementById("welcome-message").innerHTML = 
+          `Welcome, <strong>${currentUser?.displayName || 'User'}</strong>! Complete the personality assessment to get started.`;
+        
+        document.getElementById("dashboard-content").innerHTML = `
+          <div style="margin-bottom: 2rem;">
+            <h2>Get Started with Senergy</h2>
+            <p style="padding: 1.2rem; text-align: center;">
+              Take the personality assessment to discover your social energy preferences and get personalized recommendations.
+            </p>
+            <div class="action-buttons">
+              <button class="btn" onclick="showPage('assessment')">
+                <i class="fas fa-play-circle"></i> Start Assessment
+              </button>
+            </div>
+          </div>
+        `;
       }
     }
 
@@ -7421,7 +7885,7 @@ Only return the JSON, no additional text.`;
 
       const profileContent = document.getElementById("profile-content");
 
-      if (!personalityData) {
+      if (!personalityData || !personalityData.adjustmentFactor) {
         profileContent.innerHTML = `
       <div class="centered">
         <p style="padding: 1.2rem;">Complete the personality assessment to see your profile.</p>
@@ -7439,7 +7903,7 @@ Only return the JSON, no additional text.`;
           ) / userExperiences.length
           : 0;
 
-      // Get recommendations for profile
+      // Get recommendations for profile (only from real users)
       const recommendations = ActivitySystem.getRecommendations(
         personalityData.adjustmentFactor
       );
@@ -7451,7 +7915,7 @@ Only return the JSON, no additional text.`;
           )
       );
 
-      // Get similar users
+      // Get similar users (only real users)
       const similarUsers = ActivitySystem.findSimilarUsers(
         personalityData.adjustmentFactor
       );
@@ -7600,7 +8064,7 @@ Only return the JSON, no additional text.`;
                   <div style="font-size: 0.8rem; color: #4CAF50; font-weight: bold;">${(
                 sim.similarity * 100
               ).toFixed(0)}% Match</div>
-                    ${FriendsSystem.isFriend(sim.user.id)
+                    ${false // Fallback to false for now
                 ? '<span style="background: #f8f9fa; color: var(--primary-color); font-size: 0.8rem; font-weight: bold; padding: 4px 8px; border-radius: 12px; border: 1px solid var(--primary-color); display: inline-block; margin-top: 0.5rem;">✓ Friend</span>'
                 : `<button class="btn" style="margin-top: 0.5rem; font-size: 0.8rem; padding: 6px 12px;" onclick="FriendsSystem.addFriend(${sim.user.id})">Add Friend</button>`
               }
@@ -7615,12 +8079,20 @@ Only return the JSON, no additional text.`;
       <button class="btn" onclick="showPage('activities')"><i class="fas fa-plus-circle"></i> Add Experience</button>
       <button class="btn btn-secondary" onclick="showPage('dashboard')"><i class="fas fa-tachometer-alt"></i> Dashboard</button>
       <button class="btn btn-secondary" onclick="showPage('groups')"><i class="fas fa-users"></i> Groups</button>
+      <button class="btn btn-info" onclick="showEditProfileModal()"><i class="fas fa-edit"></i> Edit Profile</button>
     </div>
   `;
     }
 
     // UI Management
     function showPage(pageId) {
+      // Check authentication for protected pages
+      const protectedPages = ['dashboard', 'assessment', 'activities', 'feed', 'groups', 'friends', 'profile'];
+      if (protectedPages.includes(pageId) && !currentFirebaseUser) {
+        showPage('login');
+        return;
+      }
+
       // Hide all pages
       document.querySelectorAll(".page").forEach((page) => {
         page.classList.add("hidden");
@@ -7638,8 +8110,16 @@ Only return the JSON, no additional text.`;
       // Show selected page
       document.getElementById(pageId).classList.remove("hidden");
 
+
+
       // Page-specific initialization
       switch (pageId) {
+        case "login":
+          // Reset forms
+          document.getElementById('login-form').reset();
+          document.getElementById('register-form').reset();
+          showLoginForm();
+          break;
         case "dashboard":
           updateDashboard();
           break;
@@ -7682,7 +8162,7 @@ Only return the JSON, no additional text.`;
           }, 100);
           break;
         case "feed":
-          FeedSystem.init();
+          CommunitySystem.init();
           break;
         case "groups":
           GroupsSystem.init();
@@ -7712,6 +8192,7 @@ Only return the JSON, no additional text.`;
             }
           }, 50);
           break;
+
         case "profile":
           updateProfile();
           break;
@@ -7732,7 +8213,47 @@ Only return the JSON, no additional text.`;
       }
     }
 
-    function completeAssessment() {
+    async function completeAssessment() {
+      // Ensure personality data is properly loaded from Firebase if user is authenticated
+      if (currentFirebaseUser && authManager) {
+        try {
+          const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+          const userDoc = await getDoc(doc(authManager.db, 'users', currentFirebaseUser.uid));
+          
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            
+            // Update local storage with Firebase data
+            if (userData.adjustmentFactor !== undefined) {
+              DataLayer.save('personalityScore', { adjustmentFactor: userData.adjustmentFactor });
+              DataLayer.save('personalityType', { type: userData.personalityType });
+            }
+            
+            // Update current user data
+            let currentUser = DataLayer.load('currentUser') || {};
+            currentUser.adjustmentFactor = userData.adjustmentFactor;
+            currentUser.personalityType = userData.personalityType;
+            currentUser.avatar = userData.avatar;
+            DataLayer.save('currentUser', currentUser);
+            
+            console.log('Personality data synced from Firebase');
+          }
+        } catch (error) {
+          console.error('Error syncing personality data from Firebase:', error);
+        }
+      }
+      
+      console.log('Completing assessment, redirecting to dashboard');
+      
+      // Debug: Check what data is available
+      const debugScores = DataLayer.load("personalityScore");
+      const debugType = DataLayer.load("personalityType");
+      const debugUser = DataLayer.load("currentUser");
+      console.log('Debug data before dashboard:', { debugScores, debugType, debugUser });
+      
+      // Show success message
+      NotificationSystem.show('Assessment completed successfully! Welcome to your personalized dashboard.', 'success');
+      
       showPage("dashboard");
     }
 
@@ -7769,8 +8290,8 @@ Only return the JSON, no additional text.`;
           // Get all experiences from the community
           const allExperiences = ActivitySystem.getAllExperiences();
           const userExperiences = DataLayer.load("userExperiences", []);
-          const friends = FriendsSystem.getFriends();
-          const friendIds = friends.map(friend => friend.id);
+          const friends = []; // Fallback to empty array for now
+          const friendIds = []; // Fallback to empty array for now
           
           // Get user's experience names to exclude them
           const userExperienceNames = userExperiences.map(exp => exp.name.toLowerCase());
@@ -8859,7 +9380,8 @@ Only return the JSON, no additional text.`;
         ...exp,
       }));
 
-      showPage("dashboard");
+      // Start with login page - Firebase auth will redirect if user is signed in
+      showPage("login");
     });
 
     // Keyboard shortcuts for power users
@@ -9001,6 +9523,1081 @@ Only return the JSON, no additional text.`;
       link.click();
     }
 
+    // Firebase Authentication System
+    let authManager = null;
+    let userManager = null;
+    let friendsManager = null;
+    let currentFirebaseUser = null;
+
+    // Initialize Firebase Authentication
+    async function initializeFirebaseAuth() {
+      try {
+        // Import Firebase modules
+        const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
+        const { getAuth, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+        const { getFirestore } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+
+        // Import Firebase configuration
+        const { firebaseConfig } = await import('./firebase-config.js');
+
+        // Check if Firebase is properly configured
+        if (!firebaseConfig.apiKey) {
+          console.warn('Firebase not configured. Please update firebase-config.js with your Firebase project details.');
+          NotificationSystem.show('Firebase not configured. Please check the console for setup instructions.', 'warning');
+          return false;
+        }
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Set up auth state listener
+        onAuthStateChanged(auth, async (user) => {
+          if (user) {
+            currentFirebaseUser = user;
+            console.log('User signed in:', user.uid);
+            await loadUserProfile(user.uid);
+            showPage('dashboard');
+          } else {
+            currentFirebaseUser = null;
+            console.log('User signed out');
+            showPage('login');
+          }
+        });
+
+        // Initialize managers
+        authManager = { auth, db };
+        userManager = { db };
+        friendsManager = { db };
+
+        console.log('Firebase Auth initialized successfully');
+        return true;
+      } catch (error) {
+        console.error('Error initializing Firebase Auth:', error);
+        NotificationSystem.show('Failed to initialize Firebase. Please check your configuration.', 'error');
+        return false;
+      }
+    }
+
+    // Handle user login
+    async function handleLogin(event) {
+      event.preventDefault();
+      
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+
+      try {
+        // Wait for Firebase to be initialized
+        if (!authManager) {
+          const initialized = await initializeFirebaseAuth();
+          if (!initialized) {
+            return;
+          }
+        }
+
+        const { signInWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+        await signInWithEmailAndPassword(authManager.auth, email, password);
+        NotificationSystem.show('Successfully signed in!', 'success');
+      } catch (error) {
+        console.error('Login error:', error);
+        let message = 'Login failed. ';
+        switch (error.code) {
+          case 'auth/user-not-found':
+            message += 'No account found with this email.';
+            break;
+          case 'auth/wrong-password':
+            message += 'Incorrect password.';
+            break;
+          case 'auth/invalid-email':
+            message += 'Invalid email address.';
+            break;
+          default:
+            message += error.message;
+        }
+        NotificationSystem.show(message, 'error');
+      }
+    }
+
+    // Handle Google Sign In
+    async function handleGoogleSignIn() {
+      try {
+        // Wait for Firebase to be initialized
+        if (!authManager) {
+          const initialized = await initializeFirebaseAuth();
+          if (!initialized) {
+            return;
+          }
+        }
+
+        const { GoogleAuthProvider, signInWithPopup } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+        const { doc, setDoc, getDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+
+        const provider = new GoogleAuthProvider();
+        const result = await signInWithPopup(authManager.auth, provider);
+        const user = result.user;
+
+        // Check if this is a new user
+        const userDoc = await getDoc(doc(authManager.db, 'users', user.uid));
+        
+        if (!userDoc.exists()) {
+          // Create new user profile
+          const userData = {
+            id: user.uid,
+            username: user.email.split('@')[0], // Use email prefix as username
+            displayName: user.displayName || user.email.split('@')[0],
+            email: user.email,
+            bio: '',
+            avatar: user.displayName ? user.displayName.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase(),
+            adjustmentFactor: 0, // Default neutral
+            personalityType: 'Neutral',
+            isPremium: false,
+            location: null,
+            isOnline: true,
+            lastSeen: serverTimestamp(),
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          };
+
+          await setDoc(doc(authManager.db, 'users', user.uid), userData);
+          NotificationSystem.show('Account created successfully!', 'success');
+        } else {
+          NotificationSystem.show('Welcome back!', 'success');
+        }
+
+      } catch (error) {
+        console.error('Google sign-in error:', error);
+        let message = 'Google sign-in failed. ';
+        switch (error.code) {
+          case 'auth/popup-closed-by-user':
+            message = 'Sign-in was cancelled.';
+            break;
+          case 'auth/popup-blocked':
+            message = 'Sign-in popup was blocked. Please allow popups for this site.';
+            break;
+          default:
+            message += error.message;
+        }
+        NotificationSystem.show(message, 'error');
+      }
+    }
+
+    // Handle user logout
+    async function handleLogout() {
+      try {
+        if (authManager && authManager.auth) {
+          const { signOut } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+          await signOut(authManager.auth);
+          NotificationSystem.show('Successfully signed out!', 'success');
+        }
+      } catch (error) {
+        console.error('Logout error:', error);
+        NotificationSystem.show('Error signing out. Please try again.', 'error');
+      }
+    }
+
+    // Load user profile from Firebase
+    async function loadUserProfile(userId) {
+      try {
+        const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+        const userDoc = await getDoc(doc(authManager.db, 'users', userId));
+        
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          
+          // Save user data to local storage for compatibility
+          DataLayer.save('currentUser', {
+            id: userData.id,
+            username: userData.username,
+            displayName: userData.displayName,
+            email: userData.email,
+            bio: userData.bio,
+            avatar: userData.avatar,
+            adjustmentFactor: userData.adjustmentFactor,
+            personalityType: userData.personalityType,
+            isPremium: userData.isPremium,
+            location: userData.location,
+            isOnline: userData.isOnline
+          });
+          
+          // Load personality data if available
+          if (userData.adjustmentFactor !== undefined) {
+            DataLayer.save('personalityScore', { adjustmentFactor: userData.adjustmentFactor });
+            DataLayer.save('personalityType', { type: userData.personalityType });
+          }
+          
+          console.log('User profile loaded:', userData);
+        } else {
+          console.log('No user profile found for:', userId);
+        }
+      } catch (error) {
+        console.error('Error loading user profile:', error);
+      }
+    }
+
+    // Form switching functions
+    function showRegisterForm() {
+      document.getElementById('login-form-container').style.display = 'none';
+      document.getElementById('register-form-container').style.display = 'block';
+    }
+
+    function showLoginForm() {
+      document.getElementById('register-form-container').style.display = 'none';
+      document.getElementById('login-form-container').style.display = 'block';
+    }
+
+    // Handle user registration
+    async function handleRegister(event) {
+      event.preventDefault();
+      
+      const email = document.getElementById('register-email').value;
+      const password = document.getElementById('register-password').value;
+      const username = document.getElementById('register-username').value;
+      const displayName = document.getElementById('register-displayName').value;
+      const bio = document.getElementById('register-bio').value;
+
+      try {
+        // Wait for Firebase to be initialized
+        if (!authManager) {
+          const initialized = await initializeFirebaseAuth();
+          if (!initialized) {
+            return;
+          }
+        }
+
+        const { createUserWithEmailAndPassword, updateProfile } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+        const { doc, setDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+
+        // Create Firebase auth user
+        const userCredential = await createUserWithEmailAndPassword(authManager.auth, email, password);
+        const user = userCredential.user;
+
+        // Update display name
+        await updateProfile(user, { displayName });
+
+        // Create user profile in Firestore
+        const userProfile = {
+          id: user.uid,
+          username: username,
+          displayName: displayName,
+          email: email,
+          bio: bio || '',
+          avatar: displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2),
+          adjustmentFactor: 0.0, // Will be set after personality assessment
+          personalityType: 'Not Set',
+          isPremium: false,
+          isOnline: true,
+          lastSeen: serverTimestamp(),
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        };
+
+        await setDoc(doc(authManager.db, 'users', user.uid), userProfile);
+
+        NotificationSystem.show('Account created successfully!', 'success');
+      } catch (error) {
+        console.error('Registration error:', error);
+        let message = 'Registration failed. ';
+        switch (error.code) {
+          case 'auth/email-already-in-use':
+            message += 'An account with this email already exists.';
+            break;
+          case 'auth/weak-password':
+            message += 'Password should be at least 6 characters.';
+            break;
+          case 'auth/invalid-email':
+            message += 'Invalid email address.';
+            break;
+          default:
+            message += error.message;
+        }
+        NotificationSystem.show(message, 'error');
+      }
+    }
+
+    // Handle user logout
+    async function handleLogout() {
+      try {
+        const { signOut } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+        await signOut(authManager.auth);
+        NotificationSystem.show('Successfully signed out!', 'success');
+      } catch (error) {
+        console.error('Logout error:', error);
+        NotificationSystem.show('Error signing out.', 'error');
+      }
+    }
+
+    // Load user profile from Firestore
+    async function loadUserProfile(userId) {
+      try {
+        const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+        const userDoc = await getDoc(doc(authManager.db, 'users', userId));
+        
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          
+          // Update current user data
+          DataLayer.save("currentUser", {
+            id: userId,
+            username: userData.username,
+            displayName: userData.displayName,
+            avatar: userData.avatar,
+            adjustmentFactor: userData.adjustmentFactor || 0.0,
+            personalityType: userData.personalityType || 'Not Set',
+            isPremium: userData.isPremium || false,
+            location: userData.location || null
+          });
+
+          // Save personality data to local storage if available
+          if (userData.adjustmentFactor !== undefined && userData.personalityType) {
+            DataLayer.save('personalityScore', { adjustmentFactor: userData.adjustmentFactor });
+            DataLayer.save('personalityType', { type: userData.personalityType });
+            
+            // Remove assessment tab if user has completed assessment
+            const assessmentTab = document.querySelector("li:has([onclick=\"showPage('assessment')\"])");
+            if (assessmentTab) {
+              assessmentTab.remove();
+            }
+          }
+
+          // Update UI
+          updateDashboard();
+          updateProfile();
+          
+          // Start periodic location updates
+          startPeriodicLocationUpdates();
+        }
+      } catch (error) {
+        console.error('Error loading user profile:', error);
+      }
+    }
+
+    // Periodic location updates
+    async function startPeriodicLocationUpdates() {
+      if (!currentFirebaseUser || !authManager) return;
+      
+      // Update location every 2 minutes
+      setInterval(async () => {
+        try {
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+              async (position) => {
+                const location = {
+                  lat: position.coords.latitude,
+                  lng: position.coords.longitude
+                };
+                
+                // Update local data
+                const currentUser = DataLayer.load('currentUser');
+                if (currentUser) {
+                  currentUser.location = location;
+                  DataLayer.save('currentUser', currentUser);
+                }
+                
+                // Update Firebase
+                const { doc, updateDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                await updateDoc(doc(authManager.db, 'users', currentFirebaseUser.uid), {
+                  location,
+                  lastSeen: serverTimestamp(),
+                  isOnline: true
+                });
+                
+                console.log('Location updated:', location);
+              },
+              (error) => {
+                console.log('Location update failed:', error.message);
+              },
+              {
+                enableHighAccuracy: true, // Use less accurate but faster location
+                timeout: 5000,
+                maximumAge: 300000 // 5 minutes
+              }
+            );
+          }
+        } catch (error) {
+          console.error('Error updating location:', error);
+        }
+      }, 120000); // 2 minutes
+    }
+
+    // Show register form
+    function showRegisterForm() {
+      document.getElementById('login-form-container').style.display = 'none';
+      document.getElementById('register-form-container').style.display = 'block';
+    }
+
+    // Show login form
+    function showLoginForm() {
+      document.getElementById('register-form-container').style.display = 'none';
+      document.getElementById('login-form-container').style.display = 'block';
+    }
+
+    // Profile editing functionality
+    function showEditProfileModal() {
+      const currentUser = DataLayer.load('currentUser');
+      
+      const modalHtml = `
+        <div id="edit-profile-modal" class="modal">
+          <div class="modal-content" style="max-width: 500px;">
+            <button class="modal-close" onclick="closeEditProfileModal()">&times;</button>
+            <div class="modal-header">
+              <h2>Edit Profile</h2>
+            </div>
+            <div class="modal-body">
+              <form id="edit-profile-form" onsubmit="handleEditProfile(event)">
+                <div class="form-group">
+                  <label for="edit-display-name">Display Name *</label>
+                  <input type="text" id="edit-display-name" class="form-control" value="${currentUser?.displayName || ''}" required>
+                </div>
+                <div class="form-group">
+                  <label for="edit-username">Username *</label>
+                  <input type="text" id="edit-username" class="form-control" value="${currentUser?.username || ''}" required>
+                </div>
+                <div class="form-group">
+                  <label for="edit-bio">Bio</label>
+                  <textarea id="edit-bio" class="form-control" rows="3" placeholder="Tell us about yourself...">${currentUser?.bio || ''}</textarea>
+                </div>
+                <div style="text-align: center; margin-top: 2rem;">
+                  <button type="submit" class="btn">Save Changes</button>
+                  <button type="button" class="btn btn-secondary" onclick="closeEditProfileModal()">Cancel</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.insertAdjacentHTML("beforeend", modalHtml);
+      addModalListeners("edit-profile-modal", closeEditProfileModal);
+    }
+
+    function closeEditProfileModal() {
+      const modal = document.getElementById("edit-profile-modal");
+      if (modal) modal.remove();
+      document.body.classList.remove('modal-open');
+    }
+
+    async function handleEditProfile(event) {
+      event.preventDefault();
+      
+      const displayName = document.getElementById('edit-display-name').value.trim();
+      const username = document.getElementById('edit-username').value.trim();
+      const bio = document.getElementById('edit-bio').value.trim();
+
+      if (!displayName || !username) {
+        NotificationSystem.show('Display name and username are required.', 'error');
+        return;
+      }
+
+      try {
+        const currentUser = DataLayer.load('currentUser');
+        const updatedUser = {
+          ...currentUser,
+          displayName,
+          username,
+          bio: bio || null,
+          avatar: displayName.charAt(0).toUpperCase()
+        };
+
+        // Update local data
+        DataLayer.save('currentUser', updatedUser);
+
+        // Update Firebase if authenticated
+        if (currentFirebaseUser && authManager) {
+          const { doc, updateDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+          
+          await updateDoc(doc(authManager.db, 'users', currentFirebaseUser.uid), {
+            displayName,
+            username,
+            bio: bio || null,
+            avatar: displayName.charAt(0).toUpperCase(),
+            updatedAt: serverTimestamp()
+          });
+        }
+
+        closeEditProfileModal();
+        NotificationSystem.show('Profile updated successfully!', 'success');
+        
+        // Refresh profile display
+        updateProfile();
+        updateDashboard();
+      } catch (error) {
+        console.error('Error updating profile:', error);
+        NotificationSystem.show('Failed to update profile. Please try again.', 'error');
+      }
+    }
+
+    // Friends Discovery and Management System
+    const FriendsDiscoverySystem = {
+      currentFilter: 'all',
+      allUsers: [],
+      currentFriends: [],
+      friendRequests: [],
+
+      // Initialize the system
+      async init() {
+        if (!currentFirebaseUser) {
+          NotificationSystem.show('Please sign in to view friends.', 'warning');
+          return;
+        }
+
+        await this.loadAllUsers();
+        await this.loadCurrentFriends();
+        await this.loadFriendRequests();
+        this.displayUsers();
+        this.startRequestCheck();
+      },
+
+      // Load all users from Firebase
+      async loadAllUsers() {
+        try {
+          const { collection, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+          const usersCollection = collection(authManager.db, 'users');
+          const querySnapshot = await getDocs(usersCollection);
+          
+          this.allUsers = [];
+          querySnapshot.forEach((doc) => {
+            const userData = doc.data();
+            if (doc.id !== currentFirebaseUser.uid) { // Exclude current user
+              this.allUsers.push({
+                id: doc.id,
+                ...userData
+              });
+            }
+          });
+          
+          console.log('Loaded users:', this.allUsers.length);
+        } catch (error) {
+          console.error('Error loading users:', error);
+          this.allUsers = [];
+        }
+      },
+
+      // Load current friends
+      async loadCurrentFriends() {
+        try {
+          const { collection, query, where, getDocs, getDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+          
+          const friendsCollection = collection(authManager.db, 'friends');
+          const queries = [
+            query(friendsCollection, where('user1Id', '==', currentFirebaseUser.uid)),
+            query(friendsCollection, where('user2Id', '==', currentFirebaseUser.uid))
+          ];
+
+          this.currentFriends = [];
+          const friendIds = new Set();
+
+          for (const q of queries) {
+            const querySnapshot = await getDocs(q);
+            
+            for (const docSnap of querySnapshot.docs) {
+              const friendshipData = docSnap.data();
+              const friendId = friendshipData.user1Id === currentFirebaseUser.uid 
+                ? friendshipData.user2Id 
+                : friendshipData.user1Id;
+              
+              if (!friendIds.has(friendId)) {
+                friendIds.add(friendId);
+                
+                const friendDoc = await getDoc(doc(authManager.db, 'users', friendId));
+                if (friendDoc.exists()) {
+                  this.currentFriends.push({
+                    id: friendDoc.id,
+                    ...friendDoc.data()
+                  });
+                }
+              }
+            }
+          }
+          
+          console.log('Loaded friends:', this.currentFriends.length);
+        } catch (error) {
+          console.error('Error loading friends:', error);
+          this.currentFriends = [];
+        }
+      },
+
+      // Load friend requests
+      async loadFriendRequests() {
+        try {
+          const { collection, query, where, getDocs, getDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+          
+          const requestsCollection = collection(authManager.db, 'friendRequests');
+          const requestsQuery = query(requestsCollection, where('toUserId', '==', currentFirebaseUser.uid), where('status', '==', 'pending'));
+          const querySnapshot = await getDocs(requestsQuery);
+          
+          this.friendRequests = [];
+          for (const docSnap of querySnapshot.docs) {
+            const requestData = docSnap.data();
+            const fromUserDoc = await getDoc(doc(authManager.db, 'users', requestData.fromUserId));
+            if (fromUserDoc.exists()) {
+              this.friendRequests.push({
+                requestId: docSnap.id,
+                fromUser: {
+                  id: fromUserDoc.id,
+                  ...fromUserDoc.data()
+                },
+                createdAt: requestData.createdAt
+              });
+            }
+          }
+          
+          console.log('Loaded friend requests:', this.friendRequests.length);
+          this.updateFriendRequestBadge();
+        } catch (error) {
+          console.error('Error loading friend requests:', error);
+          this.friendRequests = [];
+        }
+      },
+
+      // Set filter
+      setFilter(filter) {
+        this.currentFilter = filter;
+        
+        // Update active tab
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+          tab.classList.remove('active');
+        });
+        event.target.classList.add('active');
+        
+        this.displayUsers();
+      },
+
+      // Filter users based on search
+      filterUsers() {
+        this.displayUsers();
+      },
+
+      // Display users based on current filter
+      displayUsers() {
+        const searchTerm = document.getElementById('friends-search').value.toLowerCase();
+        let usersToDisplay = [];
+
+        switch (this.currentFilter) {
+          case 'all':
+            usersToDisplay = this.allUsers.filter(user => 
+              user.displayName?.toLowerCase().includes(searchTerm) ||
+              user.username?.toLowerCase().includes(searchTerm) ||
+              user.personalityType?.toLowerCase().includes(searchTerm)
+            );
+            break;
+          case 'similar':
+            const currentUser = DataLayer.load('currentUser');
+            if (currentUser && currentUser.adjustmentFactor !== undefined) {
+              usersToDisplay = this.allUsers.filter(user => {
+                const personalityDiff = Math.abs(user.adjustmentFactor - currentUser.adjustmentFactor);
+                return personalityDiff <= 0.3 && // Similar personality
+                  (user.displayName?.toLowerCase().includes(searchTerm) ||
+                   user.username?.toLowerCase().includes(searchTerm));
+              });
+            }
+            break;
+          case 'friends':
+            usersToDisplay = this.currentFriends.filter(user => 
+              user.displayName?.toLowerCase().includes(searchTerm) ||
+              user.username?.toLowerCase().includes(searchTerm)
+            );
+            break;
+          case 'requests':
+            usersToDisplay = this.friendRequests.map(request => request.fromUser).filter(user => 
+              user.displayName?.toLowerCase().includes(searchTerm) ||
+              user.username?.toLowerCase().includes(searchTerm)
+            );
+            break;
+        }
+
+        this.renderUsers(usersToDisplay);
+      },
+
+      // Render users in the UI
+      renderUsers(users) {
+        const container = document.getElementById('friendship-content');
+        
+        if (users.length === 0) {
+          let message = '';
+          switch (this.currentFilter) {
+            case 'all':
+              message = 'No users found matching your search.';
+              break;
+            case 'similar':
+              message = 'No users with similar personality found.';
+              break;
+            case 'friends':
+              message = 'You haven\'t added any friends yet.';
+              break;
+            case 'requests':
+              message = 'No pending friend requests.';
+              break;
+          }
+          
+          container.innerHTML = `
+            <div style="text-align: center; padding: 3rem 1rem; color: #666;">
+              <div style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;">👥</div>
+              <h3>${message}</h3>
+            </div>
+          `;
+          return;
+        }
+
+        const usersHtml = users.map(user => {
+          const isFriend = this.currentFriends.some(friend => friend.id === user.id);
+          const hasRequest = this.friendRequests.some(request => request.fromUser.id === user.id);
+          
+          return `
+            <div class="user-card" style="
+              border: 1px solid #eee; 
+              border-radius: 12px; 
+              padding: 1.5rem; 
+              background: white;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+              margin-bottom: 1rem;
+              transition: all 0.2s ease;
+            " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'" 
+               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.05)'">
+              
+              <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                  <div style="width: 50px; height: 50px; border-radius: 50%; background: var(--secondary-gradient); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem;">
+                    ${user.avatar || user.displayName?.charAt(0) || '?'}
+                  </div>
+                  <div>
+                    <h3 style="margin: 0 0 0.3rem 0; font-size: 1.1rem;">${addOnlineStatusIndicator(user.displayName, user.id, user.isOnline)}</h3>
+                    <p style="margin: 0; color: #666; font-size: 0.9rem;">@${user.username}</p>
+                    <p style="margin: 0.3rem 0 0 0; color: var(--secondary-color); font-size: 0.8rem; font-weight: bold;">
+                      ${user.personalityType || 'Not Set'}
+                    </p>
+                  </div>
+                </div>
+                
+                <div style="text-align: right;">
+                  ${this.getActionButton(user, isFriend, hasRequest)}
+                </div>
+              </div>
+              
+              ${user.bio && user.bio !== 'undefined' ? `
+                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #eee;">
+                  <p style="margin: 0; color: #666; font-style: italic;">"${user.bio}"</p>
+                </div>
+              ` : ''}
+            </div>
+          `;
+        }).join('');
+
+        container.innerHTML = usersHtml;
+      },
+
+      // Get appropriate action button for user
+      getActionButton(user, isFriend, hasRequest) {
+        if (isFriend) {
+          return `
+                              <span style="background: rgba(74, 144, 226, 0.1); color: var(--primary-color); font-size: 0.8rem; font-weight: bold; padding: 4px 8px; border-radius: 12px; border: 1px solid var(--primary-color);">
+                    ✓ Friend
+                  </span>
+            <br>
+            <button class="btn btn-danger" style="font-size: 0.8rem; padding: 4px 8px; margin-top: 0.5rem;" onclick="FriendsDiscoverySystem.removeFriend('${user.id}')">
+              Remove
+            </button>
+          `;
+        } else if (hasRequest) {
+          return `
+            <div style="text-align: center;">
+              <button class="btn btn-success" style="font-size: 0.8rem; padding: 4px 8px; margin: 0.2rem;" onclick="FriendsDiscoverySystem.acceptRequest('${user.id}')">
+                Accept
+              </button>
+              <br>
+              <button class="btn btn-danger" style="font-size: 0.8rem; padding: 4px 8px;" onclick="FriendsDiscoverySystem.rejectRequest('${user.id}')">
+                Decline
+              </button>
+            </div>
+          `;
+        } else {
+          return `
+            <button class="btn" style="font-size: 0.8rem; padding: 6px 12px;" onclick="FriendsDiscoverySystem.sendFriendRequest('${user.id}')">
+              Add Friend
+            </button>
+          `;
+        }
+      },
+
+      // Send friend request
+      async sendFriendRequest(userId) {
+        if (!currentFirebaseUser) {
+          NotificationSystem.show('Please sign in to send friend requests.', 'warning');
+          return;
+        }
+
+        try {
+          const { collection, addDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+          
+          const requestData = {
+            fromUserId: currentFirebaseUser.uid,
+            toUserId: userId,
+            status: 'pending',
+            createdAt: serverTimestamp()
+          };
+
+          await addDoc(collection(authManager.db, 'friendRequests'), requestData);
+          
+          NotificationSystem.show('Friend request sent!', 'success');
+          
+          // Update the button to show "Request Sent"
+          const button = document.querySelector(`[onclick="FriendsDiscoverySystem.sendFriendRequest('${userId}')"]`);
+          if (button) {
+            button.innerHTML = '<i class="fas fa-clock"></i> Request Sent';
+            button.style.background = 'var(--secondary-color)';
+            button.style.color = 'white';
+            button.disabled = true;
+          }
+          
+          await this.loadFriendRequests();
+          this.displayUsers();
+        } catch (error) {
+          console.error('Error sending friend request:', error);
+          NotificationSystem.show('Failed to send friend request.', 'error');
+        }
+      },
+
+      // Accept friend request
+      async acceptRequest(userId) {
+        try {
+          const { collection, query, where, getDocs, addDoc, deleteDoc, doc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+          
+          // Find and delete the request
+          const requestsCollection = collection(authManager.db, 'friendRequests');
+          const requestQuery = query(requestsCollection, where('fromUserId', '==', userId), where('toUserId', '==', currentFirebaseUser.uid));
+          const requestSnapshot = await getDocs(requestQuery);
+          
+          if (!requestSnapshot.empty) {
+            const requestDoc = requestSnapshot.docs[0];
+            await deleteDoc(doc(authManager.db, 'friendRequests', requestDoc.id));
+          }
+
+          // Create friendship
+          const friendshipData = {
+            user1Id: currentFirebaseUser.uid,
+            user2Id: userId,
+            createdAt: serverTimestamp()
+          };
+
+          await addDoc(collection(authManager.db, 'friends'), friendshipData);
+          
+          NotificationSystem.show('Friend request accepted!', 'success');
+          await this.loadCurrentFriends();
+          await this.loadFriendRequests();
+          this.displayUsers();
+        } catch (error) {
+          console.error('Error accepting friend request:', error);
+          NotificationSystem.show('Failed to accept friend request.', 'error');
+        }
+      },
+
+      // Reject friend request
+      async rejectRequest(userId) {
+        try {
+          const { collection, query, where, getDocs, deleteDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+          
+          const requestsCollection = collection(authManager.db, 'friendRequests');
+          const requestQuery = query(requestsCollection, where('fromUserId', '==', userId), where('toUserId', '==', currentFirebaseUser.uid));
+          const requestSnapshot = await getDocs(requestQuery);
+          
+          if (!requestSnapshot.empty) {
+            const requestDoc = requestSnapshot.docs[0];
+            await deleteDoc(doc(authManager.db, 'friendRequests', requestDoc.id));
+          }
+          
+          NotificationSystem.show('Friend request declined.', 'info');
+          await this.loadFriendRequests();
+          this.displayUsers();
+        } catch (error) {
+          console.error('Error rejecting friend request:', error);
+          NotificationSystem.show('Failed to reject friend request.', 'error');
+        }
+      },
+
+      // Remove friend
+      async removeFriend(userId) {
+        try {
+          const { collection, query, where, getDocs, deleteDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+          
+          const friendsCollection = collection(authManager.db, 'friends');
+          const queries = [
+            query(friendsCollection, where('user1Id', '==', currentFirebaseUser.uid), where('user2Id', '==', userId)),
+            query(friendsCollection, where('user1Id', '==', userId), where('user2Id', '==', currentFirebaseUser.uid))
+          ];
+
+          for (const q of queries) {
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+              const friendshipDoc = querySnapshot.docs[0];
+              await deleteDoc(doc(authManager.db, 'friends', friendshipDoc.id));
+            }
+          }
+          
+          NotificationSystem.show('Friend removed successfully!', 'success');
+          await this.loadCurrentFriends();
+          this.displayUsers();
+        } catch (error) {
+          console.error('Error removing friend:', error);
+          NotificationSystem.show('Failed to remove friend.', 'error');
+        }
+      },
+
+      // Update friend request badge
+      updateFriendRequestBadge() {
+        const badge = document.getElementById('friend-request-badge');
+        if (badge) {
+          const requestCount = this.friendRequests.length;
+          if (requestCount > 0) {
+            badge.style.display = 'flex';
+            badge.textContent = requestCount > 9 ? '9+' : requestCount.toString();
+          } else {
+            badge.style.display = 'none';
+          }
+        }
+      },
+
+      // Show friend request notification
+      showFriendRequestNotification() {
+        const requestCount = this.friendRequests.length;
+        if (requestCount > 0) {
+          NotificationSystem.show(
+            `You have ${requestCount} new friend request${requestCount > 1 ? 's' : ''}! Click here to view.`,
+            'info',
+            5000,
+            () => {
+              showPage('feed');
+              CommunitySystem.showSection('friendship');
+              FriendsDiscoverySystem.setFilter('requests');
+            }
+          );
+        }
+      },
+
+      // Check for new friend requests periodically
+      startRequestCheck() {
+        if (currentFirebaseUser) {
+          // Check immediately on login
+          setTimeout(async () => {
+            await this.loadFriendRequests();
+            this.showFriendRequestNotification();
+          }, 2000);
+
+          // Check every 30 seconds
+          setInterval(async () => {
+            const previousCount = this.friendRequests.length;
+            await this.loadFriendRequests();
+            
+            // Show notification if new requests arrived
+            if (this.friendRequests.length > previousCount) {
+              this.showFriendRequestNotification();
+            }
+          }, 30000);
+        }
+      }
+    };
+
+    // Enhanced Friends System with Firebase
+    const FirebaseFriendsSystem = {
+      async addFriend(userId) {
+        if (!currentFirebaseUser) {
+          NotificationSystem.show('Please sign in to add friends.', 'warning');
+          return false;
+        }
+
+        try {
+          const { collection, addDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+          
+          // Create friend request
+          const requestData = {
+            fromUserId: currentFirebaseUser.uid,
+            toUserId: userId,
+            status: 'pending',
+            createdAt: serverTimestamp()
+          };
+
+          await addDoc(collection(authManager.db, 'friendRequests'), requestData);
+          
+          NotificationSystem.show('Friend request sent!', 'success');
+          return true;
+        } catch (error) {
+          console.error('Error adding friend:', error);
+          NotificationSystem.show('Failed to send friend request.', 'error');
+          return false;
+        }
+      },
+
+      async getFriends() {
+        if (!currentFirebaseUser) return [];
+
+        try {
+          const { collection, query, where, getDocs, getDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+          
+          const friendsCollection = collection(authManager.db, 'friends');
+          const queries = [
+            query(friendsCollection, where('user1Id', '==', currentFirebaseUser.uid)),
+            query(friendsCollection, where('user2Id', '==', currentFirebaseUser.uid))
+          ];
+
+          const friends = [];
+          const friendIds = new Set();
+
+          for (const q of queries) {
+            const querySnapshot = await getDocs(q);
+            
+            for (const docSnap of querySnapshot.docs) {
+              const friendshipData = docSnap.data();
+              const friendId = friendshipData.user1Id === currentFirebaseUser.uid 
+                ? friendshipData.user2Id 
+                : friendshipData.user1Id;
+              
+              if (!friendIds.has(friendId)) {
+                friendIds.add(friendId);
+                
+                const friendDoc = await getDoc(doc(authManager.db, 'users', friendId));
+                if (friendDoc.exists()) {
+                  friends.push({
+                    id: friendDoc.id,
+                    ...friendDoc.data()
+                  });
+                }
+              }
+            }
+          }
+
+          return friends;
+        } catch (error) {
+          console.error('Error getting friends:', error);
+          return [];
+        }
+      },
+
+      async isFriend(userId) {
+        if (!currentFirebaseUser) return false;
+
+        try {
+          const { collection, query, where, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+          
+          const friendsCollection = collection(authManager.db, 'friends');
+          const queries = [
+            query(friendsCollection, where('user1Id', '==', currentFirebaseUser.uid), where('user2Id', '==', userId)),
+            query(friendsCollection, where('user1Id', '==', userId), where('user2Id', '==', currentFirebaseUser.uid))
+          ];
+
+          for (const q of queries) {
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+              return true;
+            }
+          }
+
+          return false;
+        } catch (error) {
+          console.error('Error checking friendship:', error);
+          return false;
+        }
+      }
+    };
+
     // Final initialization
     console.log("Social Energy App initialized successfully!");
     console.log("Use Alt+1-6 for quick navigation between pages");
@@ -9015,6 +10612,9 @@ Only return the JSON, no additional text.`;
         "Personalized Recommendations",
       ],
     });
+
+    // Initialize Firebase Auth
+    initializeFirebaseAuth();
   </script>
 </body>
 </html>
