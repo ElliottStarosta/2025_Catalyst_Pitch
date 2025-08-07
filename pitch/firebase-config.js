@@ -1,8 +1,3 @@
-// Firebase Configuration
-// Replace these values with your own Firebase project configuration
-// You can find these values in your Firebase Console under Project Settings
-
-
 const firebaseConfig = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
     authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
