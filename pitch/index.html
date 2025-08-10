@@ -197,6 +197,21 @@
       justify-content: center;
       gap: 8px;
       box-shadow: var(--shadow-small);
+      line-height: 1; /* Fix extra vertical space inside buttons */
+    }
+
+    /* Ensure icons inside buttons don't increase vertical height */
+    .btn i { line-height: 1; }
+
+    /* Tighter spacing for buttons inside cards */
+    .user-card .btn, .experience-card .btn { margin: 0; }
+
+    /* Stabilize action area height to prevent jitter on state changes */
+    .user-actions {
+      min-height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
     }
 
     .btn:hover {
@@ -1916,19 +1931,19 @@
                 <i class="fas fa-chevron-down"></i>
               </button>
               <div class="filter-dropdown-menu" id="activities-filter-menu">
-                <div class="filter-dropdown-item active" onclick="selectFilter('activities', 'all', 'All Activities')">
+                <div class="filter-dropdown-item active" onclick="selectFilter('activities', 'all', 'All Activities', this)">
                   <i class="fas fa-list"></i> All Activities
                 </div>
-                <div class="filter-dropdown-item" onclick="selectFilter('activities', 'similar', 'Similar Users')">
+                <div class="filter-dropdown-item" onclick="selectFilter('activities', 'similar', 'Similar Users', this)">
                   <i class="fas fa-users"></i> Similar Users
                 </div>
-                <div class="filter-dropdown-item" onclick="selectFilter('activities', 'high-rated', 'Top Rated')">
+                <div class="filter-dropdown-item" onclick="selectFilter('activities', 'high-rated', 'Top Rated', this)">
                   <i class="fas fa-star"></i> Top Rated
                 </div>
-                <div class="filter-dropdown-item" onclick="selectFilter('activities', 'recent', 'Recent')">
+                <div class="filter-dropdown-item" onclick="selectFilter('activities', 'recent', 'Recent', this)">
                   <i class="fas fa-clock"></i> Recent
                 </div>
-                <div class="filter-dropdown-item" onclick="selectFilter('activities', 'nearby', 'Near Me')">
+                <div class="filter-dropdown-item" onclick="selectFilter('activities', 'nearby', 'Near Me', this)">
                   <i class="fas fa-map-marker-alt"></i> Near Me
                 </div>
               </div>
@@ -1937,6 +1952,13 @@
 
           <div id="feed-content">
             <!-- Feed items will be dynamically inserted here -->
+          </div>
+          
+          <!-- Load More Button -->
+          <div id="load-more-container" style="text-align: center; margin-top: 2rem; display: none;">
+            <button id="load-more-btn" class="btn btn-secondary" onclick="FeedSystem.loadNextPage()">
+              <i class="fas fa-plus"></i> Load More Activities
+            </button>
           </div>
         </div>
 
@@ -1956,16 +1978,16 @@
                 <i class="fas fa-chevron-down"></i>
               </button>
               <div class="filter-dropdown-menu" id="friendship-filter-menu">
-                <div class="filter-dropdown-item active" onclick="selectFilter('friendship', 'all', 'All Users')">
+                <div class="filter-dropdown-item active" onclick="selectFilter('friendship', 'all', 'All Users', this)">
                   <i class="fas fa-users"></i> All Users
                 </div>
-                <div class="filter-dropdown-item" onclick="selectFilter('friendship', 'similar', 'Similar to You')">
+                <div class="filter-dropdown-item" onclick="selectFilter('friendship', 'similar', 'Similar to You', this)">
                   <i class="fas fa-user-friends"></i> Similar to You
                 </div>
-                <div class="filter-dropdown-item" onclick="selectFilter('friendship', 'friends', 'My Friends')">
+                <div class="filter-dropdown-item" onclick="selectFilter('friendship', 'friends', 'My Friends', this)">
                   <i class="fas fa-heart"></i> My Friends
                 </div>
-                <div class="filter-dropdown-item" onclick="selectFilter('friendship', 'requests', 'Friend Requests')">
+                <div class="filter-dropdown-item" onclick="selectFilter('friendship', 'requests', 'Friend Requests', this)">
                   <i class="fas fa-user-plus"></i> Friend Requests
                 </div>
               </div>
@@ -2412,7 +2434,7 @@
 
       const isPremium = userId === (currentUser ? currentUser.id : null) ?
         (currentUser ? currentUser.isPremium : false) :
-        (DemoUsers.users[userId] ? DemoUsers.users[userId].isPremium : false);
+        false; // No demo users - all premium status comes from Firebase user data
 
       if (isPremium) {
         return `${displayName} <i class="fas fa-crown" style="color: #FFD700; margin-left: 0.3rem;"></i>`;
@@ -2461,7 +2483,7 @@
       btn.classList.toggle('active');
     }
 
-    function selectFilter(type, filter, text) {
+    function selectFilter(type, filter, text, clickedElement) {
       // Update button text
       const textElement = document.getElementById(type + '-filter-text');
       if (textElement) {
@@ -2473,7 +2495,15 @@
       menu.querySelectorAll('.filter-dropdown-item').forEach(item => {
         item.classList.remove('active');
       });
-      event.target.closest('.filter-dropdown-item').classList.add('active');
+      
+      // Use the passed element or fallback to event.target
+      const targetElement = clickedElement || (typeof event !== 'undefined' ? event.target : null);
+      if (targetElement) {
+        const dropdownItem = targetElement.closest('.filter-dropdown-item');
+        if (dropdownItem) {
+          dropdownItem.classList.add('active');
+        }
+      }
 
       // Close dropdown
       menu.classList.remove('show');
@@ -2518,6 +2548,69 @@
       document
         .getElementById("activity-form")
         .scrollIntoView({ behavior: "smooth" });
+    }
+
+    // Function to edit user's own experience
+    function editUserExperience(experienceId) {
+      // Find the experience in user's experiences
+      const userExperiences = DataLayer.load("userExperiences", []);
+      
+      // Debug logging
+      console.log('🔍 Looking for experience with ID:', experienceId);
+      console.log('🔍 Available experiences:', userExperiences.map(exp => ({ id: exp.id, name: exp.name })));
+      
+      // Try multiple ways to find the experience
+      let experience = userExperiences.find(exp => exp.id === experienceId || exp.name === experienceId);
+      
+      // If not found, try string comparison for IDs
+      if (!experience) {
+        experience = userExperiences.find(exp => String(exp.id) === String(experienceId) || exp.name === experienceId);
+      }
+      
+      // If still not found, try to find by name if the ID looks like a timestamp
+      if (!experience && !isNaN(experienceId)) {
+        // The ID might be a timestamp, try to find by name from the experience card
+        const experienceCard = document.querySelector(`[onclick*="editUserExperience('${experienceId}')"]`);
+        if (experienceCard) {
+          const nameElement = experienceCard.querySelector('h3');
+          if (nameElement) {
+            const name = nameElement.textContent.split('✓')[0].trim();
+            experience = userExperiences.find(exp => exp.name === name);
+          }
+        }
+      }
+      
+      if (experience) {
+        console.log('✅ Found experience:', experience);
+        
+        // Find the index of the experience in the array
+        const experienceIndex = userExperiences.findIndex(exp => exp.id === experience.id);
+        
+        if (experienceIndex !== -1) {
+          // Use the existing editExperience function to open the edit modal
+          editExperience(experienceIndex);
+        } else {
+          console.error('❌ Could not find experience index');
+          NotificationSystem.show('Error: Could not find experience to edit.', 'error');
+        }
+      } else {
+        console.error('❌ Experience not found with ID:', experienceId);
+        console.error('❌ Available experiences:', userExperiences.map(exp => ({ id: exp.id, name: exp.name })));
+        
+        // Try to provide more helpful error message
+        const experienceCard = document.querySelector(`[onclick*="editUserExperience('${experienceId}')"]`);
+        if (experienceCard) {
+          const nameElement = experienceCard.querySelector('h3');
+          if (nameElement) {
+            const name = nameElement.textContent.split('✓')[0].trim();
+            NotificationSystem.show(`Experience "${name}" not found in your saved experiences. It may have been deleted or you may need to refresh the page.`, 'error');
+          } else {
+            NotificationSystem.show('Experience not found. Please try refreshing the page.', 'error');
+          }
+        } else {
+          NotificationSystem.show('Experience not found. Please try refreshing the page.', 'error');
+        }
+      }
     }
 
     // In-memory data storage (replaces localStorage)
@@ -2601,7 +2694,7 @@
 
         // Also look for pending buttons that might need updating
         const pendingSelectors = [
-          `button:contains("Pending")`,
+          `[data-pending-for="${userId}"]`,
           `[style*="fbbf24"]`, // Yellow background (pending)
           `[style*="f59e0b"]`  // Yellow border (pending)
         ];
@@ -3229,264 +3322,10 @@
       },
     };
 
-    // Demo users with sample data - All based in Waterloo, Ontario
+    // Demo users removed - using Firebase exclusively
     const DemoUsers = {
-      users: {
-        1: {
-          id: 1,
-          username: "alex_chen",
-          displayName: "Alex Chen",
-          adjustmentFactor: 0.8,
-          personalityType: "Strong Extrovert",
-          bio: "Love meeting new people and trying exciting venues!",
-          avatar: "AC",
-          location: { lat: 43.4643, lng: -80.5204 }, // Waterloo University District
-          isPremium: true, // Premium user
-        },
-        2: {
-          id: 2,
-          username: "sam_rivera",
-          displayName: "Sam Rivera",
-          adjustmentFactor: 0.3,
-          personalityType: "Moderate Extrovert",
-          bio: "Enjoy good company in comfortable settings.",
-          avatar: "SR",
-          location: { lat: 43.4719, lng: -80.5250 }, // Waterloo Downtown
-          isPremium: false, // Free user
-        },
-        3: {
-          id: 3,
-          username: "jordan_park",
-          displayName: "Jordan Park",
-          adjustmentFactor: -0.2,
-          personalityType: "Slight Introvert",
-          bio: "Quality over quantity when it comes to social time.",
-          avatar: "JP",
-          location: { lat: 43.4583, lng: -80.5204 }, // Waterloo South
-          isPremium: true, // Premium user
-        },
-        4: {
-          id: 4,
-          username: "riley_thompson",
-          displayName: "Riley Thompson",
-          adjustmentFactor: -0.5,
-          personalityType: "Moderate Introvert",
-          bio: "Love peaceful places and meaningful conversations.",
-          avatar: "RT",
-          location: { lat: 43.4700, lng: -80.5150 }, // Waterloo North
-          isPremium: false, // Free user
-        },
-        5: {
-          id: 5,
-          username: "casey_wu",
-          displayName: "Casey Wu",
-          adjustmentFactor: -0.9,
-          personalityType: "Strong Introvert",
-          bio: "Finding energy in quiet, contemplative spaces.",
-          avatar: "CW",
-          location: { lat: 43.4667, lng: -80.5300 }, // Waterloo West
-          isPremium: true, // Premium user
-        },
-        6: {
-          id: 6,
-          username: "taylor_kim",
-          displayName: "Taylor Kim",
-          adjustmentFactor: 0.0,
-          personalityType: "Ambivert",
-          bio: "Adaptable to different social situations and moods.",
-          avatar: "TK",
-          location: { lat: 43.4625, lng: -80.5250 }, // Waterloo East
-          isPremium: false, // Free user
-        },
-      },
-
-      // Sample experiences from demo users - Waterloo, Ontario locations
-      experiences: [
-        {
-          id: 1,
-          userId: 1,
-          name: "Phil's Grandson's Place",
-          category: "Bar/Pub",
-          location: "Waterloo Downtown",
-          description:
-            "Popular student bar with great atmosphere and live music. Perfect for group outings!",
-          responses: {
-            energy: 9,
-            social: 8,
-            comfort: 8,
-            overwhelm: 3,
-            return: 9,
-          },
-          rawScore: 8.4,
-          adjustedScore: 9.6,
-          timestamp: "2024-01-15T20:00:00Z",
-          socialIntensity: 8.5,
-          noiseLevel: 7.5,
-          crowdSize: 8.0,
-          coordinates: { lat: 43.4719, lng: -80.5250 }, // Waterloo Downtown
-        },
-        {
-          id: 2,
-          userId: 2,
-          name: "Balzac's Coffee",
-          category: "Cafe",
-          location: "Waterloo University District",
-          description:
-            "Cozy cafe with great atmosphere for studying and casual meetings. Perfect background music.",
-          responses: {
-            energy: 7,
-            social: 7,
-            comfort: 8,
-            overwhelm: 2,
-            return: 8,
-          },
-          rawScore: 7.2,
-          adjustedScore: 7.8,
-          timestamp: "2024-01-16T14:00:00Z",
-          socialIntensity: 3.5,
-          noiseLevel: 2.5,
-          crowdSize: 4.0,
-          coordinates: { lat: 43.4643, lng: -80.5204 }, // Waterloo University District
-        },
-        {
-          id: 3,
-          userId: 3,
-          name: "Clay and Glass Gallery",
-          category: "Museum/Gallery",
-          location: "Waterloo Arts District",
-          description:
-            "Beautiful contemporary art exhibition. Peaceful environment, perfect for reflection.",
-          responses: {
-            energy: 8,
-            social: 6,
-            comfort: 9,
-            overwhelm: 1,
-            return: 8,
-          },
-          rawScore: 8.0,
-          adjustedScore: 7.6,
-          timestamp: "2024-01-17T11:00:00Z",
-          socialIntensity: 2.0,
-          noiseLevel: 1.5,
-          crowdSize: 3.0,
-          coordinates: { lat: 43.4583, lng: -80.5204 }, // Waterloo South
-        },
-        {
-          id: 4,
-          userId: 4,
-          name: "The Bauer Kitchen",
-          category: "Restaurant",
-          location: "Waterloo North",
-          description:
-            "Intimate restaurant with outdoor seating. Perfect for deep conversations with close friends.",
-          responses: {
-            energy: 8,
-            social: 9,
-            comfort: 9,
-            overwhelm: 1,
-            return: 9,
-          },
-          rawScore: 8.8,
-          adjustedScore: 7.8,
-          timestamp: "2024-01-18T18:00:00Z",
-          socialIntensity: 4.0,
-          noiseLevel: 2.0,
-          crowdSize: 3.5,
-          coordinates: { lat: 43.4700, lng: -80.5150 }, // Waterloo North
-        },
-        {
-          id: 5,
-          userId: 5,
-          name: "Waterloo Public Library",
-          category: "Library/Study",
-          location: "Waterloo Downtown",
-          description:
-            "Peaceful reading space with beautiful architecture. Perfect for solo work and reflection.",
-          responses: {
-            energy: 9,
-            social: 5,
-            comfort: 10,
-            overwhelm: 1,
-            return: 10,
-          },
-          rawScore: 8.4,
-          adjustedScore: 6.6,
-          timestamp: "2024-01-19T10:00:00Z",
-          socialIntensity: 1.0,
-          noiseLevel: 1.0,
-          crowdSize: 2.0,
-          coordinates: { lat: 43.4719, lng: -80.5250 }, // Waterloo Downtown
-        },
-        {
-          id: 6,
-          userId: 6,
-          name: "Molly Bloom's Irish Pub",
-          category: "Bar/Pub",
-          location: "Waterloo Entertainment District",
-          description:
-            "Lively sports bar with big screens and enthusiastic crowd. Great game night atmosphere!",
-          responses: {
-            energy: 7,
-            social: 7,
-            comfort: 6,
-            overwhelm: 6,
-            return: 7,
-          },
-          rawScore: 6.5,
-          adjustedScore: 6.5,
-          timestamp: "2024-01-20T19:00:00Z",
-          socialIntensity: 7.0,
-          noiseLevel: 8.0,
-          crowdSize: 7.5,
-          coordinates: { lat: 43.4667, lng: -80.5300 }, // Waterloo West
-        },
-        {
-          id: 7,
-          userId: 1,
-          name: "Beta Nightclub",
-          category: "Nightclub",
-          location: "Waterloo City Center",
-          description:
-            "High-energy club with amazing sound system and packed dance floor. Pure energy!",
-          responses: {
-            energy: 10,
-            social: 9,
-            comfort: 7,
-            overwhelm: 4,
-            return: 10,
-          },
-          rawScore: 8.8,
-          adjustedScore: 10.0,
-          timestamp: "2024-01-21T23:00:00Z",
-          socialIntensity: 10.0,
-          noiseLevel: 9.5,
-          crowdSize: 9.0,
-          coordinates: { lat: 43.4625, lng: -80.5250 }, // Waterloo East
-        },
-        {
-          id: 8,
-          userId: 5,
-          name: "Waterloo Park",
-          category: "Park/Outdoor",
-          location: "Waterloo Park District",
-          description:
-            "Serene garden with beautiful flowers and quiet walking paths. So peaceful and restorative.",
-          responses: {
-            energy: 9,
-            social: 4,
-            comfort: 10,
-            overwhelm: 1,
-            return: 10,
-          },
-          rawScore: 8.2,
-          adjustedScore: 6.4,
-          timestamp: "2024-01-22T15:00:00Z",
-          socialIntensity: 1.5,
-          noiseLevel: 1.0,
-          crowdSize: 2.5,
-          coordinates: { lat: 43.4700, lng: -80.5150 }, // Waterloo North
-        },
-      ],
+      users: {},
+      experiences: []
     };
 
     // Helper functions for edit modal
@@ -3741,78 +3580,135 @@
           responses
         );
 
-        const experience = {
-          id: Date.now(),
-          userId: "user-main",
-          name,
-          category,
-          location: location || "Not specified",
-          description: description || "",
-          responses,
-          rawScore: parseFloat(rawScore.toFixed(1)),
-          adjustedScore: parseFloat(adjustedScore.toFixed(1)),
-          timestamp: new Date().toISOString(),
-          socialIntensity,
-          noiseLevel,
-          crowdSize,
-          coordinates: null, // Will be set if location is available
+        // Try to get coordinates first, then save the experience
+        const saveExperience = (coordinates = null) => {
+          const experience = {
+            id: Date.now(),
+            userId: "user-main",
+            name,
+            category,
+            location: location || "Not specified",
+            description: description || "",
+            responses,
+            rawScore: parseFloat(rawScore.toFixed(1)),
+            adjustedScore: parseFloat(adjustedScore.toFixed(1)),
+            timestamp: new Date().toISOString(),
+            socialIntensity,
+            noiseLevel,
+            crowdSize,
+            coordinates
+          };
+
+          // Save experience locally
+          DataLayer.push("userExperiences", experience);
+
+          // Save to Firebase if user is authenticated
+          if (currentFirebaseUser && authManager) {
+            const saveToFirebase = async () => {
+              try {
+                const { collection, addDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+
+                const experienceData = {
+                  ...experience,
+                  userId: currentFirebaseUser.uid,
+                  createdAt: serverTimestamp(),
+                  updatedAt: serverTimestamp()
+                };
+
+                await wrapWrite(
+                  addDoc(collection(authManager.db, 'experiences'), experienceData),
+                  'addDoc',
+                  'experiences',
+                  { name: experienceData.name, hasCoordinates: !!coordinates }
+                );
+                console.log('Experience saved to Firebase with coordinates:', !!coordinates);
+              } catch (error) {
+                console.error('Error saving experience to Firebase:', error);
+              }
+            };
+            saveToFirebase();
+          }
+
+          // Show success message
+          NotificationSystem.show("Experience added successfully!", "success");
+
+          // Reset form
+          resetActivityForm();
+          showPage("dashboard");
         };
 
-        // Try to get coordinates for the location if user has location access
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            (position) => {
-              experience.coordinates = {
+        // Try to get coordinates for the location
+        const getCoordinatesAndSave = async () => {
+          let coordinates = null;
+          
+          // First, check if user used the "Use Current Location" button (locationFound flag)
+          if (typeof locationFound !== 'undefined' && locationFound) {
+            try {
+              const position = await getUserLocationWithFallback();
+              coordinates = {
                 lat: position.coords.latitude,
                 lng: position.coords.longitude
               };
-              // Update the saved experience with coordinates
-              const userExperiences = DataLayer.load("userExperiences", []);
-              const expIndex = userExperiences.findIndex(exp => exp.id === experience.id);
-              if (expIndex !== -1) {
-                userExperiences[expIndex] = experience;
-                DataLayer.save("userExperiences", userExperiences);
-              }
-            },
-            (error) => {
-              console.log("Could not get coordinates for experience:", error.message);
+              console.log('Got coordinates from current location:', coordinates);
+            } catch (error) {
+              console.log("Could not get current location coordinates:", error.message);
             }
-          );
-        }
-
-        // Save experience locally
-        DataLayer.push("userExperiences", experience);
-
-        // Save to Firebase if user is authenticated
-        if (currentFirebaseUser && authManager) {
-          try {
-            const { collection, addDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-
-            const experienceData = {
-              ...experience,
-              userId: currentFirebaseUser.uid,
-              createdAt: serverTimestamp(),
-              updatedAt: serverTimestamp()
-            };
-
-          await wrapWrite(
-            addDoc(collection(authManager.db, 'experiences'), experienceData),
-            'addDoc',
-            'experiences',
-            { name: experienceData.name }
-          );
-            console.log('Experience saved to Firebase');
-          } catch (error) {
-            console.error('Error saving experience to Firebase:', error);
           }
-        }
+          
+          // If no coordinates from current location, try geocoding the entered location
+          if (!coordinates && location && location.trim() !== '') {
+            try {
+              // Try to geocode the entered location using Google Maps API
+              if (typeof google !== 'undefined' && google.maps && google.maps.Geocoder) {
+                const geocoder = new google.maps.Geocoder();
+                const result = await new Promise((resolve, reject) => {
+                  geocoder.geocode({ address: location }, (results, status) => {
+                    if (status === google.maps.GeocoderStatus.OK && results[0]) {
+                      resolve(results[0]);
+                    } else {
+                      reject(new Error('Geocoding failed: ' + status));
+                    }
+                  });
+                });
+                
+                coordinates = {
+                  lat: result.geometry.location.lat(),
+                  lng: result.geometry.location.lng()
+                };
+                console.log('Got coordinates from geocoding:', coordinates);
+              }
+            } catch (error) {
+              console.log("Could not geocode location:", error.message);
+            }
+          }
+          
+          // Fallback: if still no coordinates, try current location one more time
+          if (!coordinates && navigator.geolocation) {
+            try {
+              const position = await new Promise((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(resolve, reject, {
+                  enableHighAccuracy: true,
+                  timeout: 5000,
+                  maximumAge: 300000
+                });
+              });
+              
+              coordinates = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude
+              };
+              console.log('Got fallback coordinates:', coordinates);
+            } catch (error) {
+              console.log("Fallback geolocation failed:", error.message);
+            }
+          }
+          
+          saveExperience(coordinates);
+        };
+        
+        getCoordinatesAndSave();
 
-        // Show success message
-        NotificationSystem.show("Experience added successfully!", "success");
-
-        // Reset form
-        resetActivityForm();
-        showPage("dashboard");
+        // Success message, form reset, and page navigation are now handled in saveExperience()
       },
 
       estimateSocialIntensity: (category, responses) => {
@@ -3958,8 +3854,9 @@
           let ratingCount = 0;
 
           experiences.forEach((exp) => {
-            const ratingUser = DemoUsers.users[exp.userId];
-            if (ratingUser) {
+              // Skip demo user lookups - no longer using demo data
+              const ratingUser = null; // Only use Firebase user data going forward
+              if (false) { // Disabled demo prediction logic
               const prediction = ActivitySystem.predictRating(
                 userAdjustmentFactor,
                 exp,
@@ -4121,6 +4018,184 @@
       }, 300);
     }
 
+    function editUserRating(placeName, category, location) {
+      console.log("editUserRating called with:", placeName, category, location);
+      
+      // Find the user's existing experience for this place
+      const userExperiences = DataLayer.load("userExperiences", []);
+      const existingExperience = userExperiences.find(exp => 
+        exp.name.toLowerCase() === placeName.toLowerCase()
+      );
+      
+      if (!existingExperience) {
+        NotificationSystem.show("Your rating for this place was not found.", "error");
+        return;
+      }
+      
+      // Create edit modal for the rating
+      const modalHtml = `
+        <div id="edit-rating-modal" class="modal">
+          <div class="modal-content" style="max-width: 600px;">
+            <button class="modal-close" onclick="closeEditRatingModal()">&times;</button>
+            <div class="modal-header">
+              <h2>Edit Your Rating</h2>
+              <p style="margin: 0; color: #666;">Update your experience at ${placeName}</p>
+            </div>
+            <div class="modal-body">
+              <div style="margin-bottom: 1.5rem; padding: 1rem; background: rgba(74, 144, 226, 0.1); border-radius: 10px;">
+                <h4 style="margin: 0 0 0.5rem 0; color: var(--primary-color);">${placeName}</h4>
+                <div style="font-size: 0.9rem; color: #666;">
+                  <strong>Category:</strong> ${category} • <strong>Location:</strong> ${location}
+                </div>
+                <div style="font-size: 0.9rem; color: #666; margin-top: 0.3rem;">
+                  <strong>Current Rating:</strong> ${existingExperience.adjustedScore}/10
+                </div>
+              </div>
+              
+              <div class="rating-questions">
+                <div class="rating-question">
+                  <label>How energized did you feel?</label>
+                  <input type="range" class="rating-slider" min="1" max="10" value="${existingExperience.responses.energy}" oninput="updateSliderValue(this, 'edit-slider-energy')" id="edit-rating-energy" />
+                  <div class="slider-value" id="edit-slider-energy">${existingExperience.responses.energy}</div>
+                </div>
+                <div class="rating-question">
+                  <label>How satisfied were you with the social interaction?</label>
+                  <input type="range" class="rating-slider" min="1" max="10" value="${existingExperience.responses.social}" oninput="updateSliderValue(this, 'edit-slider-social')" id="edit-rating-social" />
+                  <div class="slider-value" id="edit-slider-social">${existingExperience.responses.social}</div>
+                </div>
+                <div class="rating-question">
+                  <label>How comfortable did you feel in this environment?</label>
+                  <input type="range" class="rating-slider" min="1" max="10" value="${existingExperience.responses.comfort}" oninput="updateSliderValue(this, 'edit-slider-comfort')" id="edit-rating-comfort" />
+                  <div class="slider-value" id="edit-slider-comfort">${existingExperience.responses.comfort}</div>
+                </div>
+                <div class="rating-question">
+                  <label>How overwhelming was the environment?</label>
+                  <input type="range" class="rating-slider" min="1" max="10" value="${existingExperience.responses.overwhelm}" oninput="updateSliderValue(this, 'edit-slider-overwhelm')" id="edit-rating-overwhelm" />
+                  <div class="slider-value" id="edit-slider-overwhelm">${existingExperience.responses.overwhelm}</div>
+                </div>
+                <div class="rating-question">
+                  <label>How likely are you to return?</label>
+                  <input type="range" class="rating-slider" min="1" max="10" value="${existingExperience.responses.return}" oninput="updateSliderValue(this, 'edit-slider-return')" id="edit-rating-return" />
+                  <div class="slider-value" id="edit-slider-return">${existingExperience.responses.return}</div>
+                </div>
+              </div>
+              
+              <div style="text-align: center; margin-top: 2rem;">
+                <button class="btn" onclick="saveEditedRating('${existingExperience.id}')">
+                  <i class="fas fa-save"></i> Save Changes
+                </button>
+                <button class="btn btn-secondary" onclick="closeEditRatingModal()" style="margin-left: 0.5rem;">
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.insertAdjacentHTML("beforeend", modalHtml);
+      addModalListeners("edit-rating-modal", closeEditRatingModal);
+    }
+    
+    function closeEditRatingModal() {
+      const modal = document.getElementById("edit-rating-modal");
+      if (modal) modal.remove();
+      document.body.classList.remove('modal-open');
+    }
+    
+    async function saveEditedRating(experienceId) {
+      const personalityData = DataLayer.load("personalityScore");
+      if (!personalityData) {
+        NotificationSystem.show("Personality data not found.", "error");
+        return;
+      }
+      
+      // Get updated ratings
+      const responses = {
+        energy: parseInt(document.getElementById("edit-rating-energy").value),
+        social: parseInt(document.getElementById("edit-rating-social").value),
+        comfort: parseInt(document.getElementById("edit-rating-comfort").value),
+        overwhelm: parseInt(document.getElementById("edit-rating-overwhelm").value),
+        return: parseInt(document.getElementById("edit-rating-return").value)
+      };
+      
+      // Calculate new scores
+      let rawScore = 0;
+      ActivitySystem.ratingQuestions.forEach((question) => {
+        let value = responses[question.id];
+        if (question.reverse) {
+          value = 11 - value; // Reverse score for overwhelming
+        }
+        rawScore += value * question.weight;
+      });
+      
+      const adjustedScore = Math.max(
+        1,
+        Math.min(10, rawScore + personalityData.adjustmentFactor * 2)
+      );
+      
+      // Update the experience
+      const userExperiences = DataLayer.load("userExperiences", []);
+      const expIndex = userExperiences.findIndex(exp => exp.id == experienceId);
+      
+      if (expIndex !== -1) {
+        userExperiences[expIndex].responses = responses;
+        userExperiences[expIndex].rawScore = parseFloat(rawScore.toFixed(1));
+        userExperiences[expIndex].adjustedScore = parseFloat(adjustedScore.toFixed(1));
+        userExperiences[expIndex].timestamp = new Date().toISOString();
+        
+        // Update estimated characteristics
+        userExperiences[expIndex].socialIntensity = ActivitySystem.estimateSocialIntensity(
+          userExperiences[expIndex].category, responses
+        );
+        userExperiences[expIndex].noiseLevel = ActivitySystem.estimateNoiseLevel(
+          userExperiences[expIndex].category, responses
+        );
+        userExperiences[expIndex].crowdSize = ActivitySystem.estimateCrowdSize(
+          userExperiences[expIndex].category, responses
+        );
+        
+        DataLayer.save("userExperiences", userExperiences);
+        
+        // Update Firebase if user is authenticated
+        if (currentFirebaseUser && authManager) {
+          try {
+            const { doc, updateDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            
+            // Find the Firebase document for this experience
+            const updatedData = {
+              responses,
+              rawScore: userExperiences[expIndex].rawScore,
+              adjustedScore: userExperiences[expIndex].adjustedScore,
+              socialIntensity: userExperiences[expIndex].socialIntensity,
+              noiseLevel: userExperiences[expIndex].noiseLevel,
+              crowdSize: userExperiences[expIndex].crowdSize,
+              updatedAt: serverTimestamp()
+            };
+            
+            // Note: We would need the Firebase document ID to update it
+            // For now, just update locally
+            console.log('Updated experience locally:', userExperiences[expIndex]);
+          } catch (error) {
+            console.error('Error updating experience in Firebase:', error);
+          }
+        }
+        
+        closeEditRatingModal();
+        NotificationSystem.show("Rating updated successfully!", "success");
+        
+        // Refresh the current page if we're on feed or dashboard
+        const currentPage = document.querySelector('.page:not(.hidden)').id;
+        if (currentPage === 'feed') {
+          FeedSystem.displayFeed();
+        } else if (currentPage === 'dashboard') {
+          updateDashboard();
+        }
+      } else {
+        NotificationSystem.show("Experience not found.", "error");
+      }
+    }
+
     // Function to format date with full month name
     function formatFullDate(dateString) {
       const date = new Date(dateString);
@@ -4188,13 +4263,8 @@
           totalLng += member.location.lng;
           validLocations++;
         } else {
-          // Fallback to demo user location if not in group data
-          const user = DemoUsers.users[member.userId];
-          if (user && user.location) {
-            totalLat += user.location.lat;
-            totalLng += user.location.lng;
-            validLocations++;
-          }
+          // No demo user fallback - Firebase only
+          // Skip member without location data
         }
       });
 
@@ -4252,6 +4322,7 @@
       currentSection: 'activities',
 
       showSection: (section) => {
+        console.log('🏗️ CommunitySystem.showSection() called with section:', section);
         CommunitySystem.currentSection = section;
 
         // Update tab styling
@@ -4285,12 +4356,18 @@
 
         // Initialize the appropriate system
         if (section === 'activities') {
+          console.log('🏗️ Initializing FeedSystem for activities section');
           if (typeof FeedSystem !== 'undefined') {
             FeedSystem.init();
+          } else {
+            console.error('🏗️ FeedSystem not found!');
           }
         } else if (section === 'friendship') {
+          console.log('🏗️ Initializing FriendsDiscoverySystem for friendship section');
           if (typeof FriendsDiscoverySystem !== 'undefined') {
             FriendsDiscoverySystem.init();
+          } else {
+            console.error('🏗️ FriendsDiscoverySystem not found!');
           }
         }
       },
@@ -4325,21 +4402,51 @@
       pageSize: 20,
       store: { items: [], lastCursorValue: null, hasMore: true, isLoading: false, cacheKey: null },
 
-      init: () => {
+      init: async () => {
+        console.log('🚀 FeedSystem.init() called');
+        
+        // Initialize FriendsDiscoverySystem if not already done to load users
+        if (typeof FriendsDiscoverySystem !== 'undefined') {
+          if (!FriendsDiscoverySystem.isInitialized) {
+            console.log('🚀 Initializing FriendsDiscoverySystem for user data...');
+            await FriendsDiscoverySystem.init();
+          } else if (typeof FriendsDiscoverySystem.loadAllUsersOptimized === 'function') {
+            console.log('🚀 Loading users for feed rendering...');
+            await FriendsDiscoverySystem.loadAllUsersOptimized();
+          }
+        }
+        
         FeedSystem.resetAndLoad();
       },
 
       setFilter: (filter) => {
         FeedSystem.currentFilter = filter;
 
-        // Update active tab - safely handle event
-        document.querySelectorAll(".filter-tab").forEach((tab) => {
-          tab.classList.remove("active");
+        // Update active dropdown items instead of tabs
+        document.querySelectorAll("#activities-filter-menu .filter-dropdown-item").forEach((item) => {
+          item.classList.remove("active");
         });
 
-        // Only update active tab if event exists and target is a filter tab
-        if (typeof event !== 'undefined' && event.target && event.target.classList.contains('filter-tab')) {
-          event.target.classList.add("active");
+        // Find and activate the correct dropdown item
+        const filterMap = {
+          'all': 'All Activities',
+          'similar': 'Similar Users', 
+          'high-rated': 'Top Rated',
+          'recent': 'Recent',
+          'nearby': 'Near Me'
+        };
+        
+        const filterText = filterMap[filter] || 'All Activities';
+        const targetItem = Array.from(document.querySelectorAll("#activities-filter-menu .filter-dropdown-item"))
+          .find(item => item.textContent.trim().includes(filterText));
+        
+        if (targetItem) {
+          targetItem.classList.add("active");
+          // Update button text
+          const textElement = document.getElementById('activities-filter-text');
+          if (textElement) {
+            textElement.textContent = filterText;
+          }
         }
 
         FeedSystem.resetAndLoad();
@@ -4353,63 +4460,123 @@
       },
 
       getCacheKey: () => {
-        return `FEED_${FeedSystem.currentFilter}_${FeedSystem.searchTerm || ''}`;
+        return `FEED_${FeedSystem.currentFilter}_${FeedSystem.searchTerm || ''}_${FeedSystem.pageSize}`;
       },
 
       resetAndLoad: async () => {
+        console.log('🔄 FeedSystem.resetAndLoad() called');
+        console.log('🔄 Cache key:', FeedSystem.getCacheKey());
+        
         FeedSystem.store = { items: [], lastCursorValue: null, hasMore: true, isLoading: false, cacheKey: FeedSystem.getCacheKey() };
         const cached = CacheSystem.get(FeedSystem.store.cacheKey, CacheSystem.CACHE_DURATIONS.ACTIVITIES);
+        console.log('🔄 Cached data found:', !!cached);
+        
         if (cached) {
+          console.log('🔄 Using cached data, items count:', cached.items?.length || 0);
           FeedSystem.store = { ...FeedSystem.store, ...cached };
           DataLayer.save('allExperiences', FeedSystem.store.items);
+          console.log('🔄 Calling displayFeed with cached data');
           FeedSystem.displayFeed();
+          
+          // Update load more button visibility
+          const loadMoreContainer = document.getElementById('load-more-container');
+          if (loadMoreContainer) {
+            loadMoreContainer.style.display = FeedSystem.store.hasMore ? 'block' : 'none';
+          }
+          
           // Prefetch next page silently
+          console.log('🔄 Prefetching next page');
           FeedSystem.loadNextPage(true).catch(() => {});
         } else {
+          console.log('🔄 No cache, loading from Firebase');
           await FeedSystem.loadNextPage(false);
         }
       },
 
       loadNextPage: async (isPrefetch = false) => {
-        if (FeedSystem.store.isLoading || !FeedSystem.store.hasMore) return;
-        if (!currentFirebaseUser || !authManager) return;
+        console.log('📥 FeedSystem.loadNextPage() called, isPrefetch:', isPrefetch);
+        console.log('📥 Current store state:', {
+          isLoading: FeedSystem.store.isLoading,
+          hasMore: FeedSystem.store.hasMore,
+          itemsCount: FeedSystem.store.items?.length || 0,
+          lastCursor: FeedSystem.store.lastCursorValue
+        });
+        
+        if (FeedSystem.store.isLoading || !FeedSystem.store.hasMore) {
+          console.log('📥 Skipping load - isLoading:', FeedSystem.store.isLoading, 'hasMore:', FeedSystem.store.hasMore);
+          return;
+        }
+        if (!currentFirebaseUser || !authManager) {
+          console.log('📥 Skipping load - no user or auth manager');
+          return;
+        }
+        
         FeedSystem.store.isLoading = true;
+        console.log('📥 Starting Firebase query...');
+        
         try {
           const { collection, query, where, orderBy, limit, startAfter, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
 
           let q;
           const expCol = collection(authManager.db, 'experiences');
+          console.log('📥 Building query for filter:', FeedSystem.currentFilter);
 
           // Base: order by createdAt desc
           const buildBaseQuery = () => query(expCol, orderBy('createdAt', 'desc'), limit(FeedSystem.pageSize));
 
           if (FeedSystem.currentFilter === 'similar') {
+            console.log('📥 Processing similar users filter');
             const personalityData = DataLayer.load('personalityScore');
             if (personalityData && typeof ActivitySystem.findSimilarUsers === 'function') {
               const similarUsers = await ActivitySystem.findSimilarUsers(personalityData.adjustmentFactor);
               const ids = similarUsers.slice(0, 10).map(u => u.id);
+              console.log('📥 Similar user IDs:', ids);
               if (ids.length > 0) {
-                q = query(expCol, where('userId', 'in', ids), orderBy('createdAt', 'desc'), limit(FeedSystem.pageSize));
+                // To avoid complex index requirements, use simpler query and filter in memory
+                q = query(expCol, orderBy('createdAt', 'desc'), limit(FeedSystem.pageSize * 3)); // Get more to filter
               } else {
                 q = buildBaseQuery();
               }
             } else {
               q = buildBaseQuery();
             }
+          } else if (FeedSystem.currentFilter === 'high-rated') {
+            console.log('📥 Processing top rated filter');
+            // For top rated, we'll sort by rating in the display logic
+            q = buildBaseQuery();
+          } else if (FeedSystem.currentFilter === 'recent') {
+            console.log('📥 Processing recent filter');
+            // Avoid composite index requirement: fetch recent items and filter by user in-memory
+            q = query(expCol, orderBy('createdAt', 'desc'), limit(FeedSystem.pageSize * 3));
           } else {
             q = buildBaseQuery();
           }
 
           if (FeedSystem.store.lastCursorValue) {
+            console.log('📥 Adding startAfter cursor');
             q = query(q, startAfter(FeedSystem.store.lastCursorValue));
           }
 
+          console.log('📥 Executing Firebase query...');
           const snapshot = await wrapRead(getDocs(q), 'getDocs', 'experiences', { paginated: true, filter: FeedSystem.currentFilter });
-          const pageItems = snapshot.docs.map(d => ({ id: d.id, ...d.data(), timestamp: d.data().createdAt?.toDate?.() || new Date() }));
+          console.log('📥 Firebase response - docs count:', snapshot.docs.length);
+          
+          const pageItems = snapshot.docs.map(d => {
+            const data = d.data();
+            return { 
+              id: data.id || d.id, // Preserve original ID if it exists, otherwise use Firebase doc ID
+              firebaseId: d.id, // Store Firebase document ID separately
+              ...data, 
+              timestamp: data.createdAt?.toDate?.() || new Date() 
+            };
+          });
+          console.log('📥 Processed page items:', pageItems.length);
 
           FeedSystem.store.items = [...FeedSystem.store.items, ...pageItems];
           FeedSystem.store.lastCursorValue = snapshot.docs[snapshot.docs.length - 1]?.data()?.createdAt || FeedSystem.store.lastCursorValue;
           FeedSystem.store.hasMore = snapshot.size === FeedSystem.pageSize;
+          
+          console.log('📥 Updated store - total items:', FeedSystem.store.items.length, 'hasMore:', FeedSystem.store.hasMore);
 
           // Persist and cache
           DataLayer.save('allExperiences', FeedSystem.store.items);
@@ -4418,14 +4585,35 @@
             lastCursorValue: FeedSystem.store.lastCursorValue,
             hasMore: FeedSystem.store.hasMore
           });
+          console.log('📥 Data saved to DataLayer and CacheSystem');
 
           if (!isPrefetch) {
+            console.log('📥 Calling displayFeed for non-prefetch load');
             FeedSystem.displayFeed();
+            
+            // Update load more button visibility
+            const loadMoreContainer = document.getElementById('load-more-container');
+            if (loadMoreContainer) {
+              loadMoreContainer.style.display = FeedSystem.store.hasMore ? 'block' : 'none';
+            }
+          } else {
+            console.log('📥 Skipping displayFeed for prefetch');
           }
         } catch (error) {
           console.error('Paginated feed load failed:', error);
+          // Render whatever we have so UI updates even on failure
+          try {
+            if (!isPrefetch && typeof FeedSystem.displayFeed === 'function') {
+              FeedSystem.displayFeed();
+            }
+          } catch (_) {}
+          // Soft notify user if index required
+          if (typeof NotificationSystem !== 'undefined' && NotificationSystem.show) {
+            NotificationSystem.show('Unable to load activities (index may be required). Showing available results.', 'warning');
+          }
         } finally {
           FeedSystem.store.isLoading = false;
+          console.log('📥 Load completed, isLoading set to false');
         }
       },
 
@@ -4477,12 +4665,35 @@
 
         feedContent.innerHTML = locationInfo + experiences
           .map((exp) => {
-            const user =
-              exp.userId === "user-main"
-                ? DataLayer.load("currentUser")
-                : DemoUsers.users[exp.userId];
+            // Get user information - prioritize Firebase data
+            let user = null;
+            if (exp.userId === "user-main" || exp.userId === currentFirebaseUser?.uid) {
+              user = DataLayer.load("currentUser");
+              } else if (typeof FriendsDiscoverySystem !== 'undefined' && Array.isArray(FriendsDiscoverySystem.allUsers)) {
+                user = FriendsDiscoverySystem.allUsers.find(u => u.id === exp.userId);
+            }
+            
+            // If still no user found, try cache
+            if (!user && exp.userId !== "user-main") {
+              const cachedUser = CacheSystem.get(`USER_${exp.userId}`, CacheSystem.CACHE_DURATIONS.USER_PROFILES);
+              if (cachedUser) {
+                user = cachedUser;
+              }
+            }
 
-            if (!user) return "";
+            // If no user found, create a fallback user object
+            if (!user) {
+              user = {
+                id: exp.userId,
+                displayName: 'Unknown User',
+                username: 'unknown',
+                avatar: '?',
+                personalityType: 'Unknown',
+                adjustmentFactor: 0,
+                isPremium: false
+              };
+              console.log('🔍 Created fallback user for:', exp.userId);
+            }
 
             // Check if user has been to this place
             const hasBeenThere = userExperienceNames.includes(
@@ -4512,43 +4723,53 @@
               `;
             }
 
-            // Add distance info for nearby filter
+            // Add distance info when coordinates are available (regardless of filter)
             let distanceInfo = "";
-            if (filterType === "nearby" && exp.coordinates) {
-              // Get user's current location to calculate distance
-              if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                  (position) => {
-                    const distance = calculateDistance(
-                      position.coords.latitude, position.coords.longitude,
-                      exp.coordinates.lat, exp.coordinates.lng
-                    );
-                    // Update the distance display for this experience
-                    const distanceElement = document.getElementById(`distance-${exp.id}`);
-                    if (distanceElement) {
-                      distanceElement.textContent = `${distance.toFixed(1)}km away`;
-                    }
-                  }
-                );
-              }
+            if (exp.coordinates && exp.coordinates.lat && exp.coordinates.lng) {
               distanceInfo = `<div id="distance-${exp.id}" style="font-size: 0.8rem; color: var(--secondary-color); margin-top: 0.3rem;">Calculating distance...</div>`;
+              getUserLocationWithFallback()
+                .then((position) => {
+                  const distance = calculateDistance(
+                    position.coords.latitude, position.coords.longitude,
+                    exp.coordinates.lat, exp.coordinates.lng
+                  );
+                  const distanceElement = document.getElementById(`distance-${exp.id}`);
+                  if (distanceElement) {
+                    distanceElement.textContent = `${distance.toFixed(1)}km away`;
+                  }
+                })
+                .catch(() => {
+                  const distanceElement = document.getElementById(`distance-${exp.id}`);
+                  if (distanceElement) {
+                    distanceElement.remove();
+                  }
+                });
             }
 
             // Add friend status and rate button
             let actionButtons = "";
-            if (exp.userId !== "user-main") {
-              if (!isFriend) {
+            if (exp.userId !== "user-main" && exp.userId !== currentFirebaseUser?.uid) {
+              // Check pending status first
+              const hasPendingRequest = typeof FriendsDiscoverySystem !== 'undefined' && 
+                                      Array.isArray(FriendsDiscoverySystem.pendingRequests) &&
+                                      FriendsDiscoverySystem.pendingRequests.some(r => r.toUserId === exp.userId);
+              
+              if (hasPendingRequest) {
+                actionButtons += `
+                  <button class="btn" data-pending-for="${exp.userId}" style="font-size: 0.8rem; padding: 6px 12px; margin-right: 0.5rem; background: #fbbf24; color: #1f2937; border: 1px solid #f59e0b;" onclick="FriendsDiscoverySystem.cancelPendingRequest('${exp.userId}')">
+                    <i class="fas fa-clock"></i> Pending
+                  </button>
+                `;
+              } else if (!isFriend) {
                 actionButtons += `
                   <button class="btn btn-secondary" style="font-size: 0.8rem; padding: 6px 12px; margin-right: 0.5rem;"
-                    onclick="FriendsSystem.addFriend(${exp.userId})">
+                    onclick="FriendsSystem.addFriend('${exp.userId}')">
                     <i class="fas fa-user-plus"></i> Add Friend
                   </button>
                 `;
               } else {
                 actionButtons += `
-                  <span style="background: #f8f9fa; color: var(--primary-color); font-size: 0.8rem; font-weight: bold; padding: 4px 8px; border-radius: 12px; border: 1px solid var(--primary-color); display: inline-block; margin-right: 0.5rem;">
-                    ✓ Friend
-                  </span>
+                  <span style="background: rgba(74, 144, 226, 0.1); color: var(--primary-color); font-size: 0.8rem; font-weight: bold; padding: 4px 8px; border-radius: 12px; border: 1px solid var(--primary-color); display: inline-block; margin-right: 0.5rem;">✓ Friend</span>
                 `;
               }
             }
@@ -4582,9 +4803,9 @@
                 
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
                   <div style="flex: 1;">
-                    <h4>${addCrownToPremiumUser(user.displayName, exp.userId)} ${isFriend ? '<span style="color: var(--primary-color);">★</span>' : ""}</h4>
+                    <h4 style="margin-bottom: 0.5rem;">${addCrownToPremiumUser(user.displayName, exp.userId)}</h4>
                     <div style="display: flex; gap: 1rem; margin-bottom: 0.5rem; font-size: 0.9rem;">
-                      <span style="background: var(--secondary-color); color: white; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.8rem;">
+                      <span style="background: var(--secondary-color); color: white; padding: 0.2rem 0.6rem; border-radius: 5px 0px 5px 5px; font-size: 0.8rem;">
                         ${exp.category}
                       </span>
                       <span style="color: #666;">
@@ -4609,16 +4830,16 @@
                 
                 ${predictionHtml}
                 
-                <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem;">
+                      <div class="user-actions" style="gap: 0.5rem; margin-top: 1rem;">
                   ${actionButtons}
                 </div>
               </div>
             `;
           })
-          .join("") + groupsPagination;
+          .join("");
       },
 
-      displayFilteredExperiences: (experiences, filterType) => {
+      displayFilteredExperiences: async (experiences, filterType) => {
         const personalityData = DataLayer.load("personalityScore");
         const userExperiences = DataLayer.load("userExperiences", []);
         const userExperienceNames = userExperiences.map((exp) =>
@@ -4660,10 +4881,41 @@
             });
           return; // Exit early since we're handling the display asynchronously
         } else {
-          // Sort by timestamp (newest first) for non-nearby filters
-          experiences.sort(
-            (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
-          );
+          // Sort based on filter type
+          if (FeedSystem.currentFilter === 'high-rated') {
+            // Sort by predicted rating for current user
+            const personalityData = DataLayer.load('personalityScore');
+            if (personalityData) {
+              experiences.sort((a, b) => {
+                const predictionA = ActivitySystem.predictRating(
+                  personalityData.adjustmentFactor,
+                  a,
+                  (a.userId === "user-main" ? 0 : 0), // Firebase user adjustment factors loaded separately
+                  a.rawScore
+                );
+                const predictionB = ActivitySystem.predictRating(
+                  personalityData.adjustmentFactor,
+                  b,
+                  (b.userId === "user-main" ? 0 : 0), // Firebase user adjustment factors loaded separately
+                  b.rawScore
+                );
+                return predictionB.prediction - predictionA.prediction;
+              });
+            } else {
+              // Fallback to raw score
+              experiences.sort((a, b) => (b.rawScore || 0) - (a.rawScore || 0));
+            }
+          } else if (FeedSystem.currentFilter === 'recent') {
+            // Sort by timestamp (newest first) for recent filter
+            experiences.sort(
+              (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
+            );
+          } else {
+            // Default sort by timestamp (newest first) for other filters
+            experiences.sort(
+              (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
+            );
+          }
         }
 
         const feedContent = document.getElementById("feed-content");
@@ -4707,12 +4959,35 @@
 
         feedContent.innerHTML = locationInfo + experiences
           .map((exp) => {
-            const user =
-              exp.userId === "user-main"
-                ? DataLayer.load("currentUser")
-                : DemoUsers.users[exp.userId];
+            // Get user information - prioritize Firebase data
+            let user = null;
+            if (exp.userId === "user-main" || exp.userId === currentFirebaseUser?.uid) {
+              user = DataLayer.load("currentUser");
+              } else if (typeof FriendsDiscoverySystem !== 'undefined' && Array.isArray(FriendsDiscoverySystem.allUsers)) {
+                user = FriendsDiscoverySystem.allUsers.find(u => u.id === exp.userId);
+            }
+            
+            // If still no user found, try cache
+            if (!user && exp.userId !== "user-main") {
+              const cachedUser = CacheSystem.get(`USER_${exp.userId}`, CacheSystem.CACHE_DURATIONS.USER_PROFILES);
+              if (cachedUser) {
+                user = cachedUser;
+              }
+            }
 
-            if (!user) return "";
+            // If no user found, create a fallback user object
+            if (!user) {
+              user = {
+                id: exp.userId,
+                displayName: 'Unknown User',
+                username: 'unknown',
+                avatar: '?',
+                personalityType: 'Unknown',
+                adjustmentFactor: 0,
+                isPremium: false
+              };
+              console.log('🔍 Created fallback user for:', exp.userId);
+            }
 
             // Check if user has been to this place
             const hasBeenThere = userExperienceNames.includes(
@@ -4766,17 +5041,28 @@
 
             // Add friend status and rate button
             let actionButtons = "";
-            if (exp.userId !== "user-main") {
-              if (!isFriend) {
+            if (exp.userId !== "user-main" && exp.userId !== currentFirebaseUser?.uid) {
+              // Check pending status first
+              const hasPendingRequest = typeof FriendsDiscoverySystem !== 'undefined' && 
+                                      Array.isArray(FriendsDiscoverySystem.pendingRequests) &&
+                                      FriendsDiscoverySystem.pendingRequests.some(r => r.toUserId === exp.userId);
+              
+              if (hasPendingRequest) {
+                actionButtons += `
+                  <button class="btn" style="font-size: 0.8rem; padding: 6px 12px; margin-right: 0.5rem; background: #fbbf24; color: #1f2937; border: 1px solid #f59e0b;" disabled>
+                    <i class="fas fa-clock"></i> Pending
+                  </button>
+                `;
+              } else if (!isFriend) {
                 actionButtons += `
                   <button class="btn btn-secondary" style="font-size: 0.8rem; padding: 6px 12px; margin-right: 0.5rem;"
-                          onclick="FriendsSystem.addFriend(${exp.userId})">
+                          onclick="FriendsSystem.addFriend('${exp.userId}')">
                     Add Friend
                   </button>
                 `;
               } else {
                 actionButtons += `
-                  <span style="background: #f8f9fa; color: var(--primary-color); font-size: 0.8rem; font-weight: bold; padding: 4px 8px; border-radius: 12px; border: 1px solid var(--primary-color); display: inline-block; margin-right: 0.5rem;">✓ Friend</span>
+                  <span style="background: rgba(74, 144, 226, 0.1); color: var(--primary-color); font-size: 0.8rem; font-weight: bold; padding: 4px 8px; border-radius: 12px; border: 1px solid var(--primary-color); display: inline-block; margin-right: 0.5rem;">✓ Friend</span>
                 `;
               }
 
@@ -4792,29 +5078,33 @@
 
             return `
               <div class="feed-item">
-                <div class="feed-header">
-                  <div class="feed-avatar">${user.avatar}</div>
-                  <div class="feed-user-info">
-                    <h4>${addCrownToPremiumUser(user.displayName, exp.userId)} ${isFriend ? '<span style="color: var(--primary-color);">★</span>' : ""}</h4>
-                    <div class="personality-type">${user.personalityType || "Unknown Type"}</div>
-                    <div class="feed-timestamp" title="${formatFullDate(exp.timestamp)}" style="cursor: help;">
-                  ${new Date(exp.timestamp).toLocaleDateString()}
-                </div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                  <div style="flex: 1;">
+                    <h4 style="margin-bottom: 0.5rem;">${addCrownToPremiumUser(user.displayName, exp.userId)}</h4>
+                    <div style="display: flex; gap: 1rem; margin-bottom: 0.5rem; font-size: 0.9rem;">
+                      <span style="background: var(--secondary-color); color: white; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.8rem;">
+                        ${exp.category}
+                      </span>
+                      <span style="color: #666;">
+                        <i class="fas fa-map-marker-alt"></i> ${exp.location}
+                      </span>
+                    </div>
+                    <h3 style="margin: 0 0 0.5rem 0; color: var(--primary-color); font-size: 1.2rem;">
+                      ${exp.name} ${hasBeenThere ? '<span style="color: var(--primary-color);">✓ Visited</span>' : ''}
+                    </h3>
+                    ${exp.description ? `<p style=\"margin: 0; color: #555; line-height: 1.5; font-size: 0.95rem;\">${exp.description}</p>` : ''}
+                    ${distanceInfo}
+                  </div>
+                  <div style="text-align: right; min-width: 80px;">
+                    <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary-color);">
+                      ${(exp.adjustedScore ?? exp.rawScore ?? 0).toFixed(1)}
+                    </div>
+                    <div style="font-size: 0.8rem; color: #666;">Rating</div>
                   </div>
                 </div>
-                <div class="feed-content">
-                  <h3>${exp.name} ${hasBeenThere ? '<span style="color: var(--primary-color);">✓ Visited</span>' : ""}</h3>
-                  <div class="activity-category">${exp.category} • ${exp.location}</div>
-                  ${exp.description ? `<p style="margin: 0.5rem 0; color: #666;">"${exp.description}"</p>` : ""}
-                  <div class="feed-rating">Rated: ${exp.adjustedScore}/10</div>
-                  <div style="font-size: 0.9rem; color: #888; margin-top: 0.5rem;">
-                    Social Intensity: ${exp.socialIntensity.toFixed(1)}/10 |
-                    Noise Level: ${exp.noiseLevel.toFixed(1)}/10 |
-                    Crowd Size: ${exp.crowdSize.toFixed(1)}/10
-                  </div>
-                  ${distanceInfo}
-                  ${predictionHtml}
-                  ${actionButtons ? `<div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #eee;">${actionButtons}</div>` : ""}
+                ${predictionHtml}
+                 <div class="user-actions" style="gap: 0.5rem; margin-top: 1rem;">
+                  ${actionButtons}
                 </div>
               </div>
             `;
@@ -4823,8 +5113,19 @@
       },
 
       displayFeed: () => {
+        console.log('🔍 FeedSystem.displayFeed() called');
+        console.log('🔍 Current filter:', FeedSystem.currentFilter);
+        console.log('🔍 Search term:', FeedSystem.searchTerm);
+        console.log('🔍 Store items count:', FeedSystem.store?.items?.length || 0);
+        console.log('🔍 Store hasMore:', FeedSystem.store?.hasMore);
+        console.log('🔍 Store cacheKey:', FeedSystem.store?.cacheKey);
+        
         const personalityData = DataLayer.load("personalityScore");
-        const allExperiences = ActivitySystem.getAllExperiences();
+        
+        // Use the new paginated data from store instead of old ActivitySystem
+        const allExperiences = FeedSystem.store?.items || [];
+        console.log('🔍 Using experiences from store:', allExperiences.length);
+        
         const userExperiences = DataLayer.load("userExperiences", []);
         const userExperienceNames = userExperiences.map((exp) =>
           exp.name.toLowerCase()
@@ -4839,22 +5140,29 @@
               exp.name.toLowerCase().includes(FeedSystem.searchTerm) ||
               exp.category.toLowerCase().includes(FeedSystem.searchTerm) ||
               exp.location.toLowerCase().includes(FeedSystem.searchTerm) ||
-              (DemoUsers.users[exp.userId] &&
-                DemoUsers.users[exp.userId].displayName
-                  .toLowerCase()
-                  .includes(FeedSystem.searchTerm))
+              false // Demo user search removed - Firebase users handled elsewhere
           );
         }
 
         // Apply category filters
+        console.log('🔍 Applying filter:', FeedSystem.currentFilter);
+        
         if (FeedSystem.currentFilter === "similar" && personalityData) {
+          console.log('🔍 Processing similar users filter');
           // Handle async similar users lookup
           ActivitySystem.findSimilarUsers(personalityData.adjustmentFactor)
             .then(similarUsers => {
-              const similarUserIds = similarUsers.slice(0, 3).map(user => user.id);
-              const similarExperiences = filteredExperiences.filter((exp) =>
-                similarUserIds.includes(exp.userId)
-              );
+              console.log('🔍 Found similar users:', similarUsers.length);
+              const similarUserIds = similarUsers.slice(0, 10).map(user => user.id);
+              
+              // Filter experiences by similar user IDs (in-memory filtering)
+              const similarExperiences = filteredExperiences.filter((exp) => {
+                // Include current user's activities and similar users' activities
+                return similarUserIds.includes(exp.userId) || 
+                       exp.userId === "user-main" || 
+                       (currentFirebaseUser && exp.userId === currentFirebaseUser.uid);
+              });
+              console.log('🔍 Filtered to similar experiences:', similarExperiences.length);
 
               // Sort by timestamp (newest first)
               similarExperiences.sort(
@@ -4869,35 +5177,96 @@
             });
           return; // Exit early since we're handling the display asynchronously
         } else if (FeedSystem.currentFilter === "high-rated") {
-          filteredExperiences = filteredExperiences.filter(
-            (exp) => exp.adjustedScore >= 7.5
-          );
+          console.log('🔍 Processing high-rated filter');
+          
+          // Calculate predicted scores for current user for all experiences
+          const personalityData = DataLayer.load('personalityScore');
+          if (personalityData) {
+            // Add predicted scores and sort by them
+            filteredExperiences = filteredExperiences.map(exp => {
+              const prediction = ActivitySystem.predictRating(
+                personalityData.adjustmentFactor,
+                exp,
+                (exp.userId === "user-main" ? 0 : 0), // Firebase user adjustment factors loaded separately
+                exp.rawScore || exp.adjustedScore || 5.0
+              );
+              return {
+                ...exp,
+                predictedScore: prediction.prediction
+              };
+            }).filter(exp => {
+              // Use a more reasonable threshold - top 60% or score >= 6.0
+              const threshold = Math.max(6.0, exp.predictedScore >= 6.0);
+              return exp.predictedScore >= 6.0 || exp.adjustedScore >= 6.0;
+            });
+          } else {
+            // Fallback: use adjusted score with lower threshold
+            filteredExperiences = filteredExperiences.filter(
+              (exp) => (exp.adjustedScore || exp.rawScore || 0) >= 6.0
+            );
+          }
+          
+          console.log('🔍 High-rated experiences after filter:', filteredExperiences.length);
         } else if (FeedSystem.currentFilter === "recent") {
-          const oneWeekAgo = new Date();
-          oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-          filteredExperiences = filteredExperiences.filter(
-            (exp) =>
-              new Date(exp.timestamp) > oneWeekAgo ||
-              exp.userId === "user-main"
-          );
+          console.log('🔍 Processing recent filter - showing only current user activities');
+          const currentUser = DataLayer.load('currentUser');
+          if (currentUser && currentFirebaseUser) {
+            // Filter for only the current authenticated user's activities
+            filteredExperiences = filteredExperiences.filter(
+              (exp) => exp.userId === currentFirebaseUser.uid || exp.userId === "user-main"
+            );
+          } else if (currentUser) {
+            // Fallback for non-authenticated users
+            filteredExperiences = filteredExperiences.filter(
+              (exp) => exp.userId === currentUser.id || exp.userId === "user-main"
+            );
+          } else {
+            // No user logged in, show empty
+            filteredExperiences = [];
+          }
+          console.log('🔍 Recent experiences after filter:', filteredExperiences.length);
         } else if (FeedSystem.currentFilter === "nearby") {
+          console.log('🔍 Processing nearby filter');
           // Get user's current location and filter by actual distance
           getUserLocationWithFallback()
             .then((position) => {
               const userLat = position.coords.latitude;
               const userLng = position.coords.longitude;
+              console.log('🔍 User location:', userLat, userLng);
 
               // Filter experiences by actual distance (within 50km)
               const nearbyExperiences = filteredExperiences.filter((exp) => {
-                if (!exp.coordinates) return false;
+                if (!exp.coordinates) {
+                  console.log('🔍 Experience missing coordinates:', exp.name);
+                  return false;
+                }
 
                 const distance = calculateDistance(
                   userLat, userLng,
                   exp.coordinates.lat, exp.coordinates.lng
                 );
-
+                
+                console.log(`🔍 Distance to ${exp.name}: ${distance.toFixed(1)}km`);
                 return distance <= 50; // Within 50km
               });
+              console.log('🔍 Nearby experiences after distance filter:', nearbyExperiences.length);
+
+              // If no nearby experiences found, try to get more from the database
+              if (nearbyExperiences.length === 0) {
+                console.log('🔍 No nearby experiences found in current data, loading more from Firebase...');
+                FeedSystem.loadNearbyExperiencesFromFirebase(userLat, userLng)
+                  .then((firebaseNearby) => {
+                    if (firebaseNearby.length > 0) {
+                      console.log('🔍 Found', firebaseNearby.length, 'nearby experiences from Firebase');
+                      FeedSystem.displayFilteredExperiences(firebaseNearby, "nearby");
+                    } else {
+                      // Show fallback message with action to add experiences
+                      FeedSystem.displayEmptyNearbyState();
+                    }
+                  })
+                  .catch(() => FeedSystem.displayEmptyNearbyState());
+                return;
+              }
 
               // Sort by distance
               nearbyExperiences.sort((a, b) => {
@@ -4917,11 +5286,17 @@
             })
             .catch((error) => {
               console.error('Error getting location for nearby filter:', error);
-              // Fallback: show experiences with location data
+              // Fallback: show experiences with location data or encourage adding location
               const locationExperiences = filteredExperiences.filter(
-                (exp) => exp.location && exp.location !== "Not specified"
+                (exp) => exp.coordinates || (exp.location && exp.location !== "Not specified")
               );
-              FeedSystem.displayFilteredExperiences(locationExperiences, "nearby");
+              console.log('🔍 Fallback location experiences:', locationExperiences.length);
+              
+              if (locationExperiences.length > 0) {
+                FeedSystem.displayFilteredExperiences(locationExperiences, "nearby");
+              } else {
+                FeedSystem.displayLocationPermissionError();
+              }
             });
           return; // Exit early since we're handling the display asynchronously
         }
@@ -4930,10 +5305,13 @@
         filteredExperiences.sort(
           (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
         );
+        console.log('🔍 Final filtered experiences after sorting:', filteredExperiences.length);
 
         const feedContent = document.getElementById("feed-content");
+        console.log('🔍 Feed content element:', feedContent);
 
         if (filteredExperiences.length === 0) {
+          console.log('🔍 No experiences to display, showing empty state');
           feedContent.innerHTML = `
         <div class="empty-state">
           <h3>No activities found</h3>
@@ -4943,14 +5321,59 @@
           return;
         }
 
+        console.log('🔍 Rendering', filteredExperiences.length, 'experiences to feed');
         feedContent.innerHTML = filteredExperiences
           .map((exp) => {
-            const user =
-              exp.userId === "user-main"
-                ? DataLayer.load("currentUser")
-                : DemoUsers.users[exp.userId];
-
-            if (!user) return "";
+            console.log('🔍 Rendering experience:', exp.name, 'by user:', exp.userId);
+            
+            // Improved user lookup with proactive loading
+            let user = null;
+            if (exp.userId === "user-main") {
+              user = DataLayer.load("currentUser");
+            } else {
+              // Check current user for match (covers Firebase authenticated users)
+              const currentUser = DataLayer.load("currentUser");
+              if (currentUser && currentUser.id === exp.userId) {
+                user = currentUser;
+              // Demo users removed - Firebase only
+              } else if (typeof FriendsDiscoverySystem !== 'undefined' && Array.isArray(FriendsDiscoverySystem.allUsers)) {
+                // Look up in real Firebase users
+                user = FriendsDiscoverySystem.allUsers.find(u => u.id === exp.userId);
+              }
+            }
+            
+            // If still no user found, try to load immediately from Firebase
+            if (!user && exp.userId !== "user-main" && typeof authManager !== 'undefined') {
+              // Try to fetch user data synchronously from cache or queue for async load
+              const cachedUser = CacheSystem.get(`USER_${exp.userId}`, CacheSystem.CACHE_DURATIONS.USER_PROFILES);
+              if (cachedUser) {
+                user = cachedUser;
+                console.log('🔍 Found cached user:', user.displayName);
+              } else {
+                // Queue this user for async loading and trigger display refresh
+                if (typeof FriendsDiscoverySystem !== 'undefined' && FriendsDiscoverySystem.queueUserForLoading) {
+                  FriendsDiscoverySystem.queueUserForLoading(exp.userId);
+                  // Set a delayed refresh to update the display when user data loads
+                  setTimeout(() => {
+                    if (FeedSystem.displayFeed) FeedSystem.displayFeed();
+                  }, 2000);
+                }
+              }
+            }
+            
+            // If still no user found, create a fallback user object but with more info
+            if (!user) {
+              console.log('🔍 No user found for experience:', exp.userId, '- creating fallback user');
+              user = {
+                id: exp.userId,
+                displayName: 'Loading User...',
+                username: 'loading',
+                avatar: '...',
+                adjustmentFactor: 0,
+                personalityType: 'Loading...',
+                isPremium: false
+              };
+            }
 
             // Check if user has been to this place
             const hasBeenThere = userExperienceNames.includes(
@@ -4980,34 +5403,72 @@
         `;
             }
 
-            // Add friend status and rate button
+            // Distance display whenever coordinates are present
+            let distanceInfo = "";
+            if (exp.coordinates && exp.coordinates.lat && exp.coordinates.lng) {
+              distanceInfo = `<div id="distance-${exp.id}" style="font-size: 0.8rem; color: var(--secondary-color); margin-top: 0.3rem;">Calculating distance...</div>`;
+              getUserLocationWithFallback()
+                .then((position) => {
+                  const distance = calculateDistance(
+                    position.coords.latitude, position.coords.longitude,
+                    exp.coordinates.lat, exp.coordinates.lng
+                  );
+                  const distanceElement = document.getElementById(`distance-${exp.id}`);
+                  if (distanceElement) {
+                    distanceElement.textContent = `${distance.toFixed(1)}km away`;
+                  }
+                })
+                .catch(() => {
+                  const distanceElement = document.getElementById(`distance-${exp.id}`);
+                  if (distanceElement) {
+                    distanceElement.remove();
+                  }
+                });
+            }
+
+            // Add friend status and rate/edit buttons
             let actionButtons = "";
-            if (exp.userId !== "user-main") {
-              if (!isFriend) {
+            if (exp.userId !== "user-main" && exp.userId !== currentFirebaseUser?.uid) {
+              // Check pending status first
+              const hasPendingRequest = typeof FriendsDiscoverySystem !== 'undefined' && 
+                                      Array.isArray(FriendsDiscoverySystem.pendingRequests) &&
+                                      FriendsDiscoverySystem.pendingRequests.some(r => r.toUserId === exp.userId);
+              
+              if (hasPendingRequest) {
                 actionButtons += `
-            <button class="btn btn-secondary" style="font-size: 0.8rem; padding: 6px 12px; margin-right: 0.5rem;"
-                    onclick="FriendsSystem.addFriend(${exp.userId})">
-              Add Friend
+            <button class="btn" data-pending-for="${exp.userId}" style="font-size: 0.8rem; padding: 6px 12px; margin-right: 0.5rem; background: #fbbf24; color: #1f2937; border: 1px solid #f59e0b;" onclick="FriendsDiscoverySystem.cancelPendingRequest('${exp.userId}')">
+              <i class="fas fa-clock"></i> Pending
+            </button>
+          `;
+              } else if (!isFriend) {
+                actionButtons += `
+            <button class="btn btn-secondary" style="font-size: 0.8rem; padding: 6px 12px; margin-right: 0.5rem;" onclick="FriendsSystem.addFriend('${exp.userId}')">
+              <i class="fas fa-user-plus"></i> Add Friend
             </button>
           `;
               } else {
                 actionButtons += `
-                  <span style="background: #f8f9fa; color: var(--primary-color); font-size: 0.8rem; font-weight: bold; padding: 4px 8px; border-radius: 12px; border: 1px solid var(--primary-color); display: inline-block; margin-right: 0.5rem;">✓ Friend</span>
-          `;
+                  <span style="background: rgba(74, 144, 226, 0.1); color: var(--primary-color); font-size: 0.8rem; font-weight: bold; padding: 4px 8px; border-radius: 12px; border: 1px solid var(--primary-color); display: inline-block; margin-right: 0.5rem;">✓ Friend</span>
+                `;
               }
 
+              // Use Near Me style: show Rate This Place for places user hasn't rated
               if (!hasBeenThere) {
+                const safeDesc = (exp.description || '').replace(/'/g, "\\'");
                 actionButtons += `
-            <button class="btn" style="font-size: 0.8rem; padding: 6px 12px;"
-                    onclick="fillActivityForm('${exp.name}', '${exp.category
-                  }', '${exp.location}', '${exp.description.replace(
-                    /'/g,
-                    "\\'"
-                  )}')">
-              Rate This Place
+                  <button class="btn" style="font-size: 0.8rem; padding: 6px 12px;" onclick="ratePlace('${exp.name.replace(/'/g, "\\'")}', '${exp.category.replace(/'/g, "\\'")}', '${exp.location.replace(/'/g, "\\'")}', '${safeDesc}')">
+                    <i class="fas fa-star"></i> Rate This Place
+                  </button>
+                `;
+              }
+            } else {
+              // For current user's experiences, show edit button
+              actionButtons += `
+            <button class="btn btn-secondary" style="font-size: 0.8rem; padding: 6px 12px;"
+                    onclick="editUserExperience('${exp.id || exp.name}')">
+              <i class="fas fa-edit"></i> Edit
             </button>
           `;
-              }
             }
 
             // Resolve live presence if available
@@ -5024,56 +5485,147 @@
               presenceOnline = user.isOnline;
             }
 
+            // Use the unified Experience Card style across all tabs
             return `
-        <div class="feed-item">
-          <div class="feed-header">
-            <div class="feed-avatar">${user.avatar}</div>
-                              <div class="feed-user-info">
-                    <h4>${addOnlineStatusIndicator(addCrownToPremiumUser(user.displayName, exp.userId), exp.userId, presenceOnline, presenceActive)} ${isFriend ? '<span style="color: var(--primary-color);">★</span>' : ""
-              }</h4>
-              <div class="personality-type">${user.personalityType || "Unknown Type"
-              }</div>
-              <div class="feed-timestamp" title="${formatFullDate(exp.timestamp)}" style="cursor: help;">
-                ${new Date(exp.timestamp).toLocaleDateString()}
+              <div class="experience-card" style="
+                border: 1px solid #eee; 
+                border-radius: 12px; 
+                padding: 1.5rem; 
+                background: white;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+                transition: all 0.2s ease;
+                margin-bottom: 1rem;
+              " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'" 
+                 onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.05)'">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                  <div style="flex: 1;">
+                    <h4 style="margin-bottom: 0.5rem;">${addCrownToPremiumUser(user.displayName, exp.userId)}</h4>
+                    <div style="display: flex; gap: 1rem; margin-bottom: 0.5rem; font-size: 0.9rem;">
+                      <span style="background: var(--secondary-color); color: white; padding: 0.2rem 0.6rem; border-radius: 5px 0px 5px 5px; font-size: 0.8rem;">
+                        ${exp.category}
+                      </span>
+                      <span style="color: #666;">
+                        <i class="fas fa-map-marker-alt"></i> ${exp.location}
+                      </span>
+                    </div>
+                    <h3 style="margin: 0 0 0.5rem 0; color: var(--primary-color); font-size: 1.2rem;">
+                      ${exp.name} ${hasBeenThere ? '<span style="color: var(--primary-color);">✓ Visited</span>' : ''}
+                    </h3>
+                    ${exp.description ? `<p style=\"margin: 0; color: #555; line-height: 1.5; font-size: 0.95rem;\">${exp.description}</p>` : ''}
+                    ${distanceInfo}
+                  </div>
+                  <div style="text-align: right; min-width: 80px;">
+                    <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary-color);">
+                      ${(exp.adjustedScore ?? exp.rawScore ?? 0).toFixed(1)}
+                    </div>
+                    <div style="font-size: 0.8rem; color: #666;">Rating</div>
+                  </div>
+                </div>
+                ${predictionHtml}
+                <div class="user-actions" style="gap: 0.5rem; margin-top: 1rem;">
+                  ${actionButtons}
+                </div>
               </div>
-            </div>
-          </div>
-          <div class="feed-content">
-            <h3>${exp.name} ${hasBeenThere
-                ? '<span style="color: var(--primary-color);">✓ Visited</span>'
-                : ""
-              }</h3>
-            <div class="activity-category">${exp.category} • ${exp.location
-              }</div>
-            ${exp.description
-                ? `<p style="margin: 0.5rem 0; color: #666;">"${exp.description}"</p>`
-                : ""
-              }
-            <div class="feed-rating">Rated: ${exp.adjustedScore}/10</div>
-            <div style="font-size: 0.9rem; color: #888; margin-top: 0.5rem;">
-              Social Intensity: ${exp.socialIntensity.toFixed(1)}/10 |
-              Noise Level: ${exp.noiseLevel.toFixed(1)}/10 |
-              Crowd Size: ${exp.crowdSize.toFixed(1)}/10
-            </div>
-            ${predictionHtml}
-            ${actionButtons
-                ? `<div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #eee;">${actionButtons}</div>`
-                : ""
-              }
-          </div>
-        </div>
-      `;
+            `;
           })
           .join("");
 
         // Load more control
+        console.log('🔍 Checking for load more button. Store hasMore:', FeedSystem.store?.hasMore);
         if (FeedSystem.store && FeedSystem.store.hasMore) {
+          console.log('🔍 Adding load more button');
           feedContent.innerHTML += `
             <div style="display:flex; justify-content:center; margin:16px 0;">
               <button class="btn btn-secondary" onclick="FeedSystem.loadNextPage(false)">Load More</button>
             </div>
           `;
+        } else {
+          console.log('🔍 No load more button needed');
         }
+      },
+
+      // Load nearby experiences from Firebase when none found locally
+      loadNearbyExperiencesFromFirebase: async (userLat, userLng) => {
+        try {
+          if (!authManager) return [];
+          
+          const { collection, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+          const experiencesCollection = collection(authManager.db, 'experiences');
+          const snapshot = await wrapRead(getDocs(experiencesCollection), 'getDocs', 'experiences', { source: 'nearby' });
+          
+          const nearbyExperiences = [];
+          snapshot.forEach((doc) => {
+            const data = doc.data();
+            if (data.coordinates) {
+              const distance = calculateDistance(
+                userLat, userLng,
+                data.coordinates.lat, data.coordinates.lng
+              );
+              
+              if (distance <= 50) { // Within 50km
+                nearbyExperiences.push({
+                  id: data.id || doc.id, // Preserve original ID if it exists, otherwise use Firebase doc ID
+                  firebaseId: doc.id, // Store Firebase document ID separately
+                  ...data,
+                  distance,
+                  timestamp: data.createdAt?.toDate?.() || new Date()
+                });
+              }
+            }
+          });
+          
+          // Sort by distance
+          nearbyExperiences.sort((a, b) => a.distance - b.distance);
+          
+          // Cache the results for future use
+          const currentUser = DataLayer.load('currentUser');
+          if (currentUser) {
+            CacheSystem.set(`NEARBY_${currentUser.id}`, nearbyExperiences);
+          }
+          
+          return nearbyExperiences.slice(0, 20); // Limit to 20 results
+        } catch (error) {
+          console.error('Error loading nearby experiences from Firebase:', error);
+          return [];
+        }
+      },
+
+      // Display empty state for nearby when no experiences found
+      displayEmptyNearbyState: () => {
+        const feedContent = document.getElementById("feed-content");
+        feedContent.innerHTML = `
+          <div class="empty-state">
+            <h3><i class="fas fa-map-marker-alt"></i> No Nearby Experiences</h3>
+            <p>No activities have been shared within 50km of your location yet.</p>
+            <div style="margin-top: 1.5rem;">
+              <button class="btn" onclick="showPage('activities')">
+                <i class="fas fa-plus-circle"></i> Be the First to Share!
+              </button>
+              <button class="btn btn-secondary" onclick="FeedSystem.setFilter('all')" style="margin-left: 0.5rem;">
+                <i class="fas fa-globe"></i> View All Activities
+              </button>
+            </div>
+          </div>
+        `;
+      },
+
+      // Display location permission error state
+      displayLocationPermissionError: () => {
+        const feedContent = document.getElementById("feed-content");
+        feedContent.innerHTML = `
+          <div class="empty-state">
+            <h3><i class="fas fa-location-slash"></i> Location Access Needed</h3>
+            <p>To see nearby activities, please enable location access in your browser settings.</p>
+            <div style="margin-top: 1.5rem;">
+              <button class="btn" onclick="navigator.geolocation.getCurrentPosition(() => { FeedSystem.setFilter('nearby'); }, () => { NotificationSystem.show('Location access denied', 'warning'); })">
+                <i class="fas fa-location-arrow"></i> Try Again
+              </button>
+              <button class="btn btn-secondary" onclick="FeedSystem.setFilter('all')" style="margin-left: 0.5rem;">
+                <i class="fas fa-globe"></i> View All Activities
+              </button>
+            </div>
+          </div>
+        `;
       },
     };
     // Weather API integration for activity recommendations
@@ -5474,8 +6026,8 @@ Only return the JSON, no additional text.`;
         if (member.userId === currentUser.id) {
           return currentUser.isPremium;
         } else {
-          const demoUser = DemoUsers.users[member.userId];
-          return demoUser ? demoUser.isPremium : false;
+          // Demo users removed - Firebase only
+          return false;
         }
       });
 
@@ -5484,8 +6036,8 @@ Only return the JSON, no additional text.`;
         if (member.userId === currentUser.id) {
           return currentUser.isPremium;
         } else {
-          const demoUser = DemoUsers.users[member.userId];
-          return demoUser ? demoUser.isPremium : false;
+          // Demo users removed - Firebase only
+          return false;
         }
       });
 
@@ -5875,8 +6427,8 @@ Only return the JSON, no additional text.`;
         if (member.userId === currentUser.id) {
           return currentUser.isPremium;
         } else {
-          const demoUser = DemoUsers.users[member.userId];
-          return demoUser ? demoUser.isPremium : false;
+          // Demo users removed - Firebase only
+          return false;
         }
       });
 
@@ -5885,8 +6437,8 @@ Only return the JSON, no additional text.`;
         if (member.userId === currentUser.id) {
           return currentUser.isPremium;
         } else {
-          const demoUser = DemoUsers.users[member.userId];
-          return demoUser ? demoUser.isPremium : false;
+          // Demo users removed - Firebase only
+          return false;
         }
       });
 
@@ -5915,7 +6467,7 @@ Only return the JSON, no additional text.`;
                 ${group.members.map(member => {
           const isPremium = member.userId === currentUser.id ?
             currentUser.isPremium :
-            (DemoUsers.users[member.userId] ? DemoUsers.users[member.userId].isPremium : false);
+            false; // Demo users removed - Firebase only
           return `
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem; font-size: 0.8rem;">
                       <span>${addCrownToPremiumUser(member.displayName, member.userId)}</span>
@@ -6116,8 +6668,8 @@ Only return the JSON, no additional text.`;
                 if (member.userId === currentUser.id) {
                   return currentUser.location;
                 } else {
-                  const demoUser = DemoUsers.users[member.userId];
-                  return demoUser ? demoUser.location : null;
+                  // Demo users removed - Firebase only
+                  return null;
                 }
               }).filter(loc => loc !== null);
 
@@ -6228,7 +6780,7 @@ Only return the JSON, no additional text.`;
                 ${group.members.map(member => {
         const isPremium = member.userId === currentUser.id ?
           currentUser.isPremium :
-          (DemoUsers.users[member.userId] ? DemoUsers.users[member.userId].isPremium : false);
+          false; // Demo users removed - Firebase only
         return `
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem; font-size: 0.8rem;">
                       <span>${addCrownToPremiumUser(member.displayName, member.userId)}</span>
@@ -6296,10 +6848,12 @@ Only return the JSON, no additional text.`;
       `;
     }
 
-    // Function to update user's location
-    async function updateUserLocation() {
+    // Manual handler to fetch and persist user's location
+    async function handleUpdateUserLocation() {
       try {
         const location = await getUserLocation();
+        // Persist to Firebase as well
+        await updateUserLocation(location);
         NotificationSystem.show("Location updated successfully!", "success");
         // Refresh the profile page to show updated location
         showPage("profile");
@@ -6376,10 +6930,7 @@ Only return the JSON, no additional text.`;
             const memberLocations = group.members.map(member => {
               if (member.userId === currentUser.id) {
                 return currentUser.location;
-              } else {
-                const demoUser = DemoUsers.users[member.userId];
-                return demoUser ? demoUser.location : null;
-              }
+              } 
             }).filter(loc => loc !== null);
 
             console.log(`🌤️ Member locations:`, memberLocations);
@@ -6480,8 +7031,8 @@ Only return the JSON, no additional text.`;
         if (member.userId === currentUser.id) {
           return currentUser.isPremium;
         } else {
-          const demoUser = DemoUsers.users[member.userId];
-          return demoUser ? demoUser.isPremium : false;
+          // Demo users removed - Firebase only
+          return false;
         }
       });
 
@@ -7277,7 +7828,7 @@ Only return the JSON, no additional text.`;
         setTimeout(async () => {
           try {
             await GroupsSystem.resetAndLoad();
-            GroupsSystem.displayGroups();
+          GroupsSystem.displayGroups();
           } finally {
             GroupsSystem._initInFlight = false;
           }
@@ -7584,7 +8135,7 @@ Only return the JSON, no additional text.`;
             ...members.map(member => ({
               ...member,
               role: 'member', // Other members have member role
-              location: DemoUsers.users[member.userId]?.location || { lat: 43.4643, lng: -80.5204 }
+              location: { lat: 43.4643, lng: -80.5204 } // Default location - Firebase only
             })),
           ],
           votes: {},
@@ -7732,8 +8283,9 @@ Only return the JSON, no additional text.`;
             let memberPredictions = 0;
 
             experiences.forEach((exp) => {
-              const ratingUser = DemoUsers.users[exp.userId];
-              if (ratingUser) {
+              // Skip demo user lookups - no longer using demo data
+              const ratingUser = null; // Only use Firebase user data going forward
+              if (false) { // Disabled demo prediction logic
                 const prediction = ActivitySystem.predictRating(
                   member.adjustmentFactor,
                   exp,
@@ -7971,8 +8523,8 @@ Only return the JSON, no additional text.`;
                   if (member.userId === currentUser.id) {
                     return currentUser.isPremium;
                   } else {
-                    const demoUser = DemoUsers.users[member.userId];
-                    return demoUser ? demoUser.isPremium : false;
+                    // Demo users removed - Firebase only
+                    return false;
                   }
                 });
 
@@ -7981,8 +8533,8 @@ Only return the JSON, no additional text.`;
                   if (member.userId === currentUser.id) {
                     return currentUser.isPremium;
                   } else {
-                    const demoUser = DemoUsers.users[member.userId];
-                    return demoUser ? demoUser.isPremium : false;
+                    // Demo users removed - Firebase only
+                    return false;
                   }
                 });
 
@@ -8059,8 +8611,8 @@ Only return the JSON, no additional text.`;
                   if (member.userId === currentUser.id) {
                     return currentUser.isPremium;
                   } else {
-                    const demoUser = DemoUsers.users[member.userId];
-                    return demoUser ? demoUser.isPremium : false;
+                    // Demo users removed - Firebase only
+                    return false;
                   }
                 });
 
@@ -8772,33 +9324,33 @@ Only return the JSON, no additional text.`;
                 
                 <div style="margin: 2rem 0;">
                   <h4 style="margin-bottom: 1rem; color: var(--primary-color);">Rate Your Experience</h4>
-                                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-                     <div class="form-group">
-                       <label for="edit-energy">Energy Level (1-10)</label>
-                       <input type="range" class="rating-slider" min="1" max="10" value="${experience.responses.energy}" oninput="updateSliderValue(this, 'slider-energy')" id="edit-energy">
-                       <div style="text-align: center; font-weight: bold; color: var(--primary-color);" id="slider-energy">${experience.responses.energy}</div>
-                     </div>
-                     <div class="form-group">
-                       <label for="edit-social">Social Interaction (1-10)</label>
-                       <input type="range" class="rating-slider" min="1" max="10" value="${experience.responses.social}" oninput="updateSliderValue(this, 'slider-social')" id="edit-social">
-                       <div style="text-align: center; font-weight: bold; color: var(--primary-color);" id="slider-social">${experience.responses.social}</div>
-                     </div>
-                     <div class="form-group">
-                       <label for="edit-comfort">Comfort Level (1-10)</label>
-                       <input type="range" class="rating-slider" min="1" max="10" value="${experience.responses.comfort}" oninput="updateSliderValue(this, 'slider-comfort')" id="edit-comfort">
-                       <div style="text-align: center; font-weight: bold; color: var(--primary-color);" id="slider-comfort">${experience.responses.comfort}</div>
-                     </div>
-                     <div class="form-group">
-                       <label for="edit-overwhelm">Overwhelm Level (1-10)</label>
-                       <input type="range" class="rating-slider" min="1" max="10" value="${experience.responses.overwhelm}" oninput="updateSliderValue(this, 'slider-overwhelm')" id="edit-overwhelm">
-                       <div style="text-align: center; font-weight: bold; color: var(--primary-color);" id="slider-overwhelm">${experience.responses.overwhelm}</div>
-                     </div>
-                     <div class="form-group">
-                       <label for="edit-return">Would Return (1-10)</label>
-                       <input type="range" class="rating-slider" min="1" max="10" value="${experience.responses.return}" oninput="updateSliderValue(this, 'slider-return')" id="edit-return">
-                       <div style="text-align: center; font-weight: bold; color: var(--primary-color);" id="slider-return">${experience.responses.return}</div>
-                     </div>
-                   </div>
+                  <div class="rating-questions">
+                    <div class="rating-question">
+                      <label>How energized did you feel?</label>
+                      <input type="range" class="rating-slider" min="1" max="10" value="${experience.responses.energy}" oninput="updateSliderValue(this, 'edit-slider-energy')" id="edit-energy">
+                      <div class="slider-value" id="edit-slider-energy">${experience.responses.energy}</div>
+                    </div>
+                    <div class="rating-question">
+                      <label>How satisfied were you with the social interaction?</label>
+                      <input type="range" class="rating-slider" min="1" max="10" value="${experience.responses.social}" oninput="updateSliderValue(this, 'edit-slider-social')" id="edit-social">
+                      <div class="slider-value" id="edit-slider-social">${experience.responses.social}</div>
+                    </div>
+                    <div class="rating-question">
+                      <label>How comfortable did you feel in this environment?</label>
+                      <input type="range" class="rating-slider" min="1" max="10" value="${experience.responses.comfort}" oninput="updateSliderValue(this, 'edit-slider-comfort')" id="edit-comfort">
+                      <div class="slider-value" id="edit-slider-comfort">${experience.responses.comfort}</div>
+                    </div>
+                    <div class="rating-question">
+                      <label>How overwhelming was the environment? (Rate higher if it felt more overwhelming)</label>
+                      <input type="range" class="rating-slider" min="1" max="10" value="${experience.responses.overwhelm}" oninput="updateSliderValue(this, 'edit-slider-overwhelm')" id="edit-overwhelm">
+                      <div class="slider-value" id="edit-slider-overwhelm">${experience.responses.overwhelm}</div>
+                    </div>
+                    <div class="rating-question">
+                      <label>How likely are you to return?</label>
+                      <input type="range" class="rating-slider" min="1" max="10" value="${experience.responses.return}" oninput="updateSliderValue(this, 'edit-slider-return')" id="edit-return">
+                      <div class="slider-value" id="edit-slider-return">${experience.responses.return}</div>
+                    </div>
+                  </div>
                 </div>
                 
                 <div style="text-align: center; margin-top: 2rem;">
@@ -8824,7 +9376,7 @@ Only return the JSON, no additional text.`;
       document.body.classList.remove('modal-open');
     }
 
-    function handleEditExperience(event, index) {
+    async function handleEditExperience(event, index) {
       event.preventDefault();
 
       const userExperiences = DataLayer.load("userExperiences", []);
@@ -8852,17 +9404,183 @@ Only return the JSON, no additional text.`;
       experience.rawScore = rawScore;
       experience.adjustedScore = adjustedScore;
 
-      // Save updated experiences
+      // Save updated experiences locally
       DataLayer.save("userExperiences", userExperiences);
+      
+      // Also update the allExperiences in DataLayer if it exists
+      const allExperiences = DataLayer.load("allExperiences", []);
+      const updatedAllExperiences = allExperiences.map(exp => {
+        if (exp.id === experience.id) {
+          return { ...exp, ...experience };
+        }
+        return exp;
+      });
+      DataLayer.save("allExperiences", updatedAllExperiences);
+
+      // Update Firebase if user is authenticated
+      if (currentFirebaseUser && authManager && experience.id) {
+        try {
+          const { doc, updateDoc, collection, query, where, getDocs, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+
+          // Find the experience in Firebase and update it
+          const experiencesCollection = collection(authManager.db, 'experiences');
+          const experienceQuery = query(
+            experiencesCollection,
+            where('userId', '==', currentFirebaseUser.uid),
+            where('id', '==', experience.id)
+          );
+
+          const experienceSnapshot = await wrapRead(getDocs(experienceQuery), 'getDocs', 'experiences', { userId: currentFirebaseUser.uid, id: experience.id });
+
+          if (!experienceSnapshot.empty) {
+            const experienceDoc = experienceSnapshot.docs[0];
+            await wrapWrite(
+              updateDoc(doc(authManager.db, 'experiences', experienceDoc.id), {
+                name: experience.name,
+                category: experience.category,
+                location: experience.location,
+                description: experience.description,
+                responses: experience.responses,
+                rawScore: experience.rawScore,
+                adjustedScore: experience.adjustedScore,
+                updatedAt: serverTimestamp()
+              }),
+              'updateDoc',
+              `experiences/${experienceDoc.id}`,
+              { reason: 'editExperience' }
+            );
+            console.log('Experience updated in Firebase');
+          } else {
+            // If we can't find by ID, try to find by other properties
+            const fallbackQuery = query(
+              experiencesCollection,
+              where('userId', '==', currentFirebaseUser.uid),
+              where('name', '==', experience.name),
+              where('category', '==', experience.category)
+            );
+
+            const fallbackSnapshot = await wrapRead(getDocs(fallbackQuery), 'getDocs', 'experiences', { userId: currentFirebaseUser.uid, name: experience.name });
+            if (!fallbackSnapshot.empty) {
+              const experienceDoc = fallbackSnapshot.docs[0];
+              await wrapWrite(
+                updateDoc(doc(authManager.db, 'experiences', experienceDoc.id), {
+                  name: experience.name,
+                  category: experience.category,
+                  location: experience.location,
+                  description: experience.description,
+                  responses: experience.responses,
+                  rawScore: experience.rawScore,
+                  adjustedScore: experience.adjustedScore,
+                  updatedAt: serverTimestamp()
+                }),
+                'updateDoc',
+                `experiences/${experienceDoc.id}`,
+                { reason: 'editExperienceFallback' }
+              );
+              console.log('Experience updated in Firebase (fallback method)');
+            }
+          }
+        } catch (error) {
+          console.error('Error updating experience in Firebase:', error);
+          NotificationSystem.show('Experience updated locally, but failed to sync with server.', 'warning');
+        }
+      }
 
       // Close modal and show success message
       closeEditExperienceModal();
-      closeExperiencesModal();
       NotificationSystem.show("Experience updated successfully!", "success");
 
-      // Refresh the page data
-      updateDashboard();
-      updateProfile();
+      // Clear all relevant caches to force a fresh load
+      if (typeof CacheSystem !== 'undefined') {
+        CacheSystem.clear('EXPERIENCES');
+        
+        // Clear feed cache if FeedSystem exists
+        if (typeof FeedSystem !== 'undefined' && FeedSystem.store && FeedSystem.store.cacheKey) {
+          CacheSystem.clear(FeedSystem.store.cacheKey);
+          console.log('✅ Cleared feed cache:', FeedSystem.store.cacheKey);
+        }
+        
+        // Clear any nearby experiences cache
+        const currentUser = DataLayer.load('currentUser');
+        if (currentUser && currentUser.id) {
+          CacheSystem.clear(`NEARBY_${currentUser.id}`);
+          console.log('✅ Cleared nearby experiences cache');
+        }
+        
+        console.log('✅ Cleared all experience-related caches');
+      }
+
+      // Refresh all UI components
+      setTimeout(() => {
+        // Update dashboard and profile pages
+        updateDashboard();
+        updateProfile();
+        
+        // Update feed if it exists
+        if (typeof FeedSystem !== 'undefined' && FeedSystem.displayFeed) {
+          FeedSystem.displayFeed();
+        }
+        
+        // Refresh experiences modal if it's open
+        const experiencesModal = document.getElementById('experiences-modal');
+        if (experiencesModal) {
+          console.log('✅ Refreshing experiences modal');
+          closeExperiencesModal();
+          setTimeout(() => {
+            showExperiencesModal();
+          }, 50);
+        }
+        
+        // Refresh any other experience-related displays
+        // Force a page refresh for any dynamically generated content
+        const currentPage = document.querySelector('.page:not(.hidden)');
+        if (currentPage) {
+          const currentPageId = currentPage.id;
+          console.log('✅ Refreshing current page:', currentPageId);
+          
+          // Re-trigger page-specific updates
+          if (typeof updateOnPageVisit === 'function') {
+            updateOnPageVisit(currentPageId);
+          }
+        }
+        
+        // Force reload of user experiences from Firebase
+        if (typeof loadUserExperiencesWithCache === 'function') {
+          loadUserExperiencesWithCache().then(() => {
+            console.log('✅ Reloaded experiences from Firebase');
+            // Update UI again after reload
+            updateDashboard();
+            updateProfile();
+            if (typeof FeedSystem !== 'undefined' && FeedSystem.displayFeed) {
+              FeedSystem.displayFeed();
+            }
+            
+            // Refresh experiences modal again if it's open
+            const experiencesModalAfterReload = document.getElementById('experiences-modal');
+            if (experiencesModalAfterReload) {
+              console.log('✅ Refreshing experiences modal after reload');
+              closeExperiencesModal();
+              setTimeout(() => {
+                showExperiencesModal();
+              }, 50);
+            }
+            
+            // Refresh any other experience-related displays after reload
+            const currentPageAfterReload = document.querySelector('.page:not(.hidden)');
+            if (currentPageAfterReload) {
+              const currentPageIdAfterReload = currentPageAfterReload.id;
+              console.log('✅ Refreshing current page after reload:', currentPageIdAfterReload);
+              
+              // Re-trigger page-specific updates
+              if (typeof updateOnPageVisit === 'function') {
+                updateOnPageVisit(currentPageIdAfterReload);
+              }
+            }
+          }).catch(error => {
+            console.error('Error reloading experiences:', error);
+          });
+        }
+      }, 100);
     }
 
     async function deleteExperience(index) {
@@ -9353,7 +10071,18 @@ Only return the JSON, no additional text.`;
                 </div>
                   ${user.bio ? `<div style="font-size: 0.9rem; color: #666; margin-bottom: 0.8rem;">"${user.bio}"</div>` : ''}
                   <div style="text-align: center;">
-                    <button class="btn" style="font-size: 0.8rem; padding: 6px 12px;" onclick="FriendsSystem.addFriend('${user.id}')">Add Friend</button>
+                    ${(() => {
+                      // Check pending status first
+                      const hasPendingRequest = typeof FriendsDiscoverySystem !== 'undefined' && 
+                                              Array.isArray(FriendsDiscoverySystem.pendingRequests) &&
+                                              FriendsDiscoverySystem.pendingRequests.some(r => r.toUserId === user.id);
+                      
+                      if (hasPendingRequest) {
+                        return `<button class=\"btn\" data-pending-for=\"${user.id}\" style=\"font-size: 0.8rem; padding: 6px 12px; background: #fbbf24; color: #1f2937; border: 1px solid #f59e0b;\" onclick=\"FriendsDiscoverySystem.cancelPendingRequest('${user.id}')\"><i class=\"fas fa-clock\"></i> Pending</button>`;
+                      } else {
+                        return `<button class="btn" style="font-size: 0.8rem; padding: 6px 12px;" onclick="FriendsSystem.addFriend('${user.id}')">Add Friend</button>`;
+                      }
+                    })()}
                 </div>
                 </div>
               `;
@@ -9602,7 +10331,7 @@ Only return the JSON, no additional text.`;
             This location is used for weather-based activity recommendations
           </div>
         </div>
-        <button class="btn btn-secondary" onclick="updateUserLocation()" style="font-size: 0.8rem; padding: 8px 16px;">
+        <button class="btn btn-secondary" onclick="handleUpdateUserLocation()" style="font-size: 0.8rem; padding: 8px 16px;">
           <i class="fas fa-location-arrow"></i> Update Location
         </button>
       </div>
@@ -9658,8 +10387,7 @@ Only return the JSON, no additional text.`;
               <div style="text-align: right; margin-left: 1rem;">
                 <div style="font-weight: bold; font-size: 1.3rem; color: var(--secondary-color);">${exp.adjustedScore
                 }/10</div>
-                <div style="font-size: 0.8rem; color: #888;">Raw: ${exp.rawScore
-                }/10</div>
+
               </div>
             </div>
         `
@@ -9728,6 +10456,7 @@ Only return the JSON, no additional text.`;
 
     // UI Management
     function showPage(pageId) {
+      console.log('📱 showPage() called with pageId:', pageId);
       // Check authentication for protected pages
       const protectedPages = ['dashboard', 'assessment', 'activities', 'feed', 'groups', 'friends', 'profile'];
       if (protectedPages.includes(pageId) && !currentFirebaseUser) {
@@ -9790,30 +10519,12 @@ Only return the JSON, no additional text.`;
           // Initialize location functionality immediately
           setTimeout(() => {
             initializeLocationAutocomplete();
-            // Prompt user for location permission if not already granted
-            if (navigator.geolocation) {
-              navigator.geolocation.getCurrentPosition(
-                (position) => {
-                  console.log("Location permission granted");
-                  // Pre-fill location field with current location
-                  reverseGeocodeAndFillLocation(position.coords.latitude, position.coords.longitude);
-                },
-                (error) => {
-                  console.log("Location permission denied or unavailable:", error.message);
-                  // Add 1 second delay before showing any notification
-                  setTimeout(() => {
-                    // Show a helpful message to the user
-                    // NotificationSystem.show(
-                    //   "Location access denied. You can still manually enter your location.",
-                    //   "info"
-                    // );
-                  }, 1000);
-                }
-              );
-            }
-          }, 100);
+            // Auto-get current location when page opens
+            autoFillCurrentLocation();
+          }, 500);
           break;
         case "feed":
+          console.log('📱 Feed page selected, calling updateOnPageVisit');
           updateOnPageVisit('feed');
           break;
         case "groups":
@@ -10038,7 +10749,7 @@ Only return the JSON, no additional text.`;
                   <div style="display: grid; gap: 1rem;">
                     ${topNearbyExperiences.map((exp, index) => {
             const distance = calculateDistance(lat, lng, exp.coordinates.lat, exp.coordinates.lng);
-            const user = DemoUsers.users[exp.userId];
+            const user = null; // Demo users removed - Firebase only
             const isFriend = friendIds.includes(exp.userId);
             const hasVisited = userExperiences.some(userExp =>
               userExp.name.toLowerCase() === exp.name.toLowerCase()
@@ -10187,7 +10898,7 @@ Only return the JSON, no additional text.`;
         return;
       }
 
-      const user = DemoUsers.users[userId];
+      const user = null; // Demo users removed - Firebase only
       const friends = FriendsSystem.getFriends();
       const isFriend = friends.some(friend => friend.id === userId);
 
@@ -10234,7 +10945,7 @@ Only return the JSON, no additional text.`;
                   <div>
                     <div style="font-weight: bold; font-size: 1.1rem;">
                       ${addCrownToPremiumUser(user ? user.displayName : 'Unknown', userId)}
-                      ${isFriend ? '<span style="color: var(--primary-color);">★</span>' : ''}
+                      
                     </div>
                     <div style="font-size: 0.9rem; color: #666;">
                       ${user ? user.personalityType : 'Unknown Type'} • ${new Date(mappedExperience.timestamp).toLocaleDateString()}
@@ -10486,6 +11197,38 @@ Only return the JSON, no additional text.`;
           useLocationBtn.disabled = false;
         });
     }
+
+    function autoFillCurrentLocation() {
+      locationFound = false; // Reset flag at start
+      const locationInput = document.getElementById("activity-location");
+
+      if (!locationInput) return;
+
+      // Only auto-fill if the input is empty (don't override user input)
+      if (locationInput.value.trim() !== '') return;
+
+      console.log("Auto-filling current location...");
+
+      getUserLocationWithFallback()
+        .then((position) => {
+          locationFound = true; // Set flag when location is found
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+
+          console.log("Auto-filled location coordinates:", lat, lng);
+
+          // Use the reverse geocoding function to fill the location
+          reverseGeocodeAndFillLocation(lat, lng);
+
+          // Show a subtle notification
+          NotificationSystem.show("Location auto-detected!", "success");
+        })
+        .catch((error) => {
+          console.log("Could not auto-detect location:", error.message);
+          // Silently fail for auto-fill (don't show error notification)
+        });
+    }
+
     // Notification system
     // Global variable to track if location was successfully found
     let locationFound = false;
@@ -10494,19 +11237,7 @@ Only return the JSON, no additional text.`;
       const currentUser = DataLayer.load("currentUser");
       console.log('📍 Current user for location:', currentUser);
 
-      // If current user is a demo user, use their predefined location
-      if (currentUser && currentUser.id && DemoUsers.users[currentUser.id]) {
-        const demoUser = DemoUsers.users[currentUser.id];
-        if (demoUser && demoUser.location) {
-          console.log(`📍 Using demo user location for ${demoUser.displayName}:`, demoUser.location);
-          return {
-            coords: {
-              latitude: demoUser.location.lat,
-              longitude: demoUser.location.lng
-            }
-          };
-        }
-      }
+      // Demo users removed - Firebase only
 
       // If current user has a saved location, use that
       if (currentUser && currentUser.location) {
@@ -10629,7 +11360,7 @@ Only return the JSON, no additional text.`;
           default:
             notification.style.borderLeft = "4px solid #3b82f6";
             icon = `<svg width="20" height="20" fill="var(--info-color)" viewBox="0 0 20 20">
-          <path fill-rule="evenodd" d="M18 10a8 8 0 100-16 8 8 0 000 16zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+          <path fill-rule="evenodd" d="M11 6a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
         </svg>`;
         }
 
@@ -11075,10 +11806,7 @@ Only return the JSON, no additional text.`;
     }
     // Initialize app
     document.addEventListener("DOMContentLoaded", () => {
-      // Initialize demo data in memory to make the app feel populated
-      const demoExperiences = DemoUsers.experiences.map((exp) => ({
-        ...exp,
-      }));
+      // Demo experiences removed - Firebase only
 
       // Start with login page - Firebase auth will redirect if user is signed in
       showPage("login");
@@ -11671,7 +12399,7 @@ Only return the JSON, no additional text.`;
         }
       });
 
-    // Track window focus/blur for more granular presence
+      // Track window focus/blur for more granular presence
       window.addEventListener('focus', () => {
         if (!document.hidden) {
           resumeRealtimeListeners();
@@ -12474,7 +13202,7 @@ Only return the JSON, no additional text.`;
 
     // Enhanced initialization with comprehensive data strategy
       let _initRealtimeInFlight = false;
-      async function initializeRealtimeSystem() {
+    async function initializeRealtimeSystem() {
       if (!currentFirebaseUser || !authManager) return;
         if (_initRealtimeInFlight) return; // cooldown: skip duplicate inits
         _initRealtimeInFlight = true;
@@ -12490,7 +13218,7 @@ Only return the JSON, no additional text.`;
       // Start background location scheduler
       startLocationScheduler();
 
-        console.log('✅ Real-time system fully initialized');
+      console.log('✅ Real-time system fully initialized');
         setTimeout(() => { _initRealtimeInFlight = false; }, 100);
     }
 
@@ -12585,10 +13313,12 @@ Only return the JSON, no additional text.`;
         const snapshot = await getDocs(experiencesQuery);
         const experiences = [];
         snapshot.forEach((doc) => {
+          const data = doc.data();
           experiences.push({
-            id: doc.id,
-            ...doc.data(),
-            timestamp: doc.data().createdAt?.toDate?.() || new Date()
+            id: data.id || doc.id, // Preserve original ID if it exists, otherwise use Firebase doc ID
+            firebaseId: doc.id, // Store Firebase document ID separately
+            ...data,
+            timestamp: data.createdAt?.toDate?.() || new Date()
           });
         });
 
@@ -12849,10 +13579,10 @@ Only return the JSON, no additional text.`;
             FriendsDiscoverySystem.friendRequests = newRequests;
             FriendsDiscoverySystem.updateFriendRequestBadge();
 
-            // Force immediate UI refresh if on friendship page
-            if (!document.getElementById('friendship-section').classList.contains('hidden')) {
-              FriendsDiscoverySystem.displayUsers();
-            }
+          // Force immediate UI refresh in any friendship UI
+          if (typeof FriendsDiscoverySystem !== 'undefined' && FriendsDiscoverySystem.displayUsers) {
+            FriendsDiscoverySystem.displayUsers();
+          }
 
             // Show notification for new requests only if count increased
             if (newRequests.length > previousCount && newRequests.length > 0) {
@@ -12969,7 +13699,7 @@ Only return the JSON, no additional text.`;
                 if (!exists) {
                   FriendsDiscoverySystem.currentFriends = [...(FriendsDiscoverySystem.currentFriends || []), { id: friendId }];
                 }
-                  FriendsDiscoverySystem.displayUsers();
+                FriendsDiscoverySystem.displayUsers();
                 refreshUserStatusListeners();
               }
             }
@@ -12992,7 +13722,7 @@ Only return the JSON, no additional text.`;
                 if (!exists) {
                   FriendsDiscoverySystem.currentFriends = [...(FriendsDiscoverySystem.currentFriends || []), { id: friendId }];
                 }
-                  FriendsDiscoverySystem.displayUsers();
+                FriendsDiscoverySystem.displayUsers();
                 refreshUserStatusListeners();
               }
             }
@@ -13153,7 +13883,7 @@ Only return the JSON, no additional text.`;
     }
 
     
-    // Location scheduler: checks every 10 minutes and updates Firebase if moved ≥ 100m
+    // Location scheduler: checks every 10 minutes and updates Firebase if moved ≥ 50m
     async function startLocationScheduler() {
       if (!currentFirebaseUser || !authManager) return;
       if (locationSchedulerStarted) return;
@@ -13195,20 +13925,20 @@ Only return the JSON, no additional text.`;
             accuracy: position.coords.accuracy
           };
 
-          // Check if location has changed significantly (>= 100m radius)
+          // Check if location has changed significantly (>= 50m radius)
           if (lastKnownLocation) {
             const distance = calculateDistance(
               lastKnownLocation.lat, lastKnownLocation.lng,
               newLocation.lat, newLocation.lng
             );
 
-            // Only update if moved more than 100 meters
-            if (distance >= 100) {
-              console.log(`Location changed by ${distance.toFixed(0)}m, updating Firebase`);
+            // Only update if moved more than 50 meters
+            if (distance >= 50) {
+              console.log(`Location changed by ${distance.toFixed(0)}m (>=50m), updating Firebase`);
               await updateUserLocation(newLocation);
               lastKnownLocation = newLocation;
             } else {
-              console.log(`Location change too small (${distance.toFixed(0)}m), not updating`);
+              console.log(`Location change too small (${distance.toFixed(0)}m < 50m), not updating`);
             }
           } else {
             // First time getting location
@@ -13221,7 +13951,7 @@ Only return the JSON, no additional text.`;
         }
       }
 
-      // Location update every 10 minutes with 100m threshold
+      // Location update every 10 minutes with 50m threshold
       statusUpdateInterval = setInterval(async () => {
         try {
           await checkAndUpdateLocation();
@@ -13290,6 +14020,7 @@ Only return the JSON, no additional text.`;
 
     // Update user location in Firebase
     async function updateUserLocation(location) {
+      console.log('updateUserLocation', location);
       if (!currentFirebaseUser || !authManager || !location) return;
 
       // Validate location object
@@ -13501,7 +14232,8 @@ Only return the JSON, no additional text.`;
             experiencesSnapshot.forEach((doc) => {
               const experienceData = doc.data();
               userExperiences.push({
-                id: doc.id,
+                id: experienceData.id || doc.id, // Preserve original ID if it exists, otherwise use Firebase doc ID
+                firebaseId: doc.id, // Store Firebase document ID separately
                 ...experienceData,
                 timestamp: experienceData.createdAt?.toDate?.() || new Date()
               });
@@ -13512,6 +14244,7 @@ Only return the JSON, no additional text.`;
             break;
 
           case 'feed':
+            console.log('🔄 updateOnPageVisit: feed case - initializing FeedSystem');
             // Use paginated feed loader with caching
             await FeedSystem.resetAndLoad();
             // Initialize real-time system for friendship features
@@ -13553,7 +14286,8 @@ Only return the JSON, no additional text.`;
             profileExperiencesSnapshot.forEach((doc) => {
               const experienceData = doc.data();
               profileUserExperiences.push({
-                id: doc.id,
+                id: experienceData.id || doc.id, // Preserve original ID if it exists, otherwise use Firebase doc ID
+                firebaseId: doc.id, // Store Firebase document ID separately
                 ...experienceData,
                 timestamp: experienceData.createdAt?.toDate?.() || new Date()
               });
@@ -13787,6 +14521,73 @@ Only return the JSON, no additional text.`;
       // Hide loading state
       hideLoadingState() {
         // Will be replaced by actual content
+      },
+
+      // Queue user for background loading
+      queueUserForLoading(userId) {
+        if (!this._userLoadingQueue) {
+          this._userLoadingQueue = new Set();
+        }
+        if (!this._userLoadingQueue.has(userId)) {
+          this._userLoadingQueue.add(userId);
+          // Process queue in background
+          this._processUserLoadingQueue();
+        }
+      },
+
+      // Process user loading queue
+      async _processUserLoadingQueue() {
+        if (this._processingQueue || !this._userLoadingQueue || this._userLoadingQueue.size === 0) {
+          return;
+        }
+        
+        this._processingQueue = true;
+        const userIds = Array.from(this._userLoadingQueue);
+        this._userLoadingQueue.clear();
+        
+        try {
+          const { collection, query, where, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+          const usersCollection = collection(authManager.db, 'users');
+          const q = query(usersCollection, where('__name__', 'in', userIds));
+          const snapshot = await getDocs(q);
+          
+          snapshot.forEach((docSnap) => {
+            const userData = docSnap.data();
+            const user = {
+              id: docSnap.id,
+              displayName: userData.displayName || 'Unknown User',
+              username: userData.username || '',
+              avatar: userData.avatar || '?',
+              adjustmentFactor: userData.adjustmentFactor || 0,
+              personalityType: userData.personalityType || 'Not Set',
+              isPremium: userData.isPremium || false
+            };
+            
+            // Cache user data individually for faster lookups
+            CacheSystem.set(`USER_${user.id}`, user);
+            
+            // Add to allUsers array
+            if (Array.isArray(this.allUsers)) {
+              const existingIndex = this.allUsers.findIndex(u => u.id === user.id);
+              if (existingIndex >= 0) {
+                this.allUsers[existingIndex] = user;
+              } else {
+                this.allUsers.push(user);
+              }
+            }
+          });
+          
+          // Trigger feed refresh to show updated user data
+          if (typeof FeedSystem !== 'undefined' && FeedSystem.displayFeed) {
+            setTimeout(() => FeedSystem.displayFeed(), 100);
+          }
+          
+          console.log('✅ Loaded and cached', snapshot.size, 'users from queue');
+        } catch (error) {
+          console.error('Error processing user loading queue:', error);
+        } finally {
+          this._processingQueue = false;
+        }
       },
 
       // Load all users from Firebase with aggressive caching (server-side pagination: 20 per page)
@@ -14028,17 +14829,42 @@ Only return the JSON, no additional text.`;
       },
 
       // Set filter
-      setFilter(filter) {
+      async setFilter(filter) {
         this.currentFilter = filter;
 
-        // Update active tab - safely handle event
-        document.querySelectorAll('.filter-tab').forEach(tab => {
-          tab.classList.remove('active');
+        // Update active dropdown items instead of tabs
+        document.querySelectorAll('#friendship-filter-menu .filter-dropdown-item').forEach(item => {
+          item.classList.remove('active');
         });
 
-        // Only update active tab if event exists and target is a filter tab
-        if (typeof event !== 'undefined' && event.target && event.target.classList.contains('filter-tab')) {
-          event.target.classList.add('active');
+        // Find and activate the correct dropdown item
+        const filterMap = {
+          'all': 'All Users',
+          'similar': 'Similar to You',
+          'friends': 'My Friends',
+          'requests': 'Friend Requests'
+        };
+        
+        const filterText = filterMap[filter] || 'All Users';
+        const targetItem = Array.from(document.querySelectorAll('#friendship-filter-menu .filter-dropdown-item'))
+          .find(item => item.textContent.trim().includes(filterText));
+        
+        if (targetItem) {
+          targetItem.classList.add('active');
+          // Update button text
+          const textElement = document.getElementById('friendship-filter-text');
+          if (textElement) {
+            textElement.textContent = filterText;
+          }
+        }
+
+        // When switching to 'friends', ensure we have fresh data
+        if (filter === 'friends') {
+          console.log('Switching to My Friends - refreshing friends data');
+          // Force fresh friends data by invalidating cache
+          CacheSystem.invalidateFriendsCache();
+          await this.loadCurrentFriendsOptimized();
+          console.log('Friends data refreshed:', this.currentFriends.length, 'friends found');
         }
 
         this.displayUsers();
@@ -14087,9 +14913,11 @@ Only return the JSON, no additional text.`;
           switch (this.currentFilter) {
             case 'all':
               usersToDisplay = this.allUsers.filter(user =>
-                user && user.displayName && user.displayName.toLowerCase().includes(searchTerm) ||
-                user && user.username && user.username.toLowerCase().includes(searchTerm) ||
-                user && user.personalityType && user.personalityType.toLowerCase().includes(searchTerm)
+                user && (
+                  (user.displayName && user.displayName.toLowerCase().includes(searchTerm)) ||
+                  (user.username && user.username.toLowerCase().includes(searchTerm)) ||
+                  (user.personalityType && user.personalityType.toLowerCase().includes(searchTerm))
+                )
               );
               break;
             case 'similar':
@@ -14099,15 +14927,19 @@ Only return the JSON, no additional text.`;
                   if (!user || user.adjustmentFactor === undefined) return false;
                   const personalityDiff = Math.abs(user.adjustmentFactor - currentUser.adjustmentFactor);
                   return personalityDiff <= 0.3 && // Similar personality
-                    (user.displayName && user.displayName.toLowerCase().includes(searchTerm) ||
-                      user.username && user.username.toLowerCase().includes(searchTerm));
+                    (
+                      (user.displayName && user.displayName.toLowerCase().includes(searchTerm)) ||
+                      (user.username && user.username.toLowerCase().includes(searchTerm))
+                    );
                 });
               }
               break;
             case 'friends':
               usersToDisplay = this.currentFriends.filter(user =>
-                user && user.displayName && user.displayName.toLowerCase().includes(searchTerm) ||
-                user && user.username && user.username.toLowerCase().includes(searchTerm)
+                user && (
+                  (user.displayName && user.displayName.toLowerCase().includes(searchTerm)) ||
+                  (user.username && user.username.toLowerCase().includes(searchTerm))
+                )
               );
               break;
             case 'requests':
@@ -14115,8 +14947,10 @@ Only return the JSON, no additional text.`;
                 .filter(request => request && request.fromUser)
                 .map(request => request.fromUser)
                 .filter(user =>
-                  user && user.displayName && user.displayName.toLowerCase().includes(searchTerm) ||
-                  user && user.username && user.username.toLowerCase().includes(searchTerm)
+                  user && (
+                    (user.displayName && user.displayName.toLowerCase().includes(searchTerm)) ||
+                    (user.username && user.username.toLowerCase().includes(searchTerm))
+                  )
                 );
               break;
           }
@@ -14220,7 +15054,7 @@ Only return the JSON, no additional text.`;
                   </div>
                 </div>
                 
-                <div style="text-align: right;">
+                <div class="user-actions" style="text-align: right;">
                   ${this.getActionButton(user, isFriend, hasRequest, hasPendingRequest)}
                 </div>
               </div>
@@ -14282,13 +15116,11 @@ Only return the JSON, no additional text.`;
         if (isFriend) {
           return `
             <div style="text-align: center;">
-              <span style="background: rgba(74, 144, 226, 0.1); color: var(--primary-color); font-size: 0.8rem; font-weight: bold; padding: 4px 8px; border-radius: 12px; border: 1px solid var(--primary-color); display: inline-block;">
-                    ✓ Friend
-                  </span>
-            <br>
-            <button class="btn btn-danger" style="font-size: 0.8rem; padding: 4px 8px; margin-top: 0.5rem;" onclick="FriendsDiscoverySystem.removeFriend('${user.id}')">
-              Remove
-            </button>
+              <span style="background: rgba(74, 144, 226, 0.1); color: var(--primary-color); font-size: 0.8rem; font-weight: bold; padding: 4px 8px; border-radius: 12px; border: 1px solid var(--primary-color); display: inline-block;">✓ Friend</span>
+              <br>
+              <button class="btn btn-danger" style="font-size: 0.8rem; padding: 4px 8px; margin-top: 0.5rem;" onclick="FriendsDiscoverySystem.removeFriend('${user.id}')">
+                Remove
+              </button>
             </div>
           `;
         } else if (hasRequest) {
@@ -14305,7 +15137,7 @@ Only return the JSON, no additional text.`;
           `;
         } else if (hasPendingRequest) {
           return `
-            <button class="btn" style="font-size: 0.8rem; padding: 6px 12px; background: #fbbf24; color: #1f2937; border: 1px solid #f59e0b;" disabled>
+            <button class="btn" data-pending-for="${user.id}" style="font-size: 0.8rem; padding: 6px 12px; background: #fbbf24; color: #1f2937; border: 1px solid #f59e0b;" onclick="FriendsDiscoverySystem.cancelPendingRequest('${user.id}')">
               <i class="fas fa-clock"></i> Pending
             </button>
           `;
@@ -14389,11 +15221,11 @@ Only return the JSON, no additional text.`;
           const button = document.querySelector(`[onclick="FriendsDiscoverySystem.sendFriendRequest('${userId}')"]`);
           if (button) {
             button.innerHTML = '<i class="fas fa-clock"></i> Pending';
-            button.style.background = '#fbbf24'; // Yellow background
-            button.style.color = '#1f2937'; // Dark text for contrast
+            button.style.background = '#fbbf24';
+            button.style.color = '#1f2937';
             button.style.border = '1px solid #f59e0b';
-            button.disabled = true;
-            button.onclick = null; // Remove the onclick to prevent multiple clicks
+            button.setAttribute('data-pending-for', userId);
+            button.onclick = () => FriendsDiscoverySystem.cancelPendingRequest(userId);
           }
 
           // Update local pending list to avoid reads
@@ -14402,6 +15234,39 @@ Only return the JSON, no additional text.`;
         } catch (error) {
           console.error('Error sending friend request:', error);
           NotificationSystem.show('Failed to send friend request.', 'error');
+        }
+      },
+
+      // Cancel an outgoing pending friend request
+      async cancelPendingRequest(userId) {
+        try {
+          const { collection, query, where, getDocs, deleteDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+          const requestsCollection = collection(authManager.db, 'friendRequests');
+          // Find pending requests from me to this user
+          const q = query(requestsCollection, where('fromUserId', '==', currentFirebaseUser.uid), where('toUserId', '==', userId), where('status', '==', 'pending'));
+          const snapshot = await getDocs(q);
+          for (const d of snapshot.docs) {
+            await deleteDoc(doc(authManager.db, 'friendRequests', d.id));
+          }
+
+          // Update local state
+          this.pendingRequests = (this.pendingRequests || []).filter(r => r.toUserId !== userId);
+          NotificationSystem.show('Friend request canceled.', 'info');
+          this.displayUsers();
+
+          // Also update any buttons on activity/feed cards
+          const buttons = document.querySelectorAll(`[data-pending-for="${userId}"]`);
+          buttons.forEach(btn => {
+            btn.innerHTML = 'Add Friend';
+            btn.style.background = '';
+            btn.style.color = '';
+            btn.style.border = '';
+            btn.removeAttribute('data-pending-for');
+            btn.onclick = () => FriendsSystem.addFriend(userId);
+          });
+        } catch (error) {
+          console.error('Error canceling pending request:', error);
+          NotificationSystem.show('Failed to cancel request.', 'error');
         }
       },
 
@@ -14442,12 +15307,20 @@ Only return the JSON, no additional text.`;
               { user1Id: requestData.fromUserId, user2Id: requestData.toUserId }
             );
 
-            // Invalidate friend-related caches
+            // Invalidate friend-related caches BEFORE reloading
             CacheSystem.invalidateFriendsCache();
 
             NotificationSystem.show('Friend request accepted!', 'success');
 
-            // Force immediate UI update
+            // Force immediate cache invalidation and reload
+            this.isInitialized = false; // Force complete re-initialization
+            
+            // Clear all arrays to force fresh load
+            this.currentFriends = [];
+            this.friendRequests = [];
+            this.pendingRequests = [];
+            
+            // Force immediate fresh reload from Firebase (not cache)
             await this.loadCurrentFriendsOptimized();
             await this.loadFriendRequests();
             await this.loadPendingRequests();
@@ -14455,8 +15328,12 @@ Only return the JSON, no additional text.`;
             // Force complete UI refresh
             this.displayUsers();
 
-            // Also force refresh any cached data
-            CacheSystem.invalidateFriendsCache();
+            // Delay refresh to ensure Firebase propagation
+            setTimeout(async () => {
+              console.log('Delayed refresh after friend acceptance');
+              await this.loadCurrentFriendsOptimized();
+              this.displayUsers();
+            }, 2000);
 
             console.log('Friend request accepted, UI updated immediately');
           }
@@ -14545,6 +15422,11 @@ Only return the JSON, no additional text.`;
           } else {
             badge.style.display = 'none';
           }
+        }
+
+        // If friendship UI is visible, ensure it re-renders immediately to show Accept/Decline without manual refresh
+        if (typeof FriendsDiscoverySystem !== 'undefined' && FriendsDiscoverySystem.displayUsers) {
+          FriendsDiscoverySystem.displayUsers();
         }
       },
 
@@ -14660,7 +15542,8 @@ Only return the JSON, no additional text.`;
         experiencesSnapshot.forEach((doc) => {
           const experienceData = doc.data();
           userExperiences.push({
-            id: doc.id,
+            id: experienceData.id || doc.id, // Preserve original ID if it exists, otherwise use Firebase doc ID
+            firebaseId: doc.id, // Store Firebase document ID separately
             ...experienceData,
             timestamp: experienceData.createdAt?.toDate?.() || new Date()
           });
@@ -14823,9 +15706,9 @@ Only return the JSON, no additional text.`;
     // Final initialization
     console.log("Social Energy App initialized successfully!");
     console.log("Use Alt+1-6 for quick navigation between pages");
-    console.log("Demo includes:", {
-      users: Object.keys(DemoUsers.users).length,
-      experiences: DemoUsers.experiences.length,
+    console.log("Firebase app initialized:", {
+      users: "Firebase",
+      experiences: "Firebase",
       features: [
         "Personality Assessment",
         "Activity Tracking",
