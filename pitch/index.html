@@ -197,14 +197,20 @@
       justify-content: center;
       gap: 8px;
       box-shadow: var(--shadow-small);
-      line-height: 1; /* Fix extra vertical space inside buttons */
+      line-height: 1;
+      /* Fix extra vertical space inside buttons */
     }
 
     /* Ensure icons inside buttons don't increase vertical height */
-    .btn i { line-height: 1; }
+    .btn i {
+      line-height: 1;
+    }
 
     /* Tighter spacing for buttons inside cards */
-    .user-card .btn, .experience-card .btn { margin: 0; }
+    .user-card .btn,
+    .experience-card .btn {
+      margin: 0;
+    }
 
     /* Stabilize action area height to prevent jitter on state changes */
     .user-actions {
@@ -1931,10 +1937,12 @@
                 <i class="fas fa-chevron-down"></i>
               </button>
               <div class="filter-dropdown-menu" id="activities-filter-menu">
-                <div class="filter-dropdown-item active" onclick="selectFilter('activities', 'all', 'All Activities', this)">
+                <div class="filter-dropdown-item active"
+                  onclick="selectFilter('activities', 'all', 'All Activities', this)">
                   <i class="fas fa-list"></i> All Activities
                 </div>
-                <div class="filter-dropdown-item" onclick="selectFilter('activities', 'similar', 'Similar Users', this)">
+                <div class="filter-dropdown-item"
+                  onclick="selectFilter('activities', 'similar', 'Similar Users', this)">
                   <i class="fas fa-users"></i> Similar Users
                 </div>
                 <div class="filter-dropdown-item" onclick="selectFilter('activities', 'high-rated', 'Top Rated', this)">
@@ -1953,7 +1961,7 @@
           <div id="feed-content">
             <!-- Feed items will be dynamically inserted here -->
           </div>
-          
+
           <!-- Load More Button -->
           <div id="load-more-container" style="text-align: center; margin-top: 2rem; display: none;">
             <button id="load-more-btn" class="btn btn-secondary" onclick="FeedSystem.loadNextPage()">
@@ -1981,13 +1989,15 @@
                 <div class="filter-dropdown-item active" onclick="selectFilter('friendship', 'all', 'All Users', this)">
                   <i class="fas fa-users"></i> All Users
                 </div>
-                <div class="filter-dropdown-item" onclick="selectFilter('friendship', 'similar', 'Similar to You', this)">
+                <div class="filter-dropdown-item"
+                  onclick="selectFilter('friendship', 'similar', 'Similar to You', this)">
                   <i class="fas fa-user-friends"></i> Similar to You
                 </div>
                 <div class="filter-dropdown-item" onclick="selectFilter('friendship', 'friends', 'My Friends', this)">
                   <i class="fas fa-heart"></i> My Friends
                 </div>
-                <div class="filter-dropdown-item" onclick="selectFilter('friendship', 'requests', 'Friend Requests', this)">
+                <div class="filter-dropdown-item"
+                  onclick="selectFilter('friendship', 'requests', 'Friend Requests', this)">
                   <i class="fas fa-user-plus"></i> Friend Requests
                 </div>
               </div>
@@ -2495,7 +2505,7 @@
       menu.querySelectorAll('.filter-dropdown-item').forEach(item => {
         item.classList.remove('active');
       });
-      
+
       // Use the passed element or fallback to event.target
       const targetElement = clickedElement || (typeof event !== 'undefined' ? event.target : null);
       if (targetElement) {
@@ -2554,19 +2564,19 @@
     function editUserExperience(experienceId) {
       // Find the experience in user's experiences
       const userExperiences = DataLayer.load("userExperiences", []);
-      
+
       // Debug logging
       console.log('🔍 Looking for experience with ID:', experienceId);
       console.log('🔍 Available experiences:', userExperiences.map(exp => ({ id: exp.id, name: exp.name })));
-      
+
       // Try multiple ways to find the experience
       let experience = userExperiences.find(exp => exp.id === experienceId || exp.name === experienceId);
-      
+
       // If not found, try string comparison for IDs
       if (!experience) {
         experience = userExperiences.find(exp => String(exp.id) === String(experienceId) || exp.name === experienceId);
       }
-      
+
       // If still not found, try to find by name if the ID looks like a timestamp
       if (!experience && !isNaN(experienceId)) {
         // The ID might be a timestamp, try to find by name from the experience card
@@ -2579,13 +2589,13 @@
           }
         }
       }
-      
+
       if (experience) {
         console.log('✅ Found experience:', experience);
-        
+
         // Find the index of the experience in the array
         const experienceIndex = userExperiences.findIndex(exp => exp.id === experience.id);
-        
+
         if (experienceIndex !== -1) {
           // Use the existing editExperience function to open the edit modal
           editExperience(experienceIndex);
@@ -2596,7 +2606,7 @@
       } else {
         console.error('❌ Experience not found with ID:', experienceId);
         console.error('❌ Available experiences:', userExperiences.map(exp => ({ id: exp.id, name: exp.name })));
-        
+
         // Try to provide more helpful error message
         const experienceCard = document.querySelector(`[onclick*="editUserExperience('${experienceId}')"]`);
         if (experienceCard) {
@@ -2896,12 +2906,12 @@
             const querySnapshot = await wrapRead(getDocs(q), 'getDocs', 'friends', {});
             if (!querySnapshot.empty) {
               const friendshipDoc = querySnapshot.docs[0];
-            await wrapWrite(
-              deleteDoc(doc(authManager.db, 'friends', friendshipDoc.id)),
-              'deleteDoc',
-              `friends/${friendshipDoc.id}`,
-              { reason: 'removeFriend' }
-            );
+              await wrapWrite(
+                deleteDoc(doc(authManager.db, 'friends', friendshipDoc.id)),
+                'deleteDoc',
+                `friends/${friendshipDoc.id}`,
+                { reason: 'removeFriend' }
+              );
 
               NotificationSystem.show('Friend removed successfully!', 'success');
               return true;
@@ -2941,8 +2951,8 @@
           // Update request status to accepted
           await wrapWrite(
             updateDoc(requestDoc, {
-            status: 'accepted',
-            acceptedAt: serverTimestamp()
+              status: 'accepted',
+              acceptedAt: serverTimestamp()
             }),
             'updateDoc',
             `friendRequests/${requestId}`,
@@ -2986,8 +2996,8 @@
           // Update request status to rejected
           await wrapWrite(
             updateDoc(doc(authManager.db, 'friendRequests', requestId), {
-            status: 'rejected',
-            rejectedAt: serverTimestamp()
+              status: 'rejected',
+              rejectedAt: serverTimestamp()
             }),
             'updateDoc',
             `friendRequests/${requestId}`,
@@ -3253,10 +3263,10 @@
 
             await wrapWrite(
               updateDoc(doc(authManager.db, 'users', currentFirebaseUser.uid), {
-              adjustmentFactor: scores.adjustmentFactor,
-              personalityType: personality.type,
-              avatar: personality.type.charAt(0),
-              updatedAt: serverTimestamp()
+                adjustmentFactor: scores.adjustmentFactor,
+                personalityType: personality.type,
+                avatar: personality.type.charAt(0),
+                updatedAt: serverTimestamp()
               }),
               'updateDoc',
               `users/${currentFirebaseUser.uid}`,
@@ -3286,11 +3296,11 @@
 
                   await wrapWrite(
                     updateDoc(doc(authManager.db, 'users', currentFirebaseUser.uid), {
-                    location: {
-                      lat: position.coords.latitude,
-                      lng: position.coords.longitude
-                    },
-                    updatedAt: serverTimestamp()
+                      location: {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                      },
+                      updatedAt: serverTimestamp()
                     }),
                     'updateDoc',
                     `users/${currentFirebaseUser.uid}`,
@@ -3640,7 +3650,7 @@
         // Try to get coordinates for the location
         const getCoordinatesAndSave = async () => {
           let coordinates = null;
-          
+
           // First, check if user used the "Use Current Location" button (locationFound flag)
           if (typeof locationFound !== 'undefined' && locationFound) {
             try {
@@ -3654,7 +3664,7 @@
               console.log("Could not get current location coordinates:", error.message);
             }
           }
-          
+
           // If no coordinates from current location, try geocoding the entered location
           if (!coordinates && location && location.trim() !== '') {
             try {
@@ -3670,7 +3680,7 @@
                     }
                   });
                 });
-                
+
                 coordinates = {
                   lat: result.geometry.location.lat(),
                   lng: result.geometry.location.lng()
@@ -3681,7 +3691,7 @@
               console.log("Could not geocode location:", error.message);
             }
           }
-          
+
           // Fallback: if still no coordinates, try current location one more time
           if (!coordinates && navigator.geolocation) {
             try {
@@ -3692,7 +3702,7 @@
                   maximumAge: 300000
                 });
               });
-              
+
               coordinates = {
                 lat: position.coords.latitude,
                 lng: position.coords.longitude
@@ -3702,10 +3712,10 @@
               console.log("Fallback geolocation failed:", error.message);
             }
           }
-          
+
           saveExperience(coordinates);
         };
-        
+
         getCoordinatesAndSave();
 
         // Success message, form reset, and page navigation are now handled in saveExperience()
@@ -3854,9 +3864,9 @@
           let ratingCount = 0;
 
           experiences.forEach((exp) => {
-              // Skip demo user lookups - no longer using demo data
-              const ratingUser = null; // Only use Firebase user data going forward
-              if (false) { // Disabled demo prediction logic
+            // Skip demo user lookups - no longer using demo data
+            const ratingUser = null; // Only use Firebase user data going forward
+            if (false) { // Disabled demo prediction logic
               const prediction = ActivitySystem.predictRating(
                 userAdjustmentFactor,
                 exp,
@@ -4018,183 +4028,183 @@
       }, 300);
     }
 
-    function editUserRating(placeName, category, location) {
-      console.log("editUserRating called with:", placeName, category, location);
-      
-      // Find the user's existing experience for this place
-      const userExperiences = DataLayer.load("userExperiences", []);
-      const existingExperience = userExperiences.find(exp => 
-        exp.name.toLowerCase() === placeName.toLowerCase()
-      );
-      
-      if (!existingExperience) {
-        NotificationSystem.show("Your rating for this place was not found.", "error");
-        return;
-      }
-      
-      // Create edit modal for the rating
-      const modalHtml = `
-        <div id="edit-rating-modal" class="modal">
-          <div class="modal-content" style="max-width: 600px;">
-            <button class="modal-close" onclick="closeEditRatingModal()">&times;</button>
-            <div class="modal-header">
-              <h2>Edit Your Rating</h2>
-              <p style="margin: 0; color: #666;">Update your experience at ${placeName}</p>
-            </div>
-            <div class="modal-body">
-              <div style="margin-bottom: 1.5rem; padding: 1rem; background: rgba(74, 144, 226, 0.1); border-radius: 10px;">
-                <h4 style="margin: 0 0 0.5rem 0; color: var(--primary-color);">${placeName}</h4>
-                <div style="font-size: 0.9rem; color: #666;">
-                  <strong>Category:</strong> ${category} • <strong>Location:</strong> ${location}
-                </div>
-                <div style="font-size: 0.9rem; color: #666; margin-top: 0.3rem;">
-                  <strong>Current Rating:</strong> ${existingExperience.adjustedScore}/10
-                </div>
-              </div>
-              
-              <div class="rating-questions">
-                <div class="rating-question">
-                  <label>How energized did you feel?</label>
-                  <input type="range" class="rating-slider" min="1" max="10" value="${existingExperience.responses.energy}" oninput="updateSliderValue(this, 'edit-slider-energy')" id="edit-rating-energy" />
-                  <div class="slider-value" id="edit-slider-energy">${existingExperience.responses.energy}</div>
-                </div>
-                <div class="rating-question">
-                  <label>How satisfied were you with the social interaction?</label>
-                  <input type="range" class="rating-slider" min="1" max="10" value="${existingExperience.responses.social}" oninput="updateSliderValue(this, 'edit-slider-social')" id="edit-rating-social" />
-                  <div class="slider-value" id="edit-slider-social">${existingExperience.responses.social}</div>
-                </div>
-                <div class="rating-question">
-                  <label>How comfortable did you feel in this environment?</label>
-                  <input type="range" class="rating-slider" min="1" max="10" value="${existingExperience.responses.comfort}" oninput="updateSliderValue(this, 'edit-slider-comfort')" id="edit-rating-comfort" />
-                  <div class="slider-value" id="edit-slider-comfort">${existingExperience.responses.comfort}</div>
-                </div>
-                <div class="rating-question">
-                  <label>How overwhelming was the environment?</label>
-                  <input type="range" class="rating-slider" min="1" max="10" value="${existingExperience.responses.overwhelm}" oninput="updateSliderValue(this, 'edit-slider-overwhelm')" id="edit-rating-overwhelm" />
-                  <div class="slider-value" id="edit-slider-overwhelm">${existingExperience.responses.overwhelm}</div>
-                </div>
-                <div class="rating-question">
-                  <label>How likely are you to return?</label>
-                  <input type="range" class="rating-slider" min="1" max="10" value="${existingExperience.responses.return}" oninput="updateSliderValue(this, 'edit-slider-return')" id="edit-rating-return" />
-                  <div class="slider-value" id="edit-slider-return">${existingExperience.responses.return}</div>
-                </div>
-              </div>
-              
-              <div style="text-align: center; margin-top: 2rem;">
-                <button class="btn" onclick="saveEditedRating('${existingExperience.id}')">
-                  <i class="fas fa-save"></i> Save Changes
-                </button>
-                <button class="btn btn-secondary" onclick="closeEditRatingModal()" style="margin-left: 0.5rem;">
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
-      
-      document.body.insertAdjacentHTML("beforeend", modalHtml);
-      addModalListeners("edit-rating-modal", closeEditRatingModal);
-    }
-    
-    function closeEditRatingModal() {
-      const modal = document.getElementById("edit-rating-modal");
-      if (modal) modal.remove();
-      document.body.classList.remove('modal-open');
-    }
-    
-    async function saveEditedRating(experienceId) {
-      const personalityData = DataLayer.load("personalityScore");
-      if (!personalityData) {
-        NotificationSystem.show("Personality data not found.", "error");
-        return;
-      }
-      
-      // Get updated ratings
-      const responses = {
-        energy: parseInt(document.getElementById("edit-rating-energy").value),
-        social: parseInt(document.getElementById("edit-rating-social").value),
-        comfort: parseInt(document.getElementById("edit-rating-comfort").value),
-        overwhelm: parseInt(document.getElementById("edit-rating-overwhelm").value),
-        return: parseInt(document.getElementById("edit-rating-return").value)
-      };
-      
-      // Calculate new scores
-      let rawScore = 0;
-      ActivitySystem.ratingQuestions.forEach((question) => {
-        let value = responses[question.id];
-        if (question.reverse) {
-          value = 11 - value; // Reverse score for overwhelming
-        }
-        rawScore += value * question.weight;
-      });
-      
-      const adjustedScore = Math.max(
-        1,
-        Math.min(10, rawScore + personalityData.adjustmentFactor * 2)
-      );
-      
-      // Update the experience
-      const userExperiences = DataLayer.load("userExperiences", []);
-      const expIndex = userExperiences.findIndex(exp => exp.id == experienceId);
-      
-      if (expIndex !== -1) {
-        userExperiences[expIndex].responses = responses;
-        userExperiences[expIndex].rawScore = parseFloat(rawScore.toFixed(1));
-        userExperiences[expIndex].adjustedScore = parseFloat(adjustedScore.toFixed(1));
-        userExperiences[expIndex].timestamp = new Date().toISOString();
-        
-        // Update estimated characteristics
-        userExperiences[expIndex].socialIntensity = ActivitySystem.estimateSocialIntensity(
-          userExperiences[expIndex].category, responses
-        );
-        userExperiences[expIndex].noiseLevel = ActivitySystem.estimateNoiseLevel(
-          userExperiences[expIndex].category, responses
-        );
-        userExperiences[expIndex].crowdSize = ActivitySystem.estimateCrowdSize(
-          userExperiences[expIndex].category, responses
-        );
-        
-        DataLayer.save("userExperiences", userExperiences);
-        
-        // Update Firebase if user is authenticated
-        if (currentFirebaseUser && authManager) {
-          try {
-            const { doc, updateDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-            
-            // Find the Firebase document for this experience
-            const updatedData = {
-              responses,
-              rawScore: userExperiences[expIndex].rawScore,
-              adjustedScore: userExperiences[expIndex].adjustedScore,
-              socialIntensity: userExperiences[expIndex].socialIntensity,
-              noiseLevel: userExperiences[expIndex].noiseLevel,
-              crowdSize: userExperiences[expIndex].crowdSize,
-              updatedAt: serverTimestamp()
-            };
-            
-            // Note: We would need the Firebase document ID to update it
-            // For now, just update locally
-            console.log('Updated experience locally:', userExperiences[expIndex]);
-          } catch (error) {
-            console.error('Error updating experience in Firebase:', error);
-          }
-        }
-        
-        closeEditRatingModal();
-        NotificationSystem.show("Rating updated successfully!", "success");
-        
-        // Refresh the current page if we're on feed or dashboard
-        const currentPage = document.querySelector('.page:not(.hidden)').id;
-        if (currentPage === 'feed') {
-          FeedSystem.displayFeed();
-        } else if (currentPage === 'dashboard') {
-          updateDashboard();
-        }
-      } else {
-        NotificationSystem.show("Experience not found.", "error");
-      }
-    }
+    // function editUserRating(placeName, category, location) {
+    //   console.log("editUserRating called with:", placeName, category, location);
+
+    //   // Find the user's existing experience for this place
+    //   const userExperiences = DataLayer.load("userExperiences", []);
+    //   const existingExperience = userExperiences.find(exp => 
+    //     exp.name.toLowerCase() === placeName.toLowerCase()
+    //   );
+
+    //   if (!existingExperience) {
+    //     NotificationSystem.show("Your rating for this place was not found.", "error");
+    //     return;
+    //   }
+
+    //   // Create edit modal for the rating
+    //   const modalHtml = `
+    //     <div id="edit-rating-modal" class="modal">
+    //       <div class="modal-content" style="max-width: 600px;">
+    //         <button class="modal-close" onclick="closeEditRatingModal()">&times;</button>
+    //         <div class="modal-header">
+    //           <h2>Edit Your Rating</h2>
+    //           <p style="margin: 0; color: #666;">Update your experience at ${placeName}</p>
+    //         </div>
+    //         <div class="modal-body">
+    //           <div style="margin-bottom: 1.5rem; padding: 1rem; background: rgba(74, 144, 226, 0.1); border-radius: 10px;">
+    //             <h4 style="margin: 0 0 0.5rem 0; color: var(--primary-color);">${placeName}</h4>
+    //             <div style="font-size: 0.9rem; color: #666;">
+    //               <strong>Category:</strong> ${category} • <strong>Location:</strong> ${location}
+    //             </div>
+    //             <div style="font-size: 0.9rem; color: #666; margin-top: 0.3rem;">
+    //               <strong>Current Rating:</strong> ${existingExperience.adjustedScore}/10
+    //             </div>
+    //           </div>
+
+    //           <div class="rating-questions">
+    //             <div class="rating-question">
+    //               <label>How energized did you feel?</label>
+    //               <input type="range" class="rating-slider" min="1" max="10" value="${existingExperience.responses.energy}" oninput="updateSliderValue(this, 'edit-slider-energy')" id="edit-rating-energy" />
+    //               <div class="slider-value" id="edit-slider-energy">${existingExperience.responses.energy}</div>
+    //             </div>
+    //             <div class="rating-question">
+    //               <label>How satisfied were you with the social interaction?</label>
+    //               <input type="range" class="rating-slider" min="1" max="10" value="${existingExperience.responses.social}" oninput="updateSliderValue(this, 'edit-slider-social')" id="edit-rating-social" />
+    //               <div class="slider-value" id="edit-slider-social">${existingExperience.responses.social}</div>
+    //             </div>
+    //             <div class="rating-question">
+    //               <label>How comfortable did you feel in this environment?</label>
+    //               <input type="range" class="rating-slider" min="1" max="10" value="${existingExperience.responses.comfort}" oninput="updateSliderValue(this, 'edit-slider-comfort')" id="edit-rating-comfort" />
+    //               <div class="slider-value" id="edit-slider-comfort">${existingExperience.responses.comfort}</div>
+    //             </div>
+    //             <div class="rating-question">
+    //               <label>How overwhelming was the environment?</label>
+    //               <input type="range" class="rating-slider" min="1" max="10" value="${existingExperience.responses.overwhelm}" oninput="updateSliderValue(this, 'edit-slider-overwhelm')" id="edit-rating-overwhelm" />
+    //               <div class="slider-value" id="edit-slider-overwhelm">${existingExperience.responses.overwhelm}</div>
+    //             </div>
+    //             <div class="rating-question">
+    //               <label>How likely are you to return?</label>
+    //               <input type="range" class="rating-slider" min="1" max="10" value="${existingExperience.responses.return}" oninput="updateSliderValue(this, 'edit-slider-return')" id="edit-rating-return" />
+    //               <div class="slider-value" id="edit-slider-return">${existingExperience.responses.return}</div>
+    //             </div>
+    //           </div>
+
+    //           <div style="text-align: center; margin-top: 2rem;">
+    //             <button class="btn" onclick="saveEditedRating('${existingExperience.id}')">
+    //               <i class="fas fa-save"></i> Save Changes
+    //             </button>
+    //             <button class="btn btn-secondary" onclick="closeEditRatingModal()" style="margin-left: 0.5rem;">
+    //               Cancel
+    //             </button>
+    //           </div>
+    //         </div>
+    //       </div>
+    //     </div>
+    //   `;
+
+    //   document.body.insertAdjacentHTML("beforeend", modalHtml);
+    //   addModalListeners("edit-rating-modal", closeEditRatingModal);
+    // }
+
+    // function closeEditRatingModal() {
+    //   const modal = document.getElementById("edit-rating-modal");
+    //   if (modal) modal.remove();
+    //   document.body.classList.remove('modal-open');
+    // }
+
+    // async function saveEditedRating(experienceId) {
+    //   const personalityData = DataLayer.load("personalityScore");
+    //   if (!personalityData) {
+    //     NotificationSystem.show("Personality data not found.", "error");
+    //     return;
+    //   }
+
+    //   // Get updated ratings
+    //   const responses = {
+    //     energy: parseInt(document.getElementById("edit-rating-energy").value),
+    //     social: parseInt(document.getElementById("edit-rating-social").value),
+    //     comfort: parseInt(document.getElementById("edit-rating-comfort").value),
+    //     overwhelm: parseInt(document.getElementById("edit-rating-overwhelm").value),
+    //     return: parseInt(document.getElementById("edit-rating-return").value)
+    //   };
+
+    //   // Calculate new scores
+    //   let rawScore = 0;
+    //   ActivitySystem.ratingQuestions.forEach((question) => {
+    //     let value = responses[question.id];
+    //     if (question.reverse) {
+    //       value = 11 - value; // Reverse score for overwhelming
+    //     }
+    //     rawScore += value * question.weight;
+    //   });
+
+    //   const adjustedScore = Math.max(
+    //     1,
+    //     Math.min(10, rawScore + personalityData.adjustmentFactor * 2)
+    //   );
+
+    //   // Update the experience
+    //   const userExperiences = DataLayer.load("userExperiences", []);
+    //   const expIndex = userExperiences.findIndex(exp => exp.id == experienceId);
+
+    //   if (expIndex !== -1) {
+    //     userExperiences[expIndex].responses = responses;
+    //     userExperiences[expIndex].rawScore = parseFloat(rawScore.toFixed(1));
+    //     userExperiences[expIndex].adjustedScore = parseFloat(adjustedScore.toFixed(1));
+    //     userExperiences[expIndex].timestamp = new Date().toISOString();
+
+    //     // Update estimated characteristics
+    //     userExperiences[expIndex].socialIntensity = ActivitySystem.estimateSocialIntensity(
+    //       userExperiences[expIndex].category, responses
+    //     );
+    //     userExperiences[expIndex].noiseLevel = ActivitySystem.estimateNoiseLevel(
+    //       userExperiences[expIndex].category, responses
+    //     );
+    //     userExperiences[expIndex].crowdSize = ActivitySystem.estimateCrowdSize(
+    //       userExperiences[expIndex].category, responses
+    //     );
+
+    //     DataLayer.save("userExperiences", userExperiences);
+
+    //     // Update Firebase if user is authenticated
+    //     if (currentFirebaseUser && authManager) {
+    //       try {
+    //         const { doc, updateDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+
+    //         // Find the Firebase document for this experience
+    //         const updatedData = {
+    //           responses,
+    //           rawScore: userExperiences[expIndex].rawScore,
+    //           adjustedScore: userExperiences[expIndex].adjustedScore,
+    //           socialIntensity: userExperiences[expIndex].socialIntensity,
+    //           noiseLevel: userExperiences[expIndex].noiseLevel,
+    //           crowdSize: userExperiences[expIndex].crowdSize,
+    //           updatedAt: serverTimestamp()
+    //         };
+
+    //         // Note: We would need the Firebase document ID to update it
+    //         // For now, just update locally
+    //         console.log('Updated experience locally:', userExperiences[expIndex]);
+    //       } catch (error) {
+    //         console.error('Error updating experience in Firebase:', error);
+    //       }
+    //     }
+
+    //     closeEditRatingModal();
+    //     NotificationSystem.show("Rating updated successfully!", "success");
+
+    //     // Refresh the current page if we're on feed or dashboard
+    //     const currentPage = document.querySelector('.page:not(.hidden)').id;
+    //     if (currentPage === 'feed') {
+    //       FeedSystem.displayFeed();
+    //     } else if (currentPage === 'dashboard') {
+    //       updateDashboard();
+    //     }
+    //   } else {
+    //     NotificationSystem.show("Experience not found.", "error");
+    //   }
+    // }
 
     // Function to format date with full month name
     function formatFullDate(dateString) {
@@ -4404,7 +4414,7 @@
 
       init: async () => {
         console.log('🚀 FeedSystem.init() called');
-        
+
         // Initialize FriendsDiscoverySystem if not already done to load users
         if (typeof FriendsDiscoverySystem !== 'undefined') {
           if (!FriendsDiscoverySystem.isInitialized) {
@@ -4415,7 +4425,7 @@
             await FriendsDiscoverySystem.loadAllUsersOptimized();
           }
         }
-        
+
         FeedSystem.resetAndLoad();
       },
 
@@ -4430,16 +4440,16 @@
         // Find and activate the correct dropdown item
         const filterMap = {
           'all': 'All Activities',
-          'similar': 'Similar Users', 
+          'similar': 'Similar Users',
           'high-rated': 'Top Rated',
           'recent': 'Recent',
           'nearby': 'Near Me'
         };
-        
+
         const filterText = filterMap[filter] || 'All Activities';
         const targetItem = Array.from(document.querySelectorAll("#activities-filter-menu .filter-dropdown-item"))
           .find(item => item.textContent.trim().includes(filterText));
-        
+
         if (targetItem) {
           targetItem.classList.add("active");
           // Update button text
@@ -4466,27 +4476,27 @@
       resetAndLoad: async () => {
         console.log('🔄 FeedSystem.resetAndLoad() called');
         console.log('🔄 Cache key:', FeedSystem.getCacheKey());
-        
+
         FeedSystem.store = { items: [], lastCursorValue: null, hasMore: true, isLoading: false, cacheKey: FeedSystem.getCacheKey() };
         const cached = CacheSystem.get(FeedSystem.store.cacheKey, CacheSystem.CACHE_DURATIONS.ACTIVITIES);
         console.log('🔄 Cached data found:', !!cached);
-        
+
         if (cached) {
           console.log('🔄 Using cached data, items count:', cached.items?.length || 0);
           FeedSystem.store = { ...FeedSystem.store, ...cached };
           DataLayer.save('allExperiences', FeedSystem.store.items);
           console.log('🔄 Calling displayFeed with cached data');
           FeedSystem.displayFeed();
-          
+
           // Update load more button visibility
           const loadMoreContainer = document.getElementById('load-more-container');
           if (loadMoreContainer) {
             loadMoreContainer.style.display = FeedSystem.store.hasMore ? 'block' : 'none';
           }
-          
+
           // Prefetch next page silently
           console.log('🔄 Prefetching next page');
-          FeedSystem.loadNextPage(true).catch(() => {});
+          FeedSystem.loadNextPage(true).catch(() => { });
         } else {
           console.log('🔄 No cache, loading from Firebase');
           await FeedSystem.loadNextPage(false);
@@ -4501,7 +4511,7 @@
           itemsCount: FeedSystem.store.items?.length || 0,
           lastCursor: FeedSystem.store.lastCursorValue
         });
-        
+
         if (FeedSystem.store.isLoading || !FeedSystem.store.hasMore) {
           console.log('📥 Skipping load - isLoading:', FeedSystem.store.isLoading, 'hasMore:', FeedSystem.store.hasMore);
           return;
@@ -4510,10 +4520,10 @@
           console.log('📥 Skipping load - no user or auth manager');
           return;
         }
-        
+
         FeedSystem.store.isLoading = true;
         console.log('📥 Starting Firebase query...');
-        
+
         try {
           const { collection, query, where, orderBy, limit, startAfter, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
 
@@ -4560,14 +4570,14 @@
           console.log('📥 Executing Firebase query...');
           const snapshot = await wrapRead(getDocs(q), 'getDocs', 'experiences', { paginated: true, filter: FeedSystem.currentFilter });
           console.log('📥 Firebase response - docs count:', snapshot.docs.length);
-          
+
           const pageItems = snapshot.docs.map(d => {
             const data = d.data();
-            return { 
+            return {
               id: data.id || d.id, // Preserve original ID if it exists, otherwise use Firebase doc ID
               firebaseId: d.id, // Store Firebase document ID separately
-              ...data, 
-              timestamp: data.createdAt?.toDate?.() || new Date() 
+              ...data,
+              timestamp: data.createdAt?.toDate?.() || new Date()
             };
           });
           console.log('📥 Processed page items:', pageItems.length);
@@ -4575,7 +4585,7 @@
           FeedSystem.store.items = [...FeedSystem.store.items, ...pageItems];
           FeedSystem.store.lastCursorValue = snapshot.docs[snapshot.docs.length - 1]?.data()?.createdAt || FeedSystem.store.lastCursorValue;
           FeedSystem.store.hasMore = snapshot.size === FeedSystem.pageSize;
-          
+
           console.log('📥 Updated store - total items:', FeedSystem.store.items.length, 'hasMore:', FeedSystem.store.hasMore);
 
           // Persist and cache
@@ -4590,7 +4600,7 @@
           if (!isPrefetch) {
             console.log('📥 Calling displayFeed for non-prefetch load');
             FeedSystem.displayFeed();
-            
+
             // Update load more button visibility
             const loadMoreContainer = document.getElementById('load-more-container');
             if (loadMoreContainer) {
@@ -4606,7 +4616,7 @@
             if (!isPrefetch && typeof FeedSystem.displayFeed === 'function') {
               FeedSystem.displayFeed();
             }
-          } catch (_) {}
+          } catch (_) { }
           // Soft notify user if index required
           if (typeof NotificationSystem !== 'undefined' && NotificationSystem.show) {
             NotificationSystem.show('Unable to load activities (index may be required). Showing available results.', 'warning');
@@ -4669,10 +4679,10 @@
             let user = null;
             if (exp.userId === "user-main" || exp.userId === currentFirebaseUser?.uid) {
               user = DataLayer.load("currentUser");
-              } else if (typeof FriendsDiscoverySystem !== 'undefined' && Array.isArray(FriendsDiscoverySystem.allUsers)) {
-                user = FriendsDiscoverySystem.allUsers.find(u => u.id === exp.userId);
+            } else if (typeof FriendsDiscoverySystem !== 'undefined' && Array.isArray(FriendsDiscoverySystem.allUsers)) {
+              user = FriendsDiscoverySystem.allUsers.find(u => u.id === exp.userId);
             }
-            
+
             // If still no user found, try cache
             if (!user && exp.userId !== "user-main") {
               const cachedUser = CacheSystem.get(`USER_${exp.userId}`, CacheSystem.CACHE_DURATIONS.USER_PROFILES);
@@ -4750,10 +4760,10 @@
             let actionButtons = "";
             if (exp.userId !== "user-main" && exp.userId !== currentFirebaseUser?.uid) {
               // Check pending status first
-              const hasPendingRequest = typeof FriendsDiscoverySystem !== 'undefined' && 
-                                      Array.isArray(FriendsDiscoverySystem.pendingRequests) &&
-                                      FriendsDiscoverySystem.pendingRequests.some(r => r.toUserId === exp.userId);
-              
+              const hasPendingRequest = typeof FriendsDiscoverySystem !== 'undefined' &&
+                Array.isArray(FriendsDiscoverySystem.pendingRequests) &&
+                FriendsDiscoverySystem.pendingRequests.some(r => r.toUserId === exp.userId);
+
               if (hasPendingRequest) {
                 actionButtons += `
                   <button class="btn" data-pending-for="${exp.userId}" style="font-size: 0.8rem; padding: 6px 12px; margin-right: 0.5rem; background: #fbbf24; color: #1f2937; border: 1px solid #f59e0b;" onclick="FriendsDiscoverySystem.cancelPendingRequest('${exp.userId}')">
@@ -4963,10 +4973,10 @@
             let user = null;
             if (exp.userId === "user-main" || exp.userId === currentFirebaseUser?.uid) {
               user = DataLayer.load("currentUser");
-              } else if (typeof FriendsDiscoverySystem !== 'undefined' && Array.isArray(FriendsDiscoverySystem.allUsers)) {
-                user = FriendsDiscoverySystem.allUsers.find(u => u.id === exp.userId);
+            } else if (typeof FriendsDiscoverySystem !== 'undefined' && Array.isArray(FriendsDiscoverySystem.allUsers)) {
+              user = FriendsDiscoverySystem.allUsers.find(u => u.id === exp.userId);
             }
-            
+
             // If still no user found, try cache
             if (!user && exp.userId !== "user-main") {
               const cachedUser = CacheSystem.get(`USER_${exp.userId}`, CacheSystem.CACHE_DURATIONS.USER_PROFILES);
@@ -5043,10 +5053,10 @@
             let actionButtons = "";
             if (exp.userId !== "user-main" && exp.userId !== currentFirebaseUser?.uid) {
               // Check pending status first
-              const hasPendingRequest = typeof FriendsDiscoverySystem !== 'undefined' && 
-                                      Array.isArray(FriendsDiscoverySystem.pendingRequests) &&
-                                      FriendsDiscoverySystem.pendingRequests.some(r => r.toUserId === exp.userId);
-              
+              const hasPendingRequest = typeof FriendsDiscoverySystem !== 'undefined' &&
+                Array.isArray(FriendsDiscoverySystem.pendingRequests) &&
+                FriendsDiscoverySystem.pendingRequests.some(r => r.toUserId === exp.userId);
+
               if (hasPendingRequest) {
                 actionButtons += `
                   <button class="btn" style="font-size: 0.8rem; padding: 6px 12px; margin-right: 0.5rem; background: #fbbf24; color: #1f2937; border: 1px solid #f59e0b;" disabled>
@@ -5119,13 +5129,13 @@
         console.log('🔍 Store items count:', FeedSystem.store?.items?.length || 0);
         console.log('🔍 Store hasMore:', FeedSystem.store?.hasMore);
         console.log('🔍 Store cacheKey:', FeedSystem.store?.cacheKey);
-        
+
         const personalityData = DataLayer.load("personalityScore");
-        
+
         // Use the new paginated data from store instead of old ActivitySystem
         const allExperiences = FeedSystem.store?.items || [];
         console.log('🔍 Using experiences from store:', allExperiences.length);
-        
+
         const userExperiences = DataLayer.load("userExperiences", []);
         const userExperienceNames = userExperiences.map((exp) =>
           exp.name.toLowerCase()
@@ -5146,7 +5156,7 @@
 
         // Apply category filters
         console.log('🔍 Applying filter:', FeedSystem.currentFilter);
-        
+
         if (FeedSystem.currentFilter === "similar" && personalityData) {
           console.log('🔍 Processing similar users filter');
           // Handle async similar users lookup
@@ -5154,13 +5164,13 @@
             .then(similarUsers => {
               console.log('🔍 Found similar users:', similarUsers.length);
               const similarUserIds = similarUsers.slice(0, 10).map(user => user.id);
-              
+
               // Filter experiences by similar user IDs (in-memory filtering)
               const similarExperiences = filteredExperiences.filter((exp) => {
                 // Include current user's activities and similar users' activities
-                return similarUserIds.includes(exp.userId) || 
-                       exp.userId === "user-main" || 
-                       (currentFirebaseUser && exp.userId === currentFirebaseUser.uid);
+                return similarUserIds.includes(exp.userId) ||
+                  exp.userId === "user-main" ||
+                  (currentFirebaseUser && exp.userId === currentFirebaseUser.uid);
               });
               console.log('🔍 Filtered to similar experiences:', similarExperiences.length);
 
@@ -5178,7 +5188,7 @@
           return; // Exit early since we're handling the display asynchronously
         } else if (FeedSystem.currentFilter === "high-rated") {
           console.log('🔍 Processing high-rated filter');
-          
+
           // Calculate predicted scores for current user for all experiences
           const personalityData = DataLayer.load('personalityScore');
           if (personalityData) {
@@ -5205,7 +5215,7 @@
               (exp) => (exp.adjustedScore || exp.rawScore || 0) >= 6.0
             );
           }
-          
+
           console.log('🔍 High-rated experiences after filter:', filteredExperiences.length);
         } else if (FeedSystem.currentFilter === "recent") {
           console.log('🔍 Processing recent filter - showing only current user activities');
@@ -5245,7 +5255,7 @@
                   userLat, userLng,
                   exp.coordinates.lat, exp.coordinates.lng
                 );
-                
+
                 console.log(`🔍 Distance to ${exp.name}: ${distance.toFixed(1)}km`);
                 return distance <= 50; // Within 50km
               });
@@ -5291,7 +5301,7 @@
                 (exp) => exp.coordinates || (exp.location && exp.location !== "Not specified")
               );
               console.log('🔍 Fallback location experiences:', locationExperiences.length);
-              
+
               if (locationExperiences.length > 0) {
                 FeedSystem.displayFilteredExperiences(locationExperiences, "nearby");
               } else {
@@ -5325,7 +5335,7 @@
         feedContent.innerHTML = filteredExperiences
           .map((exp) => {
             console.log('🔍 Rendering experience:', exp.name, 'by user:', exp.userId);
-            
+
             // Improved user lookup with proactive loading
             let user = null;
             if (exp.userId === "user-main") {
@@ -5335,13 +5345,13 @@
               const currentUser = DataLayer.load("currentUser");
               if (currentUser && currentUser.id === exp.userId) {
                 user = currentUser;
-              // Demo users removed - Firebase only
+                // Demo users removed - Firebase only
               } else if (typeof FriendsDiscoverySystem !== 'undefined' && Array.isArray(FriendsDiscoverySystem.allUsers)) {
                 // Look up in real Firebase users
                 user = FriendsDiscoverySystem.allUsers.find(u => u.id === exp.userId);
               }
             }
-            
+
             // If still no user found, try to load immediately from Firebase
             if (!user && exp.userId !== "user-main" && typeof authManager !== 'undefined') {
               // Try to fetch user data synchronously from cache or queue for async load
@@ -5360,7 +5370,7 @@
                 }
               }
             }
-            
+
             // If still no user found, create a fallback user object but with more info
             if (!user) {
               console.log('🔍 No user found for experience:', exp.userId, '- creating fallback user');
@@ -5430,10 +5440,10 @@
             let actionButtons = "";
             if (exp.userId !== "user-main" && exp.userId !== currentFirebaseUser?.uid) {
               // Check pending status first
-              const hasPendingRequest = typeof FriendsDiscoverySystem !== 'undefined' && 
-                                      Array.isArray(FriendsDiscoverySystem.pendingRequests) &&
-                                      FriendsDiscoverySystem.pendingRequests.some(r => r.toUserId === exp.userId);
-              
+              const hasPendingRequest = typeof FriendsDiscoverySystem !== 'undefined' &&
+                Array.isArray(FriendsDiscoverySystem.pendingRequests) &&
+                FriendsDiscoverySystem.pendingRequests.some(r => r.toUserId === exp.userId);
+
               if (hasPendingRequest) {
                 actionButtons += `
             <button class="btn" data-pending-for="${exp.userId}" style="font-size: 0.8rem; padding: 6px 12px; margin-right: 0.5rem; background: #fbbf24; color: #1f2937; border: 1px solid #f59e0b;" onclick="FriendsDiscoverySystem.cancelPendingRequest('${exp.userId}')">
@@ -5548,11 +5558,11 @@
       loadNearbyExperiencesFromFirebase: async (userLat, userLng) => {
         try {
           if (!authManager) return [];
-          
+
           const { collection, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
           const experiencesCollection = collection(authManager.db, 'experiences');
           const snapshot = await wrapRead(getDocs(experiencesCollection), 'getDocs', 'experiences', { source: 'nearby' });
-          
+
           const nearbyExperiences = [];
           snapshot.forEach((doc) => {
             const data = doc.data();
@@ -5561,7 +5571,7 @@
                 userLat, userLng,
                 data.coordinates.lat, data.coordinates.lng
               );
-              
+
               if (distance <= 50) { // Within 50km
                 nearbyExperiences.push({
                   id: data.id || doc.id, // Preserve original ID if it exists, otherwise use Firebase doc ID
@@ -5573,16 +5583,16 @@
               }
             }
           });
-          
+
           // Sort by distance
           nearbyExperiences.sort((a, b) => a.distance - b.distance);
-          
+
           // Cache the results for future use
           const currentUser = DataLayer.load('currentUser');
           if (currentUser) {
             CacheSystem.set(`NEARBY_${currentUser.id}`, nearbyExperiences);
           }
-          
+
           return nearbyExperiences.slice(0, 20); // Limit to 20 results
         } catch (error) {
           console.error('Error loading nearby experiences from Firebase:', error);
@@ -6226,12 +6236,12 @@ Only return the JSON, no additional text.`;
               const { doc, updateDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
               await wrapWrite(
                 updateDoc(doc(authManager.db, 'groups', groupId), {
-                aiItinerary: {
-                  ...itinerary,
-                  tripDetails,
-                  generatedAt: serverTimestamp()
-                },
-                updatedAt: serverTimestamp()
+                  aiItinerary: {
+                    ...itinerary,
+                    tripDetails,
+                    generatedAt: serverTimestamp()
+                  },
+                  updatedAt: serverTimestamp()
                 }),
                 'updateDoc',
                 `groups/${groupId}`,
@@ -6930,7 +6940,7 @@ Only return the JSON, no additional text.`;
             const memberLocations = group.members.map(member => {
               if (member.userId === currentUser.id) {
                 return currentUser.location;
-              } 
+              }
             }).filter(loc => loc !== null);
 
             console.log(`🌤️ Member locations:`, memberLocations);
@@ -7828,7 +7838,7 @@ Only return the JSON, no additional text.`;
         setTimeout(async () => {
           try {
             await GroupsSystem.resetAndLoad();
-          GroupsSystem.displayGroups();
+            GroupsSystem.displayGroups();
           } finally {
             GroupsSystem._initInFlight = false;
           }
@@ -7969,15 +7979,15 @@ Only return the JSON, no additional text.`;
           const { doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
 
           // Update admin in Firebase
-            await wrapWrite(
-              updateDoc(doc(authManager.db, 'groups', groupId), {
-            admin: newAdminId,
-            updatedAt: new Date()
-              }),
-              'updateDoc',
-              `groups/${groupId}`,
-              { adminChanged: true }
-            );
+          await wrapWrite(
+            updateDoc(doc(authManager.db, 'groups', groupId), {
+              admin: newAdminId,
+              updatedAt: new Date()
+            }),
+            'updateDoc',
+            `groups/${groupId}`,
+            { adminChanged: true }
+          );
 
           // Update local data
           const groups = DataLayer.load('groups', []);
@@ -8039,16 +8049,16 @@ Only return the JSON, no additional text.`;
           const updatedMemberDetails = group.memberDetails.filter(member => member.userId !== memberId);
 
           // Update Firebase
-            await wrapWrite(
-              updateDoc(doc(authManager.db, 'groups', groupId), {
-            members: updatedMembers,
-            memberDetails: updatedMemberDetails,
-            updatedAt: new Date()
-              }),
-              'updateDoc',
-              `groups/${groupId}`,
-              { memberListUpdated: true }
-            );
+          await wrapWrite(
+            updateDoc(doc(authManager.db, 'groups', groupId), {
+              members: updatedMembers,
+              memberDetails: updatedMemberDetails,
+              updatedAt: new Date()
+            }),
+            'updateDoc',
+            `groups/${groupId}`,
+            { memberListUpdated: true }
+          );
 
           // Update local data
           const groupIndex = groups.findIndex(g => g.id === groupId);
@@ -8150,9 +8160,9 @@ Only return the JSON, no additional text.`;
 
           const docRef = await wrapWrite(
             addDoc(collection(authManager.db, 'groups'), {
-            ...groupData,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp()
+              ...groupData,
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp()
             }),
             'addDoc',
             'groups',
@@ -8231,11 +8241,11 @@ Only return the JSON, no additional text.`;
           const { doc, updateDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
           await wrapWrite(
             updateDoc(doc(authManager.db, 'groups', groupId), {
-            aiItinerary: {
-              ...group.aiItinerary,
-              savedAt: serverTimestamp()
-            },
-            updatedAt: serverTimestamp()
+              aiItinerary: {
+                ...group.aiItinerary,
+                savedAt: serverTimestamp()
+              },
+              updatedAt: serverTimestamp()
             }),
             'updateDoc',
             `groups/${groupId}`,
@@ -8843,15 +8853,15 @@ Only return the JSON, no additional text.`;
       // Save to Firebase
       try {
         const { doc, updateDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-          await wrapWrite(
-            updateDoc(doc(authManager.db, 'groups', groupId), {
-          votes: group.votes,
-          updatedAt: serverTimestamp()
-            }),
-            'updateDoc',
-            `groups/${groupId}`,
-            { votesUpdated: true }
-          );
+        await wrapWrite(
+          updateDoc(doc(authManager.db, 'groups', groupId), {
+            votes: group.votes,
+            updatedAt: serverTimestamp()
+          }),
+          'updateDoc',
+          `groups/${groupId}`,
+          { votesUpdated: true }
+        );
         console.log('Votes saved to Firebase');
       } catch (error) {
         console.error('Error saving votes to Firebase:', error);
@@ -9164,6 +9174,7 @@ Only return the JSON, no additional text.`;
     // Experiences Modal System
     function showExperiencesModal() {
       const userExperiences = DataLayer.load("userExperiences", []);
+      console.log("SHOWING USERS!! ", userExperiences);
 
       const modalHtml = `
         <div id="experiences-modal" class="modal">
@@ -9215,7 +9226,7 @@ Only return the JSON, no additional text.`;
                         </div>
                         <div style="text-align: right; min-width: 80px;">
                           <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary-color);">
-                            ${experience.adjustedScore.toFixed(1)}
+                            ${experience.rawScore.toFixed(1)}
                           </div>
                           <div style="font-size: 0.8rem; color: #666;">Rating</div>
                         </div>
@@ -9377,6 +9388,10 @@ Only return the JSON, no additional text.`;
     }
 
     async function handleEditExperience(event, index) {
+      console.log("CALLING HANDLE!!")
+      let responses = {};
+      let rawScore = 0;
+
       event.preventDefault();
 
       const userExperiences = DataLayer.load("userExperiences", []);
@@ -9385,28 +9400,38 @@ Only return the JSON, no additional text.`;
       if (!experience) return;
 
       // Update experience data
-      experience.name = document.getElementById("edit-name").value;
+      experience.name = document.getElementById("edit-name").value.trim();
       experience.category = document.getElementById("edit-category").value;
-      experience.location = document.getElementById("edit-location").value;
-      experience.description = document.getElementById("edit-description").value;
-      experience.responses.energy = parseInt(document.getElementById("edit-energy").value);
-      experience.responses.social = parseInt(document.getElementById("edit-social").value);
-      experience.responses.comfort = parseInt(document.getElementById("edit-comfort").value);
-      experience.responses.overwhelm = parseInt(document.getElementById("edit-overwhelm").value);
-      experience.responses.return = parseInt(document.getElementById("edit-return").value);
+      experience.location = document.getElementById("edit-location").value.trim();
+      experience.description = document.getElementById("edit-description").value.trim();
 
-      // Recalculate scores
-      const rawScore = (experience.responses.energy + experience.responses.social + experience.responses.comfort + experience.responses.return) / 4;
-      const personalityData = DataLayer.load("personalityScore");
-      const adjustmentFactor = personalityData ? personalityData.adjustmentFactor : 1.0;
-      const adjustedScore = rawScore * adjustmentFactor;
+      if (!experience.name || !experience.category || !experience.location) {
+        NotificationSystem.show(
+          "Please fill in all required fields including location.",
+          "warning"
+        );
+        return;
+      }
 
+      ActivitySystem.ratingQuestions.forEach((question) => {
+        let value = parseInt(document.getElementById(`edit-${question.id}`).value);
+
+        if (question.reverse) {
+          value = 11 - value; // Reverse score for overwhelming
+        }
+        responses[question.id] = value;
+        rawScore += value * question.weight;
+      });
+
+      experience.responses = responses;
       experience.rawScore = rawScore;
-      experience.adjustedScore = adjustedScore;
+      experience.socialIntensity = ActivitySystem.estimateSocialIntensity(experience.category, responses);
+      experience.noiseLevel = ActivitySystem.estimateNoiseLevel(experience.category, responses);
+      experience.crowdSize = ActivitySystem.estimateCrowdSize(experience.category, responses);
 
       // Save updated experiences locally
       DataLayer.save("userExperiences", userExperiences);
-      
+
       // Also update the allExperiences in DataLayer if it exists
       const allExperiences = DataLayer.load("allExperiences", []);
       const updatedAllExperiences = allExperiences.map(exp => {
@@ -9416,6 +9441,63 @@ Only return the JSON, no additional text.`;
         return exp;
       });
       DataLayer.save("allExperiences", updatedAllExperiences);
+
+      // Function to refresh all UI components
+      const refreshAllUI = () => {
+        // Clear all relevant caches to force a fresh load
+        if (typeof CacheSystem !== 'undefined') {
+          CacheSystem.clear('EXPERIENCES');
+
+          // Clear feed cache if FeedSystem exists
+          if (typeof FeedSystem !== 'undefined' && FeedSystem.store && FeedSystem.store.cacheKey) {
+            CacheSystem.clear(FeedSystem.store.cacheKey);
+            console.log('✅ Cleared feed cache:', FeedSystem.store.cacheKey);
+          }
+
+          // Clear any nearby experiences cache
+          const currentUser = DataLayer.load('currentUser');
+          if (currentUser && currentUser.id) {
+            CacheSystem.clear(`NEARBY_${currentUser.id}`);
+            console.log('✅ Cleared nearby experiences cache');
+          }
+
+          console.log('✅ Cleared all experience-related caches');
+        }
+
+        // Refresh all UI components
+        // updateDashboard();
+        // updateProfile();
+
+        // Update feed if it exists
+        if (typeof FeedSystem !== 'undefined' && FeedSystem.displayFeed) {
+          FeedSystem.displayFeed();
+        }
+
+        // Refresh experiences modal if it's open
+        const experiencesModal = document.getElementById('experiences-modal');
+        if (experiencesModal) {
+          console.log('✅ Refreshing experiences modal');
+          closeExperiencesModal();
+          setTimeout(() => {
+            const freshData = DataLayer.load("userExperiences", []);
+            console.log('🔍 Fresh data before modal refresh:', freshData);
+
+            showExperiencesModal();
+          }, 200);
+        }
+
+        // Refresh any other experience-related displays
+        const currentPage = document.querySelector('.page:not(.hidden)');
+        if (currentPage) {
+          const currentPageId = currentPage.id;
+          console.log('✅ Refreshing current page:', currentPageId);
+
+          // Re-trigger page-specific updates
+          if (typeof updateOnPageVisit === 'function') {
+            updateOnPageVisit(currentPageId);
+          }
+        }
+      };
 
       // Update Firebase if user is authenticated
       if (currentFirebaseUser && authManager && experience.id) {
@@ -9442,7 +9524,9 @@ Only return the JSON, no additional text.`;
                 description: experience.description,
                 responses: experience.responses,
                 rawScore: experience.rawScore,
-                adjustedScore: experience.adjustedScore,
+                socialIntensity: experience.socialIntensity,
+                noiseLevel: experience.noiseLevel,
+                crowdSize: experience.crowdSize,
                 updatedAt: serverTimestamp()
               }),
               'updateDoc',
@@ -9470,7 +9554,9 @@ Only return the JSON, no additional text.`;
                   description: experience.description,
                   responses: experience.responses,
                   rawScore: experience.rawScore,
-                  adjustedScore: experience.adjustedScore,
+                  socialIntensity: experience.socialIntensity,
+                  noiseLevel: experience.noiseLevel,
+                  crowdSize: experience.crowdSize,
                   updatedAt: serverTimestamp()
                 }),
                 'updateDoc',
@@ -9480,109 +9566,46 @@ Only return the JSON, no additional text.`;
               console.log('Experience updated in Firebase (fallback method)');
             }
           }
+
+          // Refresh UI AFTER Firebase update completes
+          setTimeout(() => {
+            refreshAllUI();
+
+            // Force reload of user experiences from Firebase AFTER the update
+            if (typeof loadUserExperiencesWithCache === 'function') {
+              loadUserExperiencesWithCache().then(() => {
+                console.log('✅ Reloaded experiences from Firebase');
+                // Final UI refresh after reload
+                setTimeout(() => {
+                  refreshAllUI();
+                }, 50);
+              }).catch(error => {
+                console.error('Error reloading experiences:', error);
+              });
+            }
+          }, 100);
+
         } catch (error) {
           console.error('Error updating experience in Firebase:', error);
           NotificationSystem.show('Experience updated locally, but failed to sync with server.', 'warning');
+
+          // Still refresh UI even if Firebase update failed
+          setTimeout(() => {
+            refreshAllUI();
+          }, 100);
         }
+      } else {
+        // No Firebase update needed, refresh UI immediately
+        setTimeout(() => {
+          refreshAllUI();
+        }, 100);
       }
 
       // Close modal and show success message
       closeEditExperienceModal();
       NotificationSystem.show("Experience updated successfully!", "success");
-
-      // Clear all relevant caches to force a fresh load
-      if (typeof CacheSystem !== 'undefined') {
-        CacheSystem.clear('EXPERIENCES');
-        
-        // Clear feed cache if FeedSystem exists
-        if (typeof FeedSystem !== 'undefined' && FeedSystem.store && FeedSystem.store.cacheKey) {
-          CacheSystem.clear(FeedSystem.store.cacheKey);
-          console.log('✅ Cleared feed cache:', FeedSystem.store.cacheKey);
-        }
-        
-        // Clear any nearby experiences cache
-        const currentUser = DataLayer.load('currentUser');
-        if (currentUser && currentUser.id) {
-          CacheSystem.clear(`NEARBY_${currentUser.id}`);
-          console.log('✅ Cleared nearby experiences cache');
-        }
-        
-        console.log('✅ Cleared all experience-related caches');
-      }
-
-      // Refresh all UI components
-      setTimeout(() => {
-        // Update dashboard and profile pages
-        updateDashboard();
-        updateProfile();
-        
-        // Update feed if it exists
-        if (typeof FeedSystem !== 'undefined' && FeedSystem.displayFeed) {
-          FeedSystem.displayFeed();
-        }
-        
-        // Refresh experiences modal if it's open
-        const experiencesModal = document.getElementById('experiences-modal');
-        if (experiencesModal) {
-          console.log('✅ Refreshing experiences modal');
-          closeExperiencesModal();
-          setTimeout(() => {
-            showExperiencesModal();
-          }, 50);
-        }
-        
-        // Refresh any other experience-related displays
-        // Force a page refresh for any dynamically generated content
-        const currentPage = document.querySelector('.page:not(.hidden)');
-        if (currentPage) {
-          const currentPageId = currentPage.id;
-          console.log('✅ Refreshing current page:', currentPageId);
-          
-          // Re-trigger page-specific updates
-          if (typeof updateOnPageVisit === 'function') {
-            updateOnPageVisit(currentPageId);
-          }
-        }
-        
-        // Force reload of user experiences from Firebase
-        if (typeof loadUserExperiencesWithCache === 'function') {
-          loadUserExperiencesWithCache().then(() => {
-            console.log('✅ Reloaded experiences from Firebase');
-            // Update UI again after reload
-            updateDashboard();
-            updateProfile();
-            if (typeof FeedSystem !== 'undefined' && FeedSystem.displayFeed) {
-              FeedSystem.displayFeed();
-            }
-            
-            // Refresh experiences modal again if it's open
-            const experiencesModalAfterReload = document.getElementById('experiences-modal');
-            if (experiencesModalAfterReload) {
-              console.log('✅ Refreshing experiences modal after reload');
-              closeExperiencesModal();
-              setTimeout(() => {
-                showExperiencesModal();
-              }, 50);
-            }
-            
-            // Refresh any other experience-related displays after reload
-            const currentPageAfterReload = document.querySelector('.page:not(.hidden)');
-            if (currentPageAfterReload) {
-              const currentPageIdAfterReload = currentPageAfterReload.id;
-              console.log('✅ Refreshing current page after reload:', currentPageIdAfterReload);
-              
-              // Re-trigger page-specific updates
-              if (typeof updateOnPageVisit === 'function') {
-                updateOnPageVisit(currentPageIdAfterReload);
-              }
-            }
-          }).catch(error => {
-            console.error('Error reloading experiences:', error);
-          });
-        }
-      }, 100);
     }
-
+    
     async function deleteExperience(index) {
       if (confirm("Are you sure you want to delete this experience? This action cannot be undone.")) {
         const userExperiences = DataLayer.load("userExperiences", []);
@@ -10073,10 +10096,10 @@ Only return the JSON, no additional text.`;
                   <div style="text-align: center;">
                     ${(() => {
                       // Check pending status first
-                      const hasPendingRequest = typeof FriendsDiscoverySystem !== 'undefined' && 
-                                              Array.isArray(FriendsDiscoverySystem.pendingRequests) &&
-                                              FriendsDiscoverySystem.pendingRequests.some(r => r.toUserId === user.id);
-                      
+                      const hasPendingRequest = typeof FriendsDiscoverySystem !== 'undefined' &&
+                        Array.isArray(FriendsDiscoverySystem.pendingRequests) &&
+                        FriendsDiscoverySystem.pendingRequests.some(r => r.toUserId === user.id);
+
                       if (hasPendingRequest) {
                         return `<button class=\"btn\" data-pending-for=\"${user.id}\" style=\"font-size: 0.8rem; padding: 6px 12px; background: #fbbf24; color: #1f2937; border: 1px solid #f59e0b;\" onclick=\"FriendsDiscoverySystem.cancelPendingRequest('${user.id}')\"><i class=\"fas fa-clock\"></i> Pending</button>`;
                       } else {
@@ -12193,7 +12216,7 @@ Only return the JSON, no additional text.`;
         const user = result.user;
 
         // Check if this is a new user
-          const userDoc = await wrapRead(getDoc(doc(authManager.db, 'users', user.uid)), 'getDoc', `users/${user.uid}`, {});
+        const userDoc = await wrapRead(getDoc(doc(authManager.db, 'users', user.uid)), 'getDoc', `users/${user.uid}`, {});
 
         if (!userDoc.exists()) {
           // Create new user profile
@@ -12259,7 +12282,7 @@ Only return the JSON, no additional text.`;
         const user = result.user;
 
         // Check if this is a new user
-          const userDoc = await wrapRead(getDoc(doc(authManager.db, 'users', user.uid)), 'getDoc', `users/${user.uid}`, {});
+        const userDoc = await wrapRead(getDoc(doc(authManager.db, 'users', user.uid)), 'getDoc', `users/${user.uid}`, {});
 
         if (!userDoc.exists()) {
           // Create new user profile
@@ -12312,7 +12335,7 @@ Only return the JSON, no additional text.`;
         // Cleanup real-time listeners before logout
         cleanupRealtimeListeners();
 
-        
+
 
         if (authManager && authManager.auth) {
           const { signOut } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
@@ -12411,17 +12434,17 @@ Only return the JSON, no additional text.`;
         pauseRealtimeListeners();
       });
 
-    // Write offline on pagehide/beforeunload to ensure immediate presence accuracy
-    // Avoid costly network waits by using a short, best-effort write.
-    const handleFastOffline = () => {
-      try {
-        if (!currentFirebaseUser || !authManager) return;
-        // Fire-and-forget status update (no throttling)
-        updateUserStatus('offline', false, true);
-      } catch (_) {}
-    };
-    window.addEventListener('pagehide', handleFastOffline, { capture: true });
-    window.addEventListener('beforeunload', handleFastOffline, { capture: true });
+      // Write offline on pagehide/beforeunload to ensure immediate presence accuracy
+      // Avoid costly network waits by using a short, best-effort write.
+      const handleFastOffline = () => {
+        try {
+          if (!currentFirebaseUser || !authManager) return;
+          // Fire-and-forget status update (no throttling)
+          updateUserStatus('offline', false, true);
+        } catch (_) { }
+      };
+      window.addEventListener('pagehide', handleFastOffline, { capture: true });
+      window.addEventListener('beforeunload', handleFastOffline, { capture: true });
 
       // Periodic activity heartbeat (respects cooldown and no-op if unchanged)
       setInterval(() => {
@@ -12759,8 +12782,8 @@ Only return the JSON, no additional text.`;
             const { doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
             await wrapWrite(
               updateDoc(doc(authManager.db, 'users', authManager.auth.currentUser.uid), {
-              emailVerified: true,
-              updatedAt: new Date()
+                emailVerified: true,
+                updatedAt: new Date()
               }),
               'updateDoc',
               `users/${authManager.auth.currentUser.uid}`,
@@ -13201,11 +13224,11 @@ Only return the JSON, no additional text.`;
     };
 
     // Enhanced initialization with comprehensive data strategy
-      let _initRealtimeInFlight = false;
+    let _initRealtimeInFlight = false;
     async function initializeRealtimeSystem() {
       if (!currentFirebaseUser || !authManager) return;
-        if (_initRealtimeInFlight) return; // cooldown: skip duplicate inits
-        _initRealtimeInFlight = true;
+      if (_initRealtimeInFlight) return; // cooldown: skip duplicate inits
+      _initRealtimeInFlight = true;
 
       console.log('🚀 Initializing comprehensive real-time system...');
 
@@ -13219,7 +13242,7 @@ Only return the JSON, no additional text.`;
       startLocationScheduler();
 
       console.log('✅ Real-time system fully initialized');
-        setTimeout(() => { _initRealtimeInFlight = false; }, 100);
+      setTimeout(() => { _initRealtimeInFlight = false; }, 100);
     }
 
     // Batch load all essential data with caching strategy
@@ -13416,7 +13439,7 @@ Only return the JSON, no additional text.`;
         realtimeListenersInitialized = false;
         await initializeRealTimeListeners();
         areRealtimeListenersActive = true;
-      startLocationScheduler();
+        startLocationScheduler();
       } catch (error) {
         console.error('Error resuming real-time listeners:', error);
       } finally {
@@ -13493,7 +13516,7 @@ Only return the JSON, no additional text.`;
 
       try {
         const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-          const userDoc = await wrapRead(getDoc(doc(authManager.db, 'users', currentFirebaseUser.uid)), 'getDoc', `users/${currentFirebaseUser.uid}`, { source: 'dashboard' });
+        const userDoc = await wrapRead(getDoc(doc(authManager.db, 'users', currentFirebaseUser.uid)), 'getDoc', `users/${currentFirebaseUser.uid}`, { source: 'dashboard' });
 
         if (userDoc.exists()) {
           const userData = userDoc.data();
@@ -13579,10 +13602,10 @@ Only return the JSON, no additional text.`;
             FriendsDiscoverySystem.friendRequests = newRequests;
             FriendsDiscoverySystem.updateFriendRequestBadge();
 
-          // Force immediate UI refresh in any friendship UI
-          if (typeof FriendsDiscoverySystem !== 'undefined' && FriendsDiscoverySystem.displayUsers) {
-            FriendsDiscoverySystem.displayUsers();
-          }
+            // Force immediate UI refresh in any friendship UI
+            if (typeof FriendsDiscoverySystem !== 'undefined' && FriendsDiscoverySystem.displayUsers) {
+              FriendsDiscoverySystem.displayUsers();
+            }
 
             // Show notification for new requests only if count increased
             if (newRequests.length > previousCount && newRequests.length > 0) {
@@ -13603,8 +13626,8 @@ Only return the JSON, no additional text.`;
               );
             }
 
-          // Presence list may change; refresh per-user listeners
-          refreshUserStatusListeners();
+            // Presence list may change; refresh per-user listeners
+            refreshUserStatusListeners();
           }
 
           // Update dashboard friend request indicator if on dashboard
@@ -13645,12 +13668,12 @@ Only return the JSON, no additional text.`;
                 setTimeout(async () => {
                   try {
                     const { doc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-                await wrapWrite(
-                  deleteDoc(doc(authManager.db, 'friendRequests', change.doc.id)),
-                  'deleteDoc',
-                  `friendRequests/${change.doc.id}`,
-                  { reason: 'accepted_cleanup' }
-                );
+                    await wrapWrite(
+                      deleteDoc(doc(authManager.db, 'friendRequests', change.doc.id)),
+                      'deleteDoc',
+                      `friendRequests/${change.doc.id}`,
+                      { reason: 'accepted_cleanup' }
+                    );
                   } catch (error) {
                     console.error('Error cleaning up friend request:', error);
                   }
@@ -13730,8 +13753,8 @@ Only return the JSON, no additional text.`;
         });
 
         console.log('Friend request real-time listeners initialized');
-            // Rebuild presence listeners for the relevant user set
-            refreshUserStatusListeners();
+        // Rebuild presence listeners for the relevant user set
+        refreshUserStatusListeners();
       } catch (error) {
         console.error('Error initializing friend request listeners:', error);
       }
@@ -13882,7 +13905,7 @@ Only return the JSON, no additional text.`;
       }
     }
 
-    
+
     // Location scheduler: checks every 10 minutes and updates Firebase if moved ≥ 50m
     async function startLocationScheduler() {
       if (!currentFirebaseUser || !authManager) return;
@@ -13955,7 +13978,7 @@ Only return the JSON, no additional text.`;
       statusUpdateInterval = setInterval(async () => {
         try {
           await checkAndUpdateLocation();
-        } catch (_) {}
+        } catch (_) { }
       }, 10 * 60 * 1000);
     }
 
@@ -13995,11 +14018,11 @@ Only return the JSON, no additional text.`;
 
         await wrapWrite(
           updateDoc(doc(authManager.db, 'users', currentFirebaseUser.uid), {
-          status: status,
-          isOnline: isOnline,
-          isActive: isActive,
-          lastSeen: serverTimestamp(),
-          lastStatusUpdate: serverTimestamp()
+            status: status,
+            isOnline: isOnline,
+            isActive: isActive,
+            lastSeen: serverTimestamp(),
+            lastStatusUpdate: serverTimestamp()
           }),
           'updateDoc',
           `users/${currentFirebaseUser.uid}`,
@@ -14036,12 +14059,12 @@ Only return the JSON, no additional text.`;
 
         await wrapWrite(
           updateDoc(doc(authManager.db, 'users', currentFirebaseUser.uid), {
-          location: {
-            lat: location.lat,
-            lng: location.lng,
-            accuracy: location.accuracy || null
-          },
-          lastLocationUpdate: serverTimestamp()
+            location: {
+              lat: location.lat,
+              lng: location.lng,
+              accuracy: location.accuracy || null
+            },
+            lastLocationUpdate: serverTimestamp()
           }),
           'updateDoc',
           `users/${currentFirebaseUser.uid}`,
@@ -14180,8 +14203,8 @@ Only return the JSON, no additional text.`;
                 lastUserStatusUIUpdate = now;
                 FriendsDiscoverySystem.displayUsers();
               }
-          }
-        }, (error) => {
+            }
+          }, (error) => {
             console.error('Error listening to user status doc:', error);
           });
           realtimeListeners.friendStatuses[userId] = unsub;
@@ -14540,17 +14563,17 @@ Only return the JSON, no additional text.`;
         if (this._processingQueue || !this._userLoadingQueue || this._userLoadingQueue.size === 0) {
           return;
         }
-        
+
         this._processingQueue = true;
         const userIds = Array.from(this._userLoadingQueue);
         this._userLoadingQueue.clear();
-        
+
         try {
           const { collection, query, where, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
           const usersCollection = collection(authManager.db, 'users');
           const q = query(usersCollection, where('__name__', 'in', userIds));
           const snapshot = await getDocs(q);
-          
+
           snapshot.forEach((docSnap) => {
             const userData = docSnap.data();
             const user = {
@@ -14562,10 +14585,10 @@ Only return the JSON, no additional text.`;
               personalityType: userData.personalityType || 'Not Set',
               isPremium: userData.isPremium || false
             };
-            
+
             // Cache user data individually for faster lookups
             CacheSystem.set(`USER_${user.id}`, user);
-            
+
             // Add to allUsers array
             if (Array.isArray(this.allUsers)) {
               const existingIndex = this.allUsers.findIndex(u => u.id === user.id);
@@ -14576,12 +14599,12 @@ Only return the JSON, no additional text.`;
               }
             }
           });
-          
+
           // Trigger feed refresh to show updated user data
           if (typeof FeedSystem !== 'undefined' && FeedSystem.displayFeed) {
             setTimeout(() => FeedSystem.displayFeed(), 100);
           }
-          
+
           console.log('✅ Loaded and cached', snapshot.size, 'users from queue');
         } catch (error) {
           console.error('Error processing user loading queue:', error);
@@ -14844,11 +14867,11 @@ Only return the JSON, no additional text.`;
           'friends': 'My Friends',
           'requests': 'Friend Requests'
         };
-        
+
         const filterText = filterMap[filter] || 'All Users';
         const targetItem = Array.from(document.querySelectorAll('#friendship-filter-menu .filter-dropdown-item'))
           .find(item => item.textContent.trim().includes(filterText));
-        
+
         if (targetItem) {
           targetItem.classList.add('active');
           // Update button text
@@ -15080,7 +15103,7 @@ Only return the JSON, no additional text.`;
           const cards = Array.from(document.querySelectorAll('.user-card')) || [];
           additionalPresenceWatchIds = new Set(cards.map(card => card.getAttribute('data-user-id')).filter(Boolean));
           refreshUserStatusListeners();
-        } catch (_) {}
+        } catch (_) { }
       },
 
       _renderPagination(totalPages) {
@@ -15287,8 +15310,8 @@ Only return the JSON, no additional text.`;
             // Step 1: Update request status to 'accepted' (this triggers real-time listeners)
             await wrapWrite(
               updateDoc(doc(authManager.db, 'friendRequests', requestDoc.id), {
-              status: 'accepted',
-              acceptedAt: serverTimestamp()
+                status: 'accepted',
+                acceptedAt: serverTimestamp()
               }),
               'updateDoc',
               `friendRequests/${requestDoc.id}`,
@@ -15298,9 +15321,9 @@ Only return the JSON, no additional text.`;
             // Step 2: Create friendship record (this also triggers real-time listeners)
             await wrapWrite(
               addDoc(collection(authManager.db, 'friends'), {
-              user1Id: requestData.fromUserId,
-              user2Id: requestData.toUserId,
-              createdAt: serverTimestamp()
+                user1Id: requestData.fromUserId,
+                user2Id: requestData.toUserId,
+                createdAt: serverTimestamp()
               }),
               'addDoc',
               'friends',
@@ -15314,12 +15337,12 @@ Only return the JSON, no additional text.`;
 
             // Force immediate cache invalidation and reload
             this.isInitialized = false; // Force complete re-initialization
-            
+
             // Clear all arrays to force fresh load
             this.currentFriends = [];
             this.friendRequests = [];
             this.pendingRequests = [];
-            
+
             // Force immediate fresh reload from Firebase (not cache)
             await this.loadCurrentFriendsOptimized();
             await this.loadFriendRequests();
@@ -15356,8 +15379,8 @@ Only return the JSON, no additional text.`;
             const requestDoc = requestSnapshot.docs[0];
             await wrapWrite(
               updateDoc(doc(authManager.db, 'friendRequests', requestDoc.id), {
-              status: 'rejected',
-              rejectedAt: serverTimestamp()
+                status: 'rejected',
+                rejectedAt: serverTimestamp()
               }),
               'updateDoc',
               `friendRequests/${requestDoc.id}`,
