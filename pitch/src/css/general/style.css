@@ -1,0 +1,116 @@
+:root {
+    --primary-color: #1f3b73;
+    --primary-color-hover: #16305f;
+
+    --secondary-color: #4a90e2;
+    --secondary-color-hover: #3b7dd3;
+    --background-color: #ffffff;
+    --background-alt-color: #fafafa;
+
+    --text-color: #1a1a1a;
+    --muted-text-color: #555555;
+    --inverted-text-color: #ffffff;
+
+    --border-color: #e0e0e0;
+
+    --primary-gradient: linear-gradient(135deg, #1f3b73, #4a90e2);
+    --secondary-gradient: linear-gradient(135deg, #4a90e2, #a0c8f0);
+    --accent-gradient: linear-gradient(135deg, #7bede7, #7971f3);
+    --background-gradient: linear-gradient(180deg, #ffffff, #fafafa);
+
+    --shadow-small: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-medium: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --shadow-large: 0 10px 15px rgba(0, 0, 0, 0.15);
+
+    --border-radius-small: 4px;
+    --border-radius-medium: 8px;
+    --border-radius-large: 12px;
+
+    --success-color: #27ae60;
+    --error-color: #e74c3c;
+    --warning-color: #f39c12;
+    --info-color: #3498db;
+
+    --transition: all 0.3s ease;
+    --blue-bg: rgba(74, 144, 226, 0.08);
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+
+    scrollbar-width:thin;
+    scrollbar-color: var(--primary-color) #f1f1f1;
+  }
+
+  body {
+    font-family: "Segoe UI", "Inter", -apple-system, BlinkMacSystemFont,
+      sans-serif;
+    background: var(--background-color);
+    min-height: 100vh;
+    color: var(--text-color);
+    line-height: 1.6;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--primary-gradient);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--secondary-gradient);
+  }
+
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px) scale(0.95);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }

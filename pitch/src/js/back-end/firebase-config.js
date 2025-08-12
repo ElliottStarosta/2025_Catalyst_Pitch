@@ -8,6 +8,14 @@ const firebaseConfig = {
     measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
+let currentUser = null;
+export function setCurrentUser(user) {
+  currentUser = user;
+}
+export function getCurrentUser() {
+  return currentUser;
+}
+
+
 
 export { firebaseConfig };
-

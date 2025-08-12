@@ -8,1662 +8,7 @@
   <link rel="icon" href="public/logo-icon-blue.png" type="image/png" />
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <style>
-    :root {
-      --primary-color: #1f3b73;
-      --primary-color-hover: #16305f;
-
-      --secondary-color: #4a90e2;
-      --secondary-color-hover: #3b7dd3;
-      --background-color: #ffffff;
-      --background-alt-color: #fafafa;
-
-      --text-color: #1a1a1a;
-      --muted-text-color: #555555;
-      --inverted-text-color: #ffffff;
-
-      --border-color: #e0e0e0;
-
-      --primary-gradient: linear-gradient(135deg, #1f3b73, #4a90e2);
-      --secondary-gradient: linear-gradient(135deg, #4a90e2, #a0c8f0);
-      --accent-gradient: linear-gradient(135deg, #7bede7, #7971f3);
-      --background-gradient: linear-gradient(180deg, #ffffff, #fafafa);
-
-      --shadow-small: 0 1px 2px rgba(0, 0, 0, 0.05);
-      --shadow-medium: 0 4px 6px rgba(0, 0, 0, 0.1);
-      --shadow-large: 0 10px 15px rgba(0, 0, 0, 0.15);
-
-      --border-radius-small: 4px;
-      --border-radius-medium: 8px;
-      --border-radius-large: 12px;
-
-      --success-color: #27ae60;
-      --error-color: #e74c3c;
-      --warning-color: #f39c12;
-      --info-color: #3498db;
-
-      --transition: all 0.3s ease;
-      --blue-bg: rgba(74, 144, 226, 0.08);
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: "Segoe UI", "Inter", -apple-system, BlinkMacSystemFont,
-        sans-serif;
-      background: var(--background-color);
-      min-height: 100vh;
-      color: var(--text-color);
-      line-height: 1.6;
-    }
-
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 20px;
-    }
-
-    /* Modern navbar */
-    .navbar {
-      background: var(--background-color);
-      padding: 1.2rem 2rem;
-      margin: 2rem 0;
-      border-radius: var(--border-radius-large);
-      box-shadow: var(--shadow-medium);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      position: sticky;
-      top: 20px;
-      z-index: 100;
-    }
-
-    .logo {
-      font-size: 1.8rem;
-      font-weight: 800;
-
-      background: var(--primary-gradient);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .nav-links {
-      display: flex;
-      gap: 1.5rem;
-      list-style: none;
-    }
-
-    .nav-links a {
-      text-decoration: none;
-      color: var(--text-color);
-      font-weight: 500;
-      transition: var(--transition);
-      position: relative;
-      padding: 8px 0;
-      font-size: 1rem;
-    }
-
-    .nav-links a::after {
-      content: "";
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-      width: 0;
-      height: 3px;
-      background: var(--accent-gradient);
-      border-radius: var(--border-radius-small);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      transform: translateX(-50%);
-    }
-
-    .nav-links a:hover {
-      color: var(--secondary-color);
-    }
-
-    .nav-links a:hover::after {
-      width: 100%;
-    }
-
-    .nav-links a.active {
-      color: var(--secondary-color);
-      font-weight: 600;
-    }
-
-    .nav-links a.active::after {
-      width: 100%;
-    }
-
-    /* Card styling */
-    .card {
-      background: var(--background-color);
-      border-radius: var(--border-radius-large);
-      padding: 2.5rem;
-      margin-bottom: 2.5rem;
-      box-shadow: var(--shadow-medium);
-      transition: var(--transition);
-    }
-
-    .card:hover {
-      box-shadow: var(--shadow-large);
-    }
-
-    .card-header {
-      margin-bottom: 1.5rem;
-      text-align: center;
-    }
-
-    .card-header h2 {
-      font-size: 1.8rem;
-      color: var(--text-color);
-      margin-bottom: 0.5rem;
-      background: var(--primary-gradient);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .card-header p {
-      color: var(--muted-text-color);
-      max-width: 700px;
-      margin: 0 auto;
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    /* Buttons */
-    .btn {
-      background: var(--primary-gradient);
-      color: var(--inverted-text-color);
-      border: none;
-      padding: 14px 28px;
-      border-radius: 50px;
-      cursor: pointer;
-      font-size: 1rem;
-      font-weight: 600;
-      transition: all 0.3s ease;
-      margin: 0.5rem;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      box-shadow: var(--shadow-small);
-      line-height: 1;
-      /* Fix extra vertical space inside buttons */
-    }
-
-    /* Ensure icons inside buttons don't increase vertical height */
-    .btn i {
-      line-height: 1;
-    }
-
-    /* Tighter spacing for buttons inside cards */
-    .user-card .btn,
-    .experience-card .btn {
-      margin: 0;
-    }
-
-    /* Stabilize action area height to prevent jitter on state changes */
-    .user-actions {
-      min-height: 36px;
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-    }
-
-    .btn:hover {
-      transform: translateY(-3px);
-      box-shadow: var(--shadow-medium);
-      filter: brightness(1.1);
-    }
-
-    .btn:active {
-      transform: translateY(1px);
-    }
-
-    .btn:disabled {
-      background: var(--border-color);
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
-
-    .btn-secondary {
-      background: var(--background-alt-color);
-      color: var(--text-color);
-      border: 2px solid var(--border-color);
-      box-shadow: none;
-    }
-
-    .btn-secondary:hover {
-      background: var(--border-color);
-      transform: translateY(-3px);
-      box-shadow: var(--shadow-small);
-    }
-
-    .btn-danger {
-      background: linear-gradient(135deg, var(--error-color) 0%, #c0392b 100%);
-      color: var(--inverted-text-color);
-    }
-
-    .btn-success {
-      background: linear-gradient(135deg, var(--secondary-color) 0%, #2980b9 100%);
-      color: var(--inverted-text-color);
-    }
-
-    .btn-info {
-      background: linear-gradient(135deg, var(--info-color) 0%, #2980b9 100%);
-      color: var(--inverted-text-color);
-    }
-
-    .btn-google {
-      background: white;
-      color: #333;
-      border: 1px solid #ddd;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      font-weight: 500;
-      margin-top: 10px;
-    }
-
-    .btn-google:hover {
-      background: #f8f9fa;
-      border-color: #ccc;
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-small);
-    }
-
-    /* Professional Minimalistic Auth Styles */
-    .auth-container {
-      max-width: 400px;
-      margin: 2rem auto;
-      padding: 2.5rem;
-      background: var(--background-color);
-      border-radius: var(--border-radius-large);
-      box-shadow: var(--shadow-medium);
-      border: 1px solid var(--border-color);
-      transition: var(--transition);
-    }
-
-    .auth-container:hover {
-      box-shadow: var(--shadow-large);
-    }
-
-    .auth-header {
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-
-    .auth-header h2 {
-      font-size: 1.75rem;
-      font-weight: 700;
-      color: var(--text-color);
-      margin: 0 0 0.5rem 0;
-      letter-spacing: -0.025em;
-    }
-
-    .auth-header p {
-      color: var(--muted-text-color);
-      font-size: 0.95rem;
-      margin: 0;
-      line-height: 1.5;
-    }
-
-    .auth-step {
-      width: 100%;
-    }
-
-    .auth-input {
-      width: 100%;
-      padding: 14px 16px;
-      border: 2px solid var(--border-color);
-      border-radius: 12px;
-      font-size: 1rem;
-      font-weight: 500;
-      background: var(--background-color);
-      color: var(--text-color);
-      transition: all 0.2s ease;
-      margin-bottom: 1rem;
-    }
-
-    .auth-input:focus {
-      outline: none;
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 3px rgba(31, 59, 115, 0.1);
-    }
-
-    .auth-input::placeholder {
-      color: #9ca3af;
-      font-weight: 400;
-    }
-
-    textarea.auth-input {
-      resize: vertical;
-      min-height: 80px;
-      font-family: inherit;
-    }
-
-    .auth-btn-primary {
-      width: 100%;
-      padding: 14px 20px;
-      background: var(--primary-gradient);
-      color: white;
-      border: none;
-      border-radius: 12px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      margin-bottom: 1.5rem;
-      letter-spacing: 0.025em;
-    }
-
-    .auth-btn-primary:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 8px 25px rgba(31, 59, 115, 0.25);
-    }
-
-    .auth-btn-primary:active {
-      transform: translateY(0);
-    }
-
-    .auth-divider {
-      text-align: center;
-      margin: 1.5rem 0;
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .auth-divider::before {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 0;
-      right: 0;
-      height: 1px;
-      background: #6b7280;
-    }
-
-    .auth-divider span {
-      background: var(--background-color);
-      padding: 0 1rem;
-      color: #6b7280;
-      font-size: 0.875rem;
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      position: relative;
-      z-index: 1;
-    }
-
-    .oauth-buttons {
-      display: flex;
-      gap: 0.75rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .oauth-btn {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      padding: 12px 16px;
-      border: 2px solid var(--border-color);
-      border-radius: 12px;
-      background: var(--background-color);
-      color: var(--text-color);
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .oauth-btn:hover {
-      border-color: var(--primary-color);
-      background: var(--blue-bg);
-      transform: translateY(-1px);
-    }
-
-    .oauth-btn svg {
-      flex-shrink: 0;
-    }
-
-    .auth-back {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      margin-bottom: 1.5rem;
-      padding: 0.75rem;
-      background: var(--background-alt-color);
-      border-radius: 12px;
-    }
-
-    .back-btn {
-      background: none;
-      border: none;
-      color: var(--muted-text-color);
-      font-size: 1rem;
-      cursor: pointer;
-      padding: 0.5rem;
-      border-radius: 8px;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .back-btn:hover {
-      background: var(--border-color);
-      color: var(--text-color);
-    }
-
-    .back-info span {
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: var(--text-color);
-    }
-
-    .password-input-wrapper {
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
-
-    .password-toggle-btn {
-      position: absolute;
-      right: 12px;
-      background: none;
-      border: none;
-      color: var(--muted-text-color);
-      cursor: pointer;
-      padding: 0.5rem;
-      font-size: 1rem;
-      transition: all 0.2s ease;
-      border-radius: 6px;
-    }
-
-    .password-toggle-btn:hover {
-      color: var(--text-color);
-      background: var(--background-alt-color);
-    }
-
-    .password-input-wrapper .auth-input {
-      padding-right: 3rem;
-      margin-bottom: 0;
-    }
-
-    .auth-footer {
-      text-align: center;
-      margin-top: 1.5rem;
-      padding-top: 1.5rem;
-      border-top: 1px solid var(--border-color);
-    }
-
-    .auth-footer p {
-      margin: 0;
-      color: var(--muted-text-color);
-      font-size: 0.875rem;
-    }
-
-    .auth-footer a {
-      color: var(--primary-color);
-      text-decoration: none;
-      font-weight: 600;
-      transition: all 0.2s ease;
-    }
-
-    .auth-footer a:hover {
-      color: var(--primary-color-hover);
-      text-decoration: underline;
-    }
-
-    /* Password Strength Indicator */
-    .password-strength {
-      margin-top: 0.5rem;
-      font-size: 0.875rem;
-    }
-
-    .password-strength-bar {
-      width: 100%;
-      height: 4px;
-      background: #e5e7eb;
-      border-radius: 2px;
-      overflow: hidden;
-      margin-bottom: 0.5rem;
-    }
-
-    .password-strength-fill {
-      height: 100%;
-      transition: all 0.3s ease;
-      border-radius: 2px;
-    }
-
-    .password-strength-text {
-      font-weight: 500;
-    }
-
-    .strength-weak {
-      background: #ef4444;
-      width: 25%;
-    }
-
-    .strength-fair {
-      background: #f59e0b;
-      width: 50%;
-    }
-
-    .strength-good {
-      background: #10b981;
-      width: 75%;
-    }
-
-    .strength-strong {
-      background: #059669;
-      width: 100%;
-    }
-
-    .text-weak {
-      color: #ef4444;
-    }
-
-    .text-fair {
-      color: #f59e0b;
-    }
-
-    .text-good {
-      color: #10b981;
-    }
-
-    .text-strong {
-      color: #059669;
-    }
-
-    .form-divider span {
-      background: white;
-      padding: 0 15px;
-      color: #666;
-      font-size: 14px;
-    }
-
-    /* Personality assessment */
-    .question-container {
-      margin-bottom: 2.5rem;
-      padding: 1.5rem;
-      border-radius: var(--border-radius-large);
-      background: var(--blue-bg);
-    }
-
-    .question-text {
-      font-size: 1.3rem;
-      margin-bottom: 1.5rem;
-      font-weight: 600;
-      color: var(--text-color);
-      text-align: center;
-    }
-
-    .scale-container {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin: 1.5rem 0;
-    }
-
-    .scale-labels {
-      display: flex;
-      justify-content: space-between;
-      width: 100%;
-      font-size: 0.95rem;
-      color: var(--muted-text-color);
-      margin-bottom: 1rem;
-      font-weight: 500;
-    }
-
-    .radio-group {
-      display: flex;
-      justify-content: space-between;
-      width: 100%;
-      max-width: 500px;
-      margin: 0 auto;
-    }
-
-    .radio-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      cursor: pointer;
-      transition: var(--transition);
-      padding: 10px;
-      border-radius: 12px;
-      cursor: pointer;
-      user-select: none;
-      transition: all 0.2s ease;
-    }
-
-    .radio-item:hover {
-      background: rgba(74, 144, 226, 0.1);
-      transform: translateY(-5px);
-      box-shadow: var(--shadow-small);
-    }
-
-    .radio-item input[type="radio"] {
-      appearance: none;
-      width: 24px;
-      height: 24px;
-      border: 2px solid var(--secondary-color);
-      border-radius: 50%;
-      position: relative;
-      cursor: pointer;
-      transition: var(--transition);
-    }
-
-    .radio-item input[type="radio"]:checked {
-      background: var(--secondary-color);
-    }
-
-    .radio-item input[type="radio"]:checked::after {
-      content: "";
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: var(--inverted-text-color);
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-    }
-
-    .radio-item label {
-      margin-top: 0.8rem;
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: var(--secondary-color);
-    }
-
-    .progress-container {
-      margin: 2rem 0;
-      padding: 0 1rem;
-    }
-
-    .progress-bar {
-      width: 100%;
-      height: 10px;
-      background: rgba(74, 144, 226, 0.2);
-      border-radius: var(--border-radius-small);
-      overflow: hidden;
-    }
-
-    .progress-fill {
-      height: 100%;
-      background: var(--secondary-gradient);
-      border-radius: var(--border-radius-small);
-      transition: width 0.5s ease;
-    }
-
-    .progress-info {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 0.5rem;
-      font-size: 0.9rem;
-      color: var(--muted-text-color);
-      font-weight: 500;
-    }
-
-    /* Results page */
-    .personality-result {
-      text-align: center;
-      padding: 2rem;
-    }
-
-    .personality-score {
-      font-size: 4rem;
-      font-weight: 800;
-      margin: 1.5rem 0;
-      background: var(--primary-gradient);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .personality-type {
-      font-size: 1.8rem;
-      margin-bottom: 1rem;
-      font-weight: 700;
-      color: var(--text-color);
-    }
-
-    .personality-description {
-      max-width: 600px;
-      margin: 0 auto 2rem;
-      font-size: 1.1rem;
-      color: var(--muted-text-color);
-      line-height: 1.7;
-    }
-
-    /* Activity cards */
-    .activity-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1.8rem;
-      margin-top: 2rem;
-    }
-
-    .activity-card {
-      background: var(--background-color);
-      border-radius: var(--border-radius-large);
-      padding: 1.8rem;
-      box-shadow: var(--shadow-small);
-      transition: var(--transition);
-      cursor: pointer;
-      border: 1px solid var(--border-color);
-      display: flex;
-      flex-direction: column;
-    }
-
-    .activity-card:hover {
-      transform: translateY(-8px);
-      box-shadow: var(--shadow-large);
-      border-color: var(--secondary-color);
-    }
-
-    .activity-title {
-      font-size: 1.3rem;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-      color: var(--text-color);
-    }
-
-    .activity-category {
-      color: var(--secondary-color);
-      font-size: 0.95rem;
-      margin-bottom: 1rem;
-      text-transform: uppercase;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-    }
-
-    .activity-details {
-      margin-bottom: 1.2rem;
-      color: var(--muted-text-color);
-      flex-grow: 1;
-    }
-
-    .rating-section {
-      border-top: 1px solid var(--border-color);
-      padding-top: 1.2rem;
-      margin-top: 1.2rem;
-    }
-
-    .rating-questions {
-      margin-bottom: 1.2rem;
-    }
-
-    .rating-question {
-      margin-bottom: 1.5rem;
-    }
-
-    .rating-question label {
-      display: block;
-      margin-bottom: 0.8rem;
-      font-weight: 500;
-      color: var(--text-color);
-    }
-
-    .rating-slider {
-      width: 100%;
-      height: 8px;
-      border-radius: var(--border-radius-small);
-      background: rgba(74, 144, 226, 0.2);
-      outline: none;
-      appearance: none;
-    }
-
-    .rating-slider::-webkit-slider-thumb {
-      appearance: none;
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      background: var(--secondary-gradient);
-      cursor: pointer;
-      box-shadow: var(--shadow-small);
-      border: 2px solid var(--inverted-text-color);
-    }
-
-    .rating-slider::-moz-range-thumb {
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      background: var(--primary-gradient);
-      cursor: pointer;
-      box-shadow: var(--shadow-small);
-      border: 2px solid var(--inverted-text-color);
-    }
-
-    .slider-value {
-      text-align: center;
-      font-weight: 700;
-      color: var(--muted-text-color);
-      margin-top: 0.8rem;
-      font-size: 1.1rem;
-    }
-
-    .final-score {
-      font-size: 1.3rem;
-      font-weight: 700;
-      text-align: center;
-      padding: 1.2rem;
-      background: var(--primary-gradient);
-      color: var(--inverted-text-color);
-      border-radius: var(--border-radius-medium);
-      margin-top: 1.5rem;
-      box-shadow: var(--shadow-small);
-    }
-
-    /* User info */
-    .user-info {
-      display: flex;
-      align-items: center;
-      gap: 1.5rem;
-      margin-bottom: 2.5rem;
-      background: var(--blue-bg);
-      padding: 1.5rem;
-      border-radius: var(--border-radius-large);
-    }
-
-    .avatar {
-      width: 70px;
-      height: 70px;
-      border-radius: 50%;
-      background: var(--secondary-gradient);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--inverted-text-color);
-      font-size: 1.8rem;
-      font-weight: 700;
-      box-shadow: var(--shadow-small);
-    }
-
-    .welcome-text {
-      font-size: 1.3rem;
-      color: var(--text-color);
-      font-weight: 500;
-    }
-
-    .welcome-text strong {
-      font-weight: 700;
-      color: var(--primary-color);
-    }
-
-    /* Forms */
-    .form-group {
-      margin-bottom: 1.8rem;
-    }
-
-    .form-group label {
-      display: block;
-      margin-bottom: 0.8rem;
-      font-weight: 600;
-      color: var(--text-color);
-    }
-
-    .form-control {
-      width: 100%;
-      padding: 14px 18px;
-      border: 2px solid var(--border-color);
-      border-radius: var(--border-radius-medium);
-      font-size: 1rem;
-      transition: var(--transition);
-      background: var(--background-color);
-      color: var(--text-color);
-      font-family: inherit;
-    }
-
-    .form-control:focus {
-      outline: none;
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 3px rgba(31, 59, 115, 0.2);
-    }
-
-    .form-control::placeholder {
-      color: var(--muted-text-color);
-    }
-
-    .form-control select {
-      cursor: pointer;
-    }
-
-    textarea.form-control {
-      resize: vertical;
-      min-height: 120px;
-    }
-
-    /* Feed items */
-    .feed-item {
-      background: var(--background-color);
-      border-radius: var(--border-radius-large);
-      padding: 1.8rem;
-      margin-bottom: 1.8rem;
-      box-shadow: var(--shadow-small);
-      transition: var(--transition);
-      border: 1px solid var(--border-color);
-    }
-
-    .feed-item:hover {
-      transform: translateY(-5px);
-      box-shadow: var(--shadow-medium);
-    }
-
-    .feed-header {
-      display: flex;
-      align-items: center;
-      gap: 1.2rem;
-      margin-bottom: 1.2rem;
-    }
-
-    .feed-avatar {
-      width: 55px;
-      height: 55px;
-      border-radius: 50%;
-      background: var(--primary-gradient);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--inverted-text-color);
-      font-size: 1.3rem;
-      font-weight: 700;
-      flex-shrink: 0;
-    }
-
-    .feed-user-info h4 {
-      margin: 0;
-      color: var(--text-color);
-      font-size: 1.1rem;
-    }
-
-    .feed-user-info .personality-type {
-      font-size: 0.85rem;
-      color: var(--primary-color);
-      margin: 0.3rem 0 0;
-      font-weight: 600;
-    }
-
-    .feed-timestamp {
-      font-size: 0.8rem;
-      color: var(--muted-text-color);
-      margin-top: 0.2rem;
-    }
-
-    .feed-content {
-      margin-bottom: 1.2rem;
-    }
-
-    .feed-rating {
-      display: inline-block;
-      background: var(--primary-gradient);
-      color: var(--inverted-text-color);
-      padding: 0.6rem 1.2rem;
-      border-radius: 50px;
-      font-weight: 700;
-      margin-bottom: 1.2rem;
-      font-size: 0.95rem;
-    }
-
-    .similar-users-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1.5rem;
-      margin-top: 1.5rem;
-    }
-
-    .similar-user-card {
-      background: var(--background-color);
-      border-radius: var(--border-radius-large);
-      padding: 1.8rem;
-      text-align: center;
-      box-shadow: var(--shadow-small);
-      transition: var(--transition);
-      border: 1px solid var(--border-color);
-    }
-
-    .similar-user-card:hover {
-      transform: translateY(-5px);
-      box-shadow: var(--shadow-medium);
-    }
-
-    .similarity-score {
-      background: var(--accent-gradient);
-      color: var(--inverted-text-color);
-      padding: 0.4rem 1rem;
-      border-radius: 50px;
-      font-size: 0.85rem;
-      font-weight: 700;
-      margin-top: 1rem;
-      display: inline-block;
-    }
-
-    .group-card {
-      background: var(--background-color);
-      border-radius: var(--border-radius-large);
-      padding: 1.8rem;
-      margin-bottom: 1.8rem;
-      box-shadow: var(--shadow-small);
-      border: 1px solid var(--border-color);
-    }
-
-    .group-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1.2rem;
-    }
-
-    .group-members {
-      display: flex;
-      gap: 0.8rem;
-      flex-wrap: wrap;
-      margin-bottom: 1.2rem;
-    }
-
-    .group-members>div:last-child {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
-
-    /* Voting system styles */
-    .voting-section {
-      margin-top: 1.5rem;
-      padding: 1.5rem;
-      background: var(--background-alt-color);
-      border-radius: var(--border-radius-medium);
-    }
-
-    .vote-button {
-      background: var(--border-color);
-      color: var(--text-color);
-      border: 2px solid transparent;
-      padding: 8px 16px;
-      border-radius: 20px;
-      cursor: pointer;
-      font-size: 0.8rem;
-      font-weight: 600;
-      transition: all 0.3s ease;
-      margin: 0 0.5rem 0.5rem 0;
-    }
-
-    .vote-button:hover {
-      background: var(--muted-text-color);
-      color: var(--inverted-text-color);
-      transform: translateY(-2px);
-    }
-
-    .vote-button.voted {
-      background: var(--primary-color);
-      color: var(--inverted-text-color);
-      border-color: var(--primary-color);
-    }
-
-    .most-voted {
-      border: 3px solid var(--error-color) !important;
-      background: rgba(231, 76, 60, 0.1) !important;
-      position: relative;
-    }
-
-    .most-voted::before {
-      content: "🏆 MOST VOTED";
-      position: absolute;
-      top: -10px;
-      left: 10px;
-      background: var(--error-color);
-      color: var(--inverted-text-color);
-      padding: 4px 12px;
-      border-radius: var(--border-radius-medium);
-      font-size: 0.7rem;
-      font-weight: bold;
-    }
-
-    .vote-count {
-      font-size: 0.8rem;
-      color: var(--muted-text-color);
-      margin-top: 0.5rem;
-      font-weight: bold;
-    }
-
-    .edit-group-btn {
-      background: var(--info-color);
-      color: var(--inverted-text-color);
-      border: none;
-      padding: 14px 28px;
-      border-radius: 50px;
-      cursor: pointer;
-      font-size: 1rem;
-      font-weight: 600;
-      margin-right: 0.5rem;
-      transition: all 0.3s ease;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      box-shadow: var(--shadow-small);
-    }
-
-    .edit-group-btn:hover {
-      background: var(--secondary-color);
-      transform: translateY(-3px);
-      box-shadow: var(--shadow-medium);
-      filter: brightness(1.1);
-    }
-
-    .member-tag {
-      background: rgba(31, 59, 115, 0.1);
-      color: var(--primary-color);
-      padding: 0.5rem 1rem;
-      border-radius: 50px;
-      font-size: 0.85rem;
-      font-weight: 600;
-    }
-
-    .prediction-card {
-      background: var(--blue-bg);
-      border: 2px solid rgba(31, 59, 115, 0.15);
-      border-radius: var(--border-radius-medium);
-      padding: 1.2rem;
-      margin: 1.2rem 0;
-    }
-
-    .prediction-score {
-      font-size: 1.5rem;
-      font-weight: 800;
-      color: var(--primary-color);
-      text-align: center;
-      margin-bottom: 0.5rem;
-      background: var(--primary-color);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .prediction-confidence {
-      text-align: center;
-      font-size: 0.95rem;
-      color: var(--muted-text-color);
-    }
-
-    /* Stats */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 1.5rem;
-      margin: 1.5rem 0;
-    }
-
-    .stat-card {
-      text-align: center;
-      padding: 1.5rem;
-      background: var(--blue-bg);
-      border-radius: var(--border-radius-medium);
-      transition: var(--transition);
-    }
-
-    .stat-card:hover {
-      transform: translateY(-5px);
-      background: rgba(74, 144, 226, 0.15);
-    }
-
-    .stat-value {
-      font-size: 2.2rem;
-      font-weight: 800;
-      color: var(--primary-color);
-      margin-bottom: 0.5rem;
-    }
-
-    .stat-label {
-      font-size: 0.95rem;
-      color: var(--muted-text-color);
-    }
-
-    /* Search */
-    .search-box {
-      position: relative;
-      margin-bottom: 2rem;
-    }
-
-    .search-input {
-      width: 100%;
-      padding: 14px 50px 14px 20px;
-      border: 2px solid var(--border-color);
-      border-radius: 50px;
-      font-size: 1rem;
-      background: var(--background-color);
-      color: var(--text-color);
-      transition: var(--transition);
-      font-family: inherit;
-    }
-
-    .search-input:focus {
-      outline: none;
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 3px rgba(31, 59, 115, 0.2);
-    }
-
-    .search-icon {
-      position: absolute;
-      right: 20px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--primary-color);
-      font-size: 1.2rem;
-    }
-
-    /* Professional Filter Dropdown System */
-    .filter-container {
-      display: flex;
-      gap: 1rem;
-      margin-bottom: 2rem;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .filter-dropdown {
-      position: relative;
-      min-width: 200px;
-    }
-
-    .filter-dropdown-btn {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
-      padding: 12px 16px;
-      background: var(--background-color);
-      border: 2px solid var(--border-color);
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.95rem;
-      font-weight: 500;
-      color: var(--text-color);
-      transition: all 0.2s ease;
-      min-height: 48px;
-    }
-
-    .filter-dropdown-btn:hover {
-      border-color: var(--primary-color);
-      box-shadow: 0 2px 8px rgba(31, 59, 115, 0.1);
-    }
-
-    .filter-dropdown-btn.active {
-      border-color: var(--primary-color);
-      background: rgba(31, 59, 115, 0.05);
-    }
-
-    .filter-dropdown-btn i {
-      transition: transform 0.2s ease;
-    }
-
-    .filter-dropdown-btn.active i {
-      transform: rotate(180deg);
-    }
-
-    .filter-dropdown-menu {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
-      background: var(--background-color);
-      border: 2px solid var(--border-color);
-      border-top: none;
-      border-radius: 0 0 8px 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      z-index: 1000;
-      max-height: 300px;
-      overflow-y: auto;
-      opacity: 0;
-      visibility: hidden;
-      transform: translateY(-10px);
-      transition: all 0.2s ease;
-    }
-
-    .filter-dropdown-menu.show {
-      opacity: 1;
-      visibility: visible;
-      transform: translateY(0);
-    }
-
-    .filter-dropdown-item {
-      padding: 12px 16px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      border-bottom: 1px solid var(--border-color);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .filter-dropdown-item:last-child {
-      border-bottom: none;
-    }
-
-    .filter-dropdown-item:hover {
-      background: rgba(31, 59, 115, 0.1);
-      color: var(--primary-color);
-    }
-
-    .filter-dropdown-item.active {
-      background: var(--primary-color);
-      color: var(--inverted-text-color);
-    }
-
-    .filter-dropdown-item i {
-      width: 16px;
-      text-align: center;
-    }
-
-    /* Legacy filter tabs - keeping for backward compatibility */
-    .filter-tabs {
-      display: flex;
-      gap: 1rem;
-      margin-bottom: 2rem;
-      flex-wrap: wrap;
-    }
-
-    .filter-tab {
-      padding: 0.9rem 1.8rem;
-      border: 2px solid var(--primary-color);
-      border-radius: 50px;
-      background: transparent;
-      color: var(--primary-color);
-      cursor: pointer;
-      font-weight: 600;
-      transition: var(--transition);
-      font-size: 0.95rem;
-    }
-
-    .filter-tab.active {
-      background: var(--primary-color);
-      color: var(--inverted-text-color);
-    }
-
-    .filter-tab:hover:not(.active) {
-      background: rgba(31, 59, 115, 0.1);
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 3rem 1rem;
-      color: var(--muted-text-color);
-    }
-
-    .empty-state h3 {
-      margin-bottom: 1rem;
-      color: var(--text-color);
-      font-size: 1.5rem;
-    }
-
-    .empty-state p {
-      max-width: 500px;
-      margin: 0 auto 1.5rem;
-    }
-
-    .centered {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      text-align: center;
-    }
-
-    .community-section {
-      transition: all 0.3s ease;
-    }
-
-    .community-nav-tabs {
-      text-align: center;
-      margin: 2rem 0;
-    }
-
-    .community-nav-tabs .btn {
-      background: var(--primary-gradient);
-      color: white;
-      padding: 1rem 2rem;
-      font-size: 1.1rem;
-      font-weight: 600;
-      border-radius: 12px;
-      box-shadow: var(--shadow-medium);
-      transition: all 0.3s ease;
-      margin: 0 0.5rem;
-    }
-
-    .community-nav-tabs .btn.btn-secondary {
-      background: var(--background-alt-color);
-      color: var(--text-color);
-      border: 2px solid var(--border-color);
-      box-shadow: var(--shadow-small);
-    }
-
-    .community-nav-tabs .btn:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-large);
-    }
-
-    .action-buttons {
-      display: flex;
-      gap: 1rem;
-      justify-content: center;
-      margin-top: 1.5rem;
-      flex-wrap: wrap;
-    }
-
-    /* GROUPS */
-    .modal {
-      display: flex;
-      position: fixed;
-      z-index: 1000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(4px);
-      align-items: center;
-      justify-content: center;
-      animation: fadeIn 0.3s ease;
-      overflow: hidden;
-      /* Prevent modal from scrolling */
-    }
-
-    /* Prevent body scrolling when modal is open */
-    body.modal-open {
-      overflow: hidden;
-      position: fixed;
-      width: 100%;
-    }
-
-    /* Custom scrollbar styling */
-    ::-webkit-scrollbar {
-      width: 8px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: #f1f1f1;
-      border-radius: 4px;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: var(--primary-gradient);
-      border-radius: 4px;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-      background: var(--secondary-gradient);
-    }
-
-    /* Firefox scrollbar */
-    * {
-      scrollbar-width: thin;
-      scrollbar-color: var(--primary-color) #f1f1f1;
-    }
-
-    .modal-content {
-      background: var(--background-color);
-      border-radius: var(--border-radius-large);
-      padding: 0;
-      width: 90%;
-      max-width: 600px;
-      max-height: 90vh;
-      overflow-y: auto;
-      position: relative;
-      box-shadow: var(--shadow-large);
-      animation: slideUp 0.3s ease;
-    }
-
-    .modal-header {
-      padding: 2rem 2rem 1rem 2rem;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .modal-header h2 {
-      margin: 0;
-      color: var(--text-color);
-      font-size: 1.8rem;
-    }
-
-    .modal-body {
-      padding: 2rem;
-    }
-
-    .modal-close {
-      position: absolute;
-      top: 20px;
-      right: 25px;
-      color: var(--muted-text-color);
-      font-size: 35px;
-      font-weight: bold;
-      background: none;
-      border: none;
-      cursor: pointer;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      transition: all 0.3s ease;
-    }
-
-    .modal-close:hover {
-      color: var(--text-color);
-      background: rgba(0, 0, 0, 0.1);
-      transform: rotate(90deg);
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-      }
-
-      to {
-        opacity: 1;
-      }
-    }
-
-    @keyframes slideUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px) scale(0.95);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
-    }
-
-    @keyframes spin {
-      0% {
-        transform: rotate(0deg);
-      }
-
-      100% {
-        transform: rotate(360deg);
-      }
-    }
-
-    /* Responsive */
-    @media (max-width: 1200px) {
-      .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-
-      .activity-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-
-    @media (max-width: 992px) {
-      .navbar {
-        flex-direction: column;
-        gap: 1.2rem;
-        padding: 1.5rem;
-      }
-
-      .nav-links {
-        flex-wrap: wrap;
-        justify-content: center;
-      }
-    }
-
-    @media (max-width: 768px) {
-      .container {
-        padding: 0 15px;
-      }
-
-      .card {
-        padding: 1.8rem;
-      }
-
-      .radio-group {
-        flex-wrap: wrap;
-        gap: 10px;
-        justify-content: center;
-      }
-
-      .activity-grid,
-      .stats-grid,
-      .similar-users-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .user-info {
-        flex-direction: column;
-        text-align: center;
-      }
-
-      .group-header {
-        flex-direction: column;
-        gap: 1rem;
-        text-align: center;
-      }
-
-      .action-buttons {
-        flex-direction: column;
-        align-items: center;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="src/css/main.css" />
 </head>
 
 <body>
@@ -2346,97 +691,18 @@
   </div>
   </div>
   <!-- JavaScript remains unchanged -->
-  <script>
+  <script type="module">
 
     // AI Premium Feature Configuration
     let AI_PREMIUM_ENABLED = true; // Set to false to disable premium features
 
-    // Console command to toggle AI Premium features
-    window.toggleAIPremium = function () {
-      AI_PREMIUM_ENABLED = !AI_PREMIUM_ENABLED;
-      console.log(`🎭 AI Premium features ${AI_PREMIUM_ENABLED ? 'ENABLED' : 'DISABLED'}`);
+    import DataLayer from './src/js/back-end/DataLayer.js';
+    import GroupsSystem from './src/js/back-end/GroupsSystem.js';
 
-      // Update current user premium status
-      const currentUser = DataLayer.load("currentUser");
-      if (currentUser) {
-        currentUser.isPremium = AI_PREMIUM_ENABLED;
-        DataLayer.save("currentUser", currentUser);
-      }
-
-      // Refresh the current page to reflect changes
-      const currentPage = document.querySelector(".page:not(.hidden)").id;
-      if (currentPage) {
-        showPage(currentPage);
-      }
-
-      return AI_PREMIUM_ENABLED;
-    };
-
-    // Console command to set AI Premium features to specific value
-    window.setAIPremium = function (enabled) {
-      if (typeof enabled !== 'boolean') {
-        console.error('❌ Please provide a boolean value (true or false)');
-        return false;
-      }
-
-      AI_PREMIUM_ENABLED = enabled;
-      console.log(`🎭 AI Premium features ${AI_PREMIUM_ENABLED ? 'ENABLED' : 'DISABLED'}`);
-
-      // Update current user premium status
-      const currentUser = DataLayer.load("currentUser");
-      if (currentUser) {
-        currentUser.isPremium = AI_PREMIUM_ENABLED;
-        DataLayer.save("currentUser", currentUser);
-      }
-
-      // Refresh the current page to reflect changes
-      const currentPage = document.querySelector(".page:not(.hidden)").id;
-      if (currentPage) {
-        showPage(currentPage);
-      }
-
-      return AI_PREMIUM_ENABLED;
-    };
-
-    // Console command to test Firebase email functionality
-    window.testFirebaseEmail = async function (email = 'test@example.com') {
-      try {
-        console.log('🧪 Testing Firebase email functionality...');
-
-        if (!authManager) {
-          console.log('❌ Firebase not initialized');
-          return false;
-        }
-
-        console.log('✅ Firebase initialized');
-        console.log('📧 Testing password reset email...');
-
-        const { sendPasswordResetEmail } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
-
-        const actionCodeSettings = {
-          url: window.location.origin + '/pitch/index.html',
-          handleCodeInApp: false
-        };
-
-        await sendPasswordResetEmail(authManager.auth, email, actionCodeSettings);
-        console.log('✅ Password reset email sent successfully!');
-        console.log('📬 Check your email inbox and spam folder');
-
-        return true;
-      } catch (error) {
-        console.error('❌ Email test failed:', error);
-        console.error('Error code:', error.code);
-        console.error('Error message:', error.message);
-        return false;
-      }
-    };
-
-    // Console command to check current AI Premium status
-    window.getAIPremiumStatus = function () {
-      console.log(`🎭 AI Premium features are currently ${AI_PREMIUM_ENABLED ? 'ENABLED' : 'DISABLED'}`);
-      return AI_PREMIUM_ENABLED;
-    };
-
+    import {FirebaseWriteLogger, wrapWrite, wrapRead} from './src/js/back-end/logging.js';
+    import {showPage,nextQuestion, updateNavigationVisibility} from './src/js/front-end/UIManagement.js';
+    import {getAuthManager, getUserManager, getFriendsManager} from './src/js-back-end/firebase/initFirebase.js';
+   
     // Helper function to add crown to premium users
     function addCrownToPremiumUser(displayName, userId) {
       // Get current user safely
@@ -2451,7 +717,7 @@
       }
       return displayName;
     }
-
+    
     // Helper function to add online status indicator
     function addOnlineStatusIndicator(displayName, userId, isOnline = false, isActive = false) {
       if (userId === (DataLayer.load("currentUser") ? DataLayer.load("currentUser").id : null)) {
@@ -2623,29 +889,10 @@
       }
     }
 
-    // In-memory data storage (replaces localStorage)
-    let appData = {
-      personalityScore: null,
-      personalityType: null,
-      userExperiences: [],
-      groups: [],
-      friends: [], // Add friends array
-      currentUser: {
-        id: "user-main",
-        username: "you",
-        displayName: "You",
-        avatar: "Y",
-        isPremium: AI_PREMIUM_ENABLED, // Current user's premium status
-      },
-      gotoPage(page) {
-        GroupsSystem.currentPage = page;
-        GroupsSystem.displayGroups();
-      },
-    };
-
+    
     const FriendsSystem = {
       async addFriend(userId) {
-        if (!currentFirebaseUser) {
+        if (!getCurrentUser()) {
           NotificationSystem.show('Please sign in to add friends.', 'warning');
           return false;
         }
@@ -2655,7 +902,7 @@
 
           // Create friend request
           const requestData = {
-            fromUserId: currentFirebaseUser.uid,
+            fromUserId: getCurrentUser().uid,
             toUserId: userId,
             status: 'pending',
             createdAt: serverTimestamp()
@@ -2812,15 +1059,15 @@
       },
 
       async getFriends() {
-        if (!currentFirebaseUser) return [];
+        if (!getCurrentUser()) return [];
 
         try {
           const { collection, query, where, getDocs, getDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
 
           const friendsCollection = collection(authManager.db, 'friends');
           const queries = [
-            query(friendsCollection, where('user1Id', '==', currentFirebaseUser.uid)),
-            query(friendsCollection, where('user2Id', '==', currentFirebaseUser.uid))
+            query(friendsCollection, where('user1Id', '==', getCurrentUser().uid)),
+            query(friendsCollection, where('user2Id', '==', getCurrentUser().uid))
           ];
 
           const friends = [];
@@ -2831,7 +1078,7 @@
 
             for (const docSnap of querySnapshot.docs) {
               const friendshipData = docSnap.data();
-              const friendId = friendshipData.user1Id === currentFirebaseUser.uid
+              const friendId = friendshipData.user1Id === getCurrentUser().uid
                 ? friendshipData.user2Id
                 : friendshipData.user1Id;
 
@@ -2862,15 +1109,15 @@
       },
 
       async isFriend(userId) {
-        if (!currentFirebaseUser) return false;
+        if (!getCurrentUser()) return false;
 
         try {
           const { collection, query, where, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
 
           const friendsCollection = collection(authManager.db, 'friends');
           const queries = [
-            query(friendsCollection, where('user1Id', '==', currentFirebaseUser.uid), where('user2Id', '==', userId)),
-            query(friendsCollection, where('user1Id', '==', userId), where('user2Id', '==', currentFirebaseUser.uid))
+            query(friendsCollection, where('user1Id', '==', getCurrentUser().uid), where('user2Id', '==', userId)),
+            query(friendsCollection, where('user1Id', '==', userId), where('user2Id', '==', getCurrentUser().uid))
           ];
 
           for (const q of queries) {
@@ -2888,7 +1135,7 @@
       },
 
       async removeFriend(userId) {
-        if (!currentFirebaseUser) {
+        if (!getCurrentUser()) {
           NotificationSystem.show('Please sign in to remove friends.', 'warning');
           return false;
         }
@@ -2898,8 +1145,8 @@
 
           const friendsCollection = collection(authManager.db, 'friends');
           const queries = [
-            query(friendsCollection, where('user1Id', '==', currentFirebaseUser.uid), where('user2Id', '==', userId)),
-            query(friendsCollection, where('user1Id', '==', userId), where('user2Id', '==', currentFirebaseUser.uid))
+            query(friendsCollection, where('user1Id', '==', getCurrentUser().uid), where('user2Id', '==', userId)),
+            query(friendsCollection, where('user1Id', '==', userId), where('user2Id', '==', getCurrentUser().uid))
           ];
 
           for (const q of queries) {
@@ -2929,7 +1176,7 @@
 
       // Enhanced friend request functions with real-time updates
       async acceptFriendRequest(requestId) {
-        if (!currentFirebaseUser) {
+        if (!getCurrentUser()) {
           NotificationSystem.show('Please sign in to accept friend requests.', 'warning');
           return false;
         }
@@ -2985,7 +1232,7 @@
       },
 
       async rejectFriendRequest(requestId) {
-        if (!currentFirebaseUser) {
+        if (!getCurrentUser()) {
           NotificationSystem.show('Please sign in to reject friend requests.', 'warning');
           return false;
         }
@@ -3017,33 +1264,7 @@
     };
 
     // Data layer - handles in-memory storage operations
-    const DataLayer = {
-      save: (key, data) => {
-        appData[key] = JSON.parse(JSON.stringify(data));
-      },
-
-      load: (key, defaultValue = null) => {
-        return appData[key] !== undefined
-          ? JSON.parse(JSON.stringify(appData[key]))
-          : defaultValue;
-      },
-
-      exists: (key) => {
-        return appData[key] !== undefined && appData[key] !== null;
-      },
-
-      push: (key, item) => {
-        if (!appData[key]) appData[key] = [];
-        appData[key].push(JSON.parse(JSON.stringify(item)));
-      },
-
-      remove: (key, predicate) => {
-        if (appData[key] && Array.isArray(appData[key])) {
-          appData[key] = appData[key].filter((item) => !predicate(item));
-        }
-      },
-    };
-
+    
     // Personality assessment system
     const PersonalityAssessment = {
       questions: [
@@ -3234,7 +1455,7 @@
         console.log('Personality assessment completed:', {
           scores,
           personality,
-          currentUser: currentFirebaseUser?.uid
+          currentUser: getCurrentUser()?.uid
         });
 
         // Force reload the data to ensure it's available
@@ -3257,19 +1478,19 @@
         currentUser.avatar = personality.type.charAt(0);
 
         // Save to Firebase if user is authenticated
-        if (currentFirebaseUser && authManager) {
+        if (getCurrentUser() && authManager) {
           try {
             const { doc, updateDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
 
             await wrapWrite(
-              updateDoc(doc(authManager.db, 'users', currentFirebaseUser.uid), {
+              updateDoc(doc(authManager.db, 'users', getCurrentUser().uid), {
                 adjustmentFactor: scores.adjustmentFactor,
                 personalityType: personality.type,
                 avatar: personality.type.charAt(0),
                 updatedAt: serverTimestamp()
               }),
               'updateDoc',
-              `users/${currentFirebaseUser.uid}`,
+              `users/${getCurrentUser().uid}`,
               { adjustmentFactor: scores.adjustmentFactor, personalityType: personality.type }
             );
 
@@ -3290,12 +1511,12 @@
               DataLayer.save("currentUser", currentUser);
 
               // Save location to Firebase if user is authenticated
-              if (currentFirebaseUser && authManager) {
+              if (getCurrentUser() && authManager) {
                 try {
                   const { doc, updateDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
 
                   await wrapWrite(
-                    updateDoc(doc(authManager.db, 'users', currentFirebaseUser.uid), {
+                    updateDoc(doc(authManager.db, 'users', getCurrentUser().uid), {
                       location: {
                         lat: position.coords.latitude,
                         lng: position.coords.longitude
@@ -3303,7 +1524,7 @@
                       updatedAt: serverTimestamp()
                     }),
                     'updateDoc',
-                    `users/${currentFirebaseUser.uid}`,
+                    `users/${getCurrentUser().uid}`,
                     { location: { lat: position.coords.latitude, lng: position.coords.longitude } }
                   );
                 } catch (error) {
@@ -3332,12 +1553,7 @@
       },
     };
 
-    // Demo users removed - using Firebase exclusively
-    const DemoUsers = {
-      users: {},
-      experiences: []
-    };
-
+    
     // Helper functions for edit modal
     function closeEditModal() {
       console.log('Closing edit modal');
@@ -3613,14 +1829,14 @@
           DataLayer.push("userExperiences", experience);
 
           // Save to Firebase if user is authenticated
-          if (currentFirebaseUser && authManager) {
+          if (getCurrentUser() && authManager) {
             const saveToFirebase = async () => {
               try {
                 const { collection, addDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
 
                 const experienceData = {
                   ...experience,
-                  userId: currentFirebaseUser.uid,
+                  userId: getCurrentUser().uid,
                   createdAt: serverTimestamp(),
                   updatedAt: serverTimestamp()
                 };
@@ -3832,6 +2048,7 @@
       // Activity Recommendation Engine
       getRecommendations: (userAdjustmentFactor) => {
         const allExperiences = ActivitySystem.getAllExperiences();
+        console.log("ALL EXPERIENCES", allExperiences);
         const userExperiences = DataLayer.load("userExperiences", []);
         const userExperienceNames = userExperiences.map((exp) =>
           exp.name.toLowerCase()
@@ -3913,7 +2130,7 @@
       // Find Similar Users (pulls from Firebase with caching)
       findSimilarUsers: async (userAdjustmentFactor) => {
         console.log('ActivitySystem.findSimilarUsers() called with:', userAdjustmentFactor);
-        if (!currentFirebaseUser || !authManager) {
+        if (!getCurrentUser() || !authManager) {
           console.log('No Firebase user or auth manager, returning empty array');
           return [];
         }
@@ -3930,7 +2147,7 @@
             await FriendsDiscoverySystem.loadAllUsersOptimized();
           }
           const allUsers = (FriendsDiscoverySystem?.allUsers || [])
-            .filter(u => u && u.id !== currentFirebaseUser.uid && typeof u.adjustmentFactor !== 'undefined');
+            .filter(u => u && u.id !== getCurrentUser().uid && typeof u.adjustmentFactor !== 'undefined');
 
           console.log('Filtered users with adjustment factor (cached):', allUsers.length);
 
@@ -4168,7 +2385,7 @@
     //     DataLayer.save("userExperiences", userExperiences);
 
     //     // Update Firebase if user is authenticated
-    //     if (currentFirebaseUser && authManager) {
+    //     if (getCurrentUser() && authManager) {
     //       try {
     //         const { doc, updateDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
 
@@ -4260,73 +2477,7 @@
       return distance;
     }
 
-    // Function to calculate group's central location
-    function calculateGroupCenter(group) {
-      const members = group.members;
-      let totalLat = 0;
-      let totalLng = 0;
-      let validLocations = 0;
-
-      members.forEach(member => {
-        if (member.location) {
-          totalLat += member.location.lat;
-          totalLng += member.location.lng;
-          validLocations++;
-        } else {
-          // No demo user fallback - Firebase only
-          // Skip member without location data
-        }
-      });
-
-      if (validLocations === 0) {
-        // Default to Waterloo center if no locations available
-        return { lat: 43.4643, lng: -80.5204 };
-      }
-
-      return {
-        lat: totalLat / validLocations,
-        lng: totalLng / validLocations
-      };
-    }
-
-    // Function to get location-based group recommendations
-    function getGroupLocationRecommendations(groupId) {
-      const groups = DataLayer.load("groups", []);
-      const group = groups.find(g => g.id === groupId);
-      if (!group) return;
-
-      const groupCenter = calculateGroupCenter(group);
-      const allExperiences = ActivitySystem.getAllExperiences();
-
-      // Calculate distance from group center for each experience
-      const experiencesWithDistance = allExperiences.map(exp => {
-        if (exp.coordinates) {
-          const distance = calculateDistance(
-            groupCenter.lat, groupCenter.lng,
-            exp.coordinates.lat, exp.coordinates.lng
-          );
-          return { ...exp, distanceFromGroup: distance };
-        }
-        return { ...exp, distanceFromGroup: Infinity };
-      });
-
-      // Get current user's experiences to exclude them
-      const currentUser = DataLayer.load("currentUser");
-      const userExperiences = DataLayer.load("userExperiences", []);
-      const userExperienceNames = userExperiences.map(exp => exp.name.toLowerCase());
-
-      // Filter experiences within 25km of group center, exclude user's own experiences, and sort by distance
-      const nearbyExperiences = experiencesWithDistance
-        .filter(exp => exp.distanceFromGroup <= 25 && !userExperienceNames.includes(exp.name.toLowerCase()))
-        .sort((a, b) => a.distanceFromGroup - b.distanceFromGroup)
-        .slice(0, 10);
-
-      return {
-        groupCenter,
-        recommendations: nearbyExperiences
-      };
-    }
-
+    
     // Community System
     const CommunitySystem = {
       currentSection: 'activities',
@@ -4395,7 +2546,7 @@
         }
 
         // Check friend requests immediately when community tab is opened
-        if (currentFirebaseUser && FriendsDiscoverySystem) {
+        if (getCurrentUser() && FriendsDiscoverySystem) {
           setTimeout(async () => {
             await FriendsDiscoverySystem.loadFriendRequests();
             FriendsDiscoverySystem.updateFriendRequestBadge();
@@ -4516,7 +2667,7 @@
           console.log('📥 Skipping load - isLoading:', FeedSystem.store.isLoading, 'hasMore:', FeedSystem.store.hasMore);
           return;
         }
-        if (!currentFirebaseUser || !authManager) {
+        if (!getCurrentUser() || !authManager) {
           console.log('📥 Skipping load - no user or auth manager');
           return;
         }
@@ -4677,7 +2828,7 @@
           .map((exp) => {
             // Get user information - prioritize Firebase data
             let user = null;
-            if (exp.userId === "user-main" || exp.userId === currentFirebaseUser?.uid) {
+            if (exp.userId === "user-main" || exp.userId === getCurrentUser()?.uid) {
               user = DataLayer.load("currentUser");
             } else if (typeof FriendsDiscoverySystem !== 'undefined' && Array.isArray(FriendsDiscoverySystem.allUsers)) {
               user = FriendsDiscoverySystem.allUsers.find(u => u.id === exp.userId);
@@ -4713,7 +2864,7 @@
 
             // Calculate prediction for current user
             let predictionHtml = "";
-            if (personalityData && exp.userId !== "user-main") {
+            if (personalityData && exp.userId !== "user-main" && exp.userId !== getCurrentUser()?.uid) {
               const prediction = ActivitySystem.predictRating(
                 personalityData.adjustmentFactor,
                 exp,
@@ -4758,7 +2909,7 @@
 
             // Add friend status and rate button
             let actionButtons = "";
-            if (exp.userId !== "user-main" && exp.userId !== currentFirebaseUser?.uid) {
+            if (exp.userId !== "user-main" && exp.userId !== getCurrentUser()?.uid) {
               // Check pending status first
               const hasPendingRequest = typeof FriendsDiscoverySystem !== 'undefined' &&
                 Array.isArray(FriendsDiscoverySystem.pendingRequests) &&
@@ -4971,7 +3122,7 @@
           .map((exp) => {
             // Get user information - prioritize Firebase data
             let user = null;
-            if (exp.userId === "user-main" || exp.userId === currentFirebaseUser?.uid) {
+            if (exp.userId === "user-main" || exp.userId === getCurrentUser()?.uid) {
               user = DataLayer.load("currentUser");
             } else if (typeof FriendsDiscoverySystem !== 'undefined' && Array.isArray(FriendsDiscoverySystem.allUsers)) {
               user = FriendsDiscoverySystem.allUsers.find(u => u.id === exp.userId);
@@ -5007,7 +3158,7 @@
 
             // Calculate prediction for current user
             let predictionHtml = "";
-            if (personalityData && exp.userId !== "user-main") {
+            if (personalityData && exp.userId !== "user-main" && exp.userId !== getCurrentUser()?.uid) {
               const prediction = ActivitySystem.predictRating(
                 personalityData.adjustmentFactor,
                 exp,
@@ -5051,7 +3202,7 @@
 
             // Add friend status and rate button
             let actionButtons = "";
-            if (exp.userId !== "user-main" && exp.userId !== currentFirebaseUser?.uid) {
+            if (exp.userId !== "user-main" && exp.userId !== getCurrentUser()?.uid) {
               // Check pending status first
               const hasPendingRequest = typeof FriendsDiscoverySystem !== 'undefined' &&
                 Array.isArray(FriendsDiscoverySystem.pendingRequests) &&
@@ -5170,7 +3321,7 @@
                 // Include current user's activities and similar users' activities
                 return similarUserIds.includes(exp.userId) ||
                   exp.userId === "user-main" ||
-                  (currentFirebaseUser && exp.userId === currentFirebaseUser.uid);
+                  (getCurrentUser() && exp.userId === getCurrentUser().uid);
               });
               console.log('🔍 Filtered to similar experiences:', similarExperiences.length);
 
@@ -5220,10 +3371,10 @@
         } else if (FeedSystem.currentFilter === "recent") {
           console.log('🔍 Processing recent filter - showing only current user activities');
           const currentUser = DataLayer.load('currentUser');
-          if (currentUser && currentFirebaseUser) {
+          if (currentUser && getCurrentUser()) {
             // Filter for only the current authenticated user's activities
             filteredExperiences = filteredExperiences.filter(
-              (exp) => exp.userId === currentFirebaseUser.uid || exp.userId === "user-main"
+              (exp) => exp.userId === getCurrentUser().uid || exp.userId === "user-main"
             );
           } else if (currentUser) {
             // Fallback for non-authenticated users
@@ -5393,7 +3544,7 @@
 
             // Calculate prediction for current user
             let predictionHtml = "";
-            if (personalityData && exp.userId !== "user-main") {
+            if (personalityData && exp.userId !== "user-main" && exp.userId !== getCurrentUser()?.uid) {
               const prediction = ActivitySystem.predictRating(
                 personalityData.adjustmentFactor,
                 exp,
@@ -5438,7 +3589,7 @@
 
             // Add friend status and rate/edit buttons
             let actionButtons = "";
-            if (exp.userId !== "user-main" && exp.userId !== currentFirebaseUser?.uid) {
+            if (exp.userId !== "user-main" && exp.userId !== getCurrentUser()?.uid) {
               // Check pending status first
               const hasPendingRequest = typeof FriendsDiscoverySystem !== 'undefined' &&
                 Array.isArray(FriendsDiscoverySystem.pendingRequests) &&
@@ -5526,7 +3677,7 @@
                   </div>
                   <div style="text-align: right; min-width: 80px;">
                     <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary-color);">
-                      ${(exp.adjustedScore ?? exp.rawScore ?? 0).toFixed(1)}
+                      ${exp.rawScore.toFixed(1)}
                     </div>
                     <div style="font-size: 0.8rem; color: #666;">Rating</div>
                   </div>
@@ -6012,8 +4163,6 @@ Only return the JSON, no additional text.`;
         }
       },
     };
-
-    // Enhanced Groups System with AI Premium Features
 
 
     function showAIPremiumModal(groupId) {
@@ -7503,68 +5652,7 @@ Only return the JSON, no additional text.`;
       document.body.classList.remove('modal-open');
     }
 
-    function showGroupLocationRecommendations(groupId) {
-      const recommendations = getGroupLocationRecommendations(groupId);
-      if (!recommendations || recommendations.recommendations.length === 0) {
-        NotificationSystem.show("No nearby places found for this group.", "warning");
-        return;
-      }
-
-      const modalHtml = `
-        <div id="group-location-modal" class="modal">
-          <div class="modal-content" style="max-width: 700px;">
-            <button class="modal-close" onclick="closeGroupLocationModal()">&times;</button>
-            <div class="modal-header">
-              <h2 style="color: var(--secondary-color); display: flex; align-items: center; gap: 0.5rem;">
-                <i class="fas fa-map-marker-alt"></i> Places Near Your Group
-              </h2>
-            </div>
-            <div class="modal-body">
-              <div style="background: rgba(74, 144, 226, 0.1); padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem;">
-                <h4 style="margin: 0 0 0.5rem 0; color: var(--secondary-color);">📍 Group Center</h4>
-                <p style="margin: 0; font-size: 0.9rem; color: #666;">
-                  Based on the average location of all group members in Waterloo, Ontario
-                </p>
-              </div>
-
-              <div style="display: grid; gap: 1rem;">
-                ${recommendations.recommendations.map((place, index) => `
-                  <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border: 1px solid #eee; border-radius: 8px; background: white;">
-                    <div style="flex: 1;">
-                      <div style="font-weight: bold; margin-bottom: 0.3rem; color: var(--primary-color);">${place.name}</div>
-                      <div style="font-size: 0.8rem; color: #666; margin-bottom: 0.3rem;">${place.category} • ${place.location}</div>
-                      <div style="font-size: 0.8rem; color: #888;">
-                        <i class="fas fa-map-marker-alt"></i> ${place.distanceFromGroup.toFixed(1)} km from group center
-                      </div>
-                    </div>
-                    <div style="display: flex; gap: 0.5rem; align-items: center;">
-                      <div style="text-align: center; margin-right: 1rem;">
-                        <div style="font-size: 0.9rem; font-weight: bold; color: var(--secondary-color);">${place.adjustedScore.toFixed(1)}</div>
-                        <div style="font-size: 0.7rem; color: #666;">Rating</div>
-                      </div>
-                      <button class="btn" style="font-size: 0.8rem; padding: 6px 12px;" 
-                              onclick="fillActivityForm('${place.name}', '${place.category}', '${place.location}', '${place.description}')">
-                        Rate This Place
-                      </button>
-                    </div>
-                  </div>
-                `).join('')}
-              </div>
-
-              <div style="text-align: center; margin-top: 2rem;">
-                <button type="button" class="btn btn-secondary" onclick="closeGroupLocationModal()">Close</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
-
-      document.body.insertAdjacentHTML('beforeend', modalHtml);
-
-      // Add ESC and click-outside functionality
-      addModalListeners("group-location-modal", closeGroupLocationModal);
-    }
-
+    
     function closeGroupLocationModal() {
       const modal = document.getElementById("group-location-modal");
       if (modal) {
@@ -7756,1379 +5844,6 @@ Only return the JSON, no additional text.`;
       }
     }
 
-    // Add CSS for AI Premium features
-    const aiPremiumStyles = document.createElement("style");
-    aiPremiumStyles.textContent = `
-  .ai-loading {
-    text-align: center;
-    padding: 3rem 1rem;
-  }
-
-  .loading-spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #667eea;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 0 auto 1rem;
-  }
-
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-
-  .itinerary-timeline::before {
-    content: '';
-    position: absolute;
-    left: 20px;
-    top: 60px;
-    bottom: 20px;
-    width: 2px;
-    background: var(--primary-gradient);
-    z-index: 0;
-  }
-
-  .day-card {
-    position: relative;
-    z-index: 1;
-  }
-
-  .activity-item:hover {
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-small);
-    transition: all 0.2s ease;
-  }
-
-  @media (max-width: 768px) {
-    .ai-itinerary-section {
-      margin: 1rem -1rem;
-      border-radius: 0;
-    }
-    
-    .day-card {
-      margin: 0 -0.5rem 1rem;
-      border-radius: 8px;
-    }
-    
-    .activity-item {
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-    
-    .activity-item > div:first-child {
-      width: auto;
-      text-align: left;
-    }
-  }
-`;
-    document.head.appendChild(aiPremiumStyles);
-
-    // Groups System with Firebase Integration
-    const GroupsSystem = {
-      // Group limits for non-premium users
-      FREE_GROUP_LIMIT: 3,
-      pageSize: 10,
-      store: { items: [], hasMore: true, isLoading: false, cacheKey: 'GROUPS_PAGINATED' },
-
-      init: async () => {
-        if (GroupsSystem._initInFlight) return;
-        GroupsSystem._initInFlight = true;
-        setTimeout(async () => {
-          try {
-            await GroupsSystem.resetAndLoad();
-            GroupsSystem.displayGroups();
-          } finally {
-            GroupsSystem._initInFlight = false;
-          }
-        }, 150);
-      },
-
-      resetAndLoad: async () => {
-        GroupsSystem.store = { items: [], hasMore: true, isLoading: false, cacheKey: 'GROUPS_PAGINATED' };
-        GroupsSystem._lastGroupDocSnap = null;
-        const cached = CacheSystem.get(GroupsSystem.store.cacheKey, CacheSystem.CACHE_DURATIONS.GROUPS);
-        if (cached) {
-          GroupsSystem.store = { ...GroupsSystem.store, ...cached };
-          DataLayer.save('groups', GroupsSystem.store.items);
-        } else {
-          await GroupsSystem.loadNextPage();
-        }
-      },
-
-      loadNextPage: async () => {
-        if (GroupsSystem.store.isLoading || !GroupsSystem.store.hasMore) return;
-        if (!currentFirebaseUser || !authManager) return;
-        GroupsSystem.store.isLoading = true;
-        try {
-          const { collection, query, where, limit, startAfter, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-
-          let q = query(
-            collection(authManager.db, 'groups'),
-            where('members', 'array-contains', currentFirebaseUser.uid),
-            limit(GroupsSystem.pageSize)
-          );
-
-          if (GroupsSystem._lastGroupDocSnap) {
-            q = query(q, startAfter(GroupsSystem._lastGroupDocSnap));
-          }
-
-          const snapshot = await wrapRead(getDocs(q), 'getDocs', 'groups', { paginated: true });
-          const page = [];
-          for (const docSnap of snapshot.docs) {
-            const data = docSnap.data();
-            // Prefer embedded memberDetails if present to avoid extra reads
-            let members = Array.isArray(data.memberDetails) && data.memberDetails.length > 0 ? data.memberDetails : null;
-            if (!members) {
-              // Fallback minimal members list (IDs only) to keep UI functional without extra reads
-              members = (data.members || []).map(id => ({ userId: id, displayName: 'Member', personalityType: '', adjustmentFactor: 0, avatar: '?' }));
-            }
-            page.push({
-              id: docSnap.id,
-              ...data,
-              members,
-              createdAt: data.createdAt?.toDate?.() || new Date(),
-              updatedAt: data.updatedAt?.toDate?.() || new Date()
-            });
-          }
-
-          GroupsSystem.store.items = [...GroupsSystem.store.items, ...page];
-          GroupsSystem._lastGroupDocSnap = snapshot.docs[snapshot.docs.length - 1] || GroupsSystem._lastGroupDocSnap;
-          GroupsSystem.store.hasMore = snapshot.size === GroupsSystem.pageSize;
-
-          // Persist and cache
-          DataLayer.save('groups', GroupsSystem.store.items);
-          CacheSystem.set(GroupsSystem.store.cacheKey, {
-            items: GroupsSystem.store.items,
-            hasMore: GroupsSystem.store.hasMore
-          });
-        } catch (error) {
-          console.error('Paginated groups load failed:', error);
-        } finally {
-          GroupsSystem.store.isLoading = false;
-        }
-      },
-
-      // Load groups (compat). Loads first page if none loaded
-      loadGroupsFromFirebase: async () => {
-        if (GroupsSystem.store.items.length === 0) {
-          await GroupsSystem.resetAndLoad();
-        }
-      },
-
-      // Check if user can create more groups
-      canCreateGroup: () => {
-        if (AI_PREMIUM_ENABLED) return true; // Premium users have unlimited groups
-
-        const groups = DataLayer.load("groups", []);
-        const currentMonth = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
-
-        // Count groups created this month
-        const groupsThisMonth = groups.filter(group => {
-          const groupDate = new Date(group.createdAt);
-          const groupMonth = groupDate.getFullYear() + "-" + (groupDate.getMonth() + 1);
-          return groupMonth === currentMonth;
-        });
-
-        return groupsThisMonth.length < GroupsSystem.FREE_GROUP_LIMIT;
-      },
-
-      // Get group usage info
-      getGroupUsage: () => {
-        const groups = DataLayer.load("groups", []);
-        const currentMonth = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
-
-        // Count groups created this month
-        const groupsThisMonth = groups.filter(group => {
-          const groupDate = new Date(group.createdAt);
-          const groupMonth = groupDate.getFullYear() + "-" + (groupDate.getMonth() + 1);
-          return groupMonth === currentMonth;
-        });
-
-        return {
-          current: groupsThisMonth.length,
-          limit: AI_PREMIUM_ENABLED ? "∞" : GroupsSystem.FREE_GROUP_LIMIT,
-          isPremium: AI_PREMIUM_ENABLED,
-          canCreate: GroupsSystem.canCreateGroup()
-        };
-      },
-
-      // Check if current user is admin of a group
-      isGroupAdmin: (groupId) => {
-        const groups = DataLayer.load('groups', []);
-        const group = groups.find(g => g.id === groupId);
-        return group && group.admin === currentFirebaseUser.uid;
-      },
-
-      // Check if current user is member of a group
-      isGroupMember: (groupId) => {
-        const groups = DataLayer.load('groups', []);
-        const group = groups.find(g => g.id === groupId);
-        return group && group.members.includes(currentFirebaseUser.uid);
-      },
-
-      // Transfer admin role to another member
-      transferAdmin: async (groupId, newAdminId) => {
-        if (!GroupsSystem.isGroupAdmin(groupId)) {
-          NotificationSystem.show('Only the admin can transfer admin role.', 'error');
-          return false;
-        }
-
-        try {
-          const { doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-
-          // Update admin in Firebase
-          await wrapWrite(
-            updateDoc(doc(authManager.db, 'groups', groupId), {
-              admin: newAdminId,
-              updatedAt: new Date()
-            }),
-            'updateDoc',
-            `groups/${groupId}`,
-            { adminChanged: true }
-          );
-
-          // Update local data
-          const groups = DataLayer.load('groups', []);
-          const groupIndex = groups.findIndex(g => g.id === groupId);
-          if (groupIndex !== -1) {
-            groups[groupIndex].admin = newAdminId;
-            groups[groupIndex].updatedAt = new Date();
-
-            // Update member roles
-            groups[groupIndex].memberDetails.forEach(member => {
-              if (member.userId === currentFirebaseUser.uid) {
-                member.role = 'member';
-              } else if (member.userId === newAdminId) {
-                member.role = 'admin';
-              }
-            });
-
-            DataLayer.save('groups', groups);
-          }
-
-          // Invalidate cache
-          CacheSystem.invalidateGroupsCache();
-
-          NotificationSystem.show('Admin role transferred successfully!', 'success');
-          return true;
-        } catch (error) {
-          console.error('Error transferring admin:', error);
-          NotificationSystem.show('Failed to transfer admin role.', 'error');
-          return false;
-        }
-      },
-
-      // Remove member from group (admin only)
-      removeMember: async (groupId, memberId) => {
-        if (!GroupsSystem.isGroupAdmin(groupId)) {
-          NotificationSystem.show('Only the admin can remove members.', 'error');
-          return false;
-        }
-
-        if (memberId === currentFirebaseUser.uid) {
-          NotificationSystem.show('Admin cannot remove themselves. Transfer admin role first.', 'error');
-          return false;
-        }
-
-        try {
-          const { doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-
-          // Get current group data
-          const groups = DataLayer.load('groups', []);
-          const group = groups.find(g => g.id === groupId);
-
-          if (!group) {
-            NotificationSystem.show('Group not found.', 'error');
-            return false;
-          }
-
-          // Remove member from arrays
-          const updatedMembers = group.members.filter(id => id !== memberId);
-          const updatedMemberDetails = group.memberDetails.filter(member => member.userId !== memberId);
-
-          // Update Firebase
-          await wrapWrite(
-            updateDoc(doc(authManager.db, 'groups', groupId), {
-              members: updatedMembers,
-              memberDetails: updatedMemberDetails,
-              updatedAt: new Date()
-            }),
-            'updateDoc',
-            `groups/${groupId}`,
-            { memberListUpdated: true }
-          );
-
-          // Update local data
-          const groupIndex = groups.findIndex(g => g.id === groupId);
-          if (groupIndex !== -1) {
-            groups[groupIndex].members = updatedMembers;
-            groups[groupIndex].memberDetails = updatedMemberDetails;
-            groups[groupIndex].updatedAt = new Date();
-            DataLayer.save('groups', groups);
-          }
-
-          // Invalidate cache
-          CacheSystem.invalidateGroupsCache();
-
-          NotificationSystem.show('Member removed successfully!', 'success');
-          return true;
-        } catch (error) {
-          console.error('Error removing member:', error);
-          NotificationSystem.show('Failed to remove member.', 'error');
-          return false;
-        }
-      },
-
-      createGroup: async (name, description, members) => {
-        const currentUser = DataLayer.load("currentUser");
-        const personalityData = DataLayer.load("personalityScore");
-
-        if (!personalityData) {
-          NotificationSystem.show(
-            "Please complete the personality assessment first!",
-            "warning"
-          );
-          return;
-        }
-
-        // Check group creation limit for non-premium users
-        if (!GroupsSystem.canCreateGroup()) {
-          const usage = GroupsSystem.getGroupUsage();
-          NotificationSystem.show(
-            `You've reached your monthly limit of ${usage.current}/${usage.limit} groups. Upgrade to Premium for unlimited groups!`,
-            "warning"
-          );
-          return;
-        }
-
-        // Ensure current user has location data
-        if (!currentUser.location) {
-          console.log(`🌤️ Current user has no location, attempting to get it...`);
-          // Try to get user's location if not already set
-          if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-              (position) => {
-                currentUser.location = {
-                  lat: position.coords.latitude,
-                  lng: position.coords.longitude
-                };
-                DataLayer.save("currentUser", currentUser);
-                console.log(`🌤️ Updated current user location:`, currentUser.location);
-              },
-              (error) => {
-                console.log(`🌤️ Could not get user location:`, error.message);
-                // Keep default location
-              }
-            );
-          }
-        }
-
-        const groupData = {
-          name: name.trim(),
-          description: description.trim(),
-          createdBy: currentFirebaseUser.uid,
-          admin: currentFirebaseUser.uid, // Creator is the admin
-          members: [currentFirebaseUser.uid, ...members.map(member => member.userId)],
-          memberDetails: [
-            {
-              userId: currentFirebaseUser.uid,
-              displayName: currentUser.displayName,
-              personalityType: currentUser.personalityType,
-              adjustmentFactor: personalityData.adjustmentFactor,
-              avatar: currentUser.avatar,
-              importance: 1.0,
-              role: 'admin', // Creator has admin role
-              location: currentUser.location || { lat: 43.4643, lng: -80.5204 }, // Waterloo default
-            },
-            ...members.map(member => ({
-              ...member,
-              role: 'member', // Other members have member role
-              location: { lat: 43.4643, lng: -80.5204 } // Default location - Firebase only
-            })),
-          ],
-          votes: {},
-          itineraries: [],
-          createdAt: new Date(),
-          updatedAt: new Date()
-        };
-
-        try {
-          // Save to Firebase
-          const { collection, addDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-
-          const docRef = await wrapWrite(
-            addDoc(collection(authManager.db, 'groups'), {
-              ...groupData,
-              createdAt: serverTimestamp(),
-              updatedAt: serverTimestamp()
-            }),
-            'addDoc',
-            'groups',
-            { name: groupData.name }
-          );
-
-          // Add to local storage for immediate UI update
-          const localGroup = {
-            id: docRef.id,
-            ...groupData,
-            createdAt: new Date(),
-            updatedAt: new Date()
-          };
-
-          DataLayer.push("groups", localGroup);
-
-          // Invalidate groups cache
-          CacheSystem.invalidateGroupsCache();
-
-          NotificationSystem.show("Group created successfully!", "success");
-          GroupsSystem.displayGroups();
-          closeModal();
-
-          console.log('Group saved to Firebase with ID:', docRef.id);
-        } catch (error) {
-          console.error('Error creating group:', error);
-          NotificationSystem.show("Failed to create group. Please try again.", "error");
-        }
-      },
-
-      deleteGroup: async (groupId) => {
-        // Only admin can delete the group
-        if (!GroupsSystem.isGroupAdmin(groupId)) {
-          NotificationSystem.show('Only the admin can delete the group.', 'error');
-          return;
-        }
-
-        if (confirm("Are you sure you want to delete this group? This action cannot be undone.")) {
-          DataLayer.remove("groups", (group) => group.id === groupId);
-
-          // Delete from Firebase
-          try {
-            const { doc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-            await wrapWrite(
-              deleteDoc(doc(authManager.db, 'groups', groupId)),
-              'deleteDoc',
-              `groups/${groupId}`,
-              { reason: 'deleteGroup' }
-            );
-
-            // Invalidate cache
-            CacheSystem.invalidateGroupsCache();
-
-            NotificationSystem.show('Group deleted successfully!', 'success');
-            console.log('Group deleted from Firebase');
-          } catch (error) {
-            console.error('Error deleting group from Firebase:', error);
-            NotificationSystem.show('Failed to delete group. Please try again.', 'error');
-          }
-
-          GroupsSystem.displayGroups();
-        }
-      },
-
-      // Save itinerary to Firebase
-      saveItineraryToFirebase: async (groupId) => {
-        const groups = DataLayer.load("groups", []);
-        const group = groups.find(g => g.id === groupId);
-
-        if (!group || !group.aiItinerary) {
-          NotificationSystem.show("No itinerary to save.", "warning");
-          return;
-        }
-
-        try {
-          const { doc, updateDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-          await wrapWrite(
-            updateDoc(doc(authManager.db, 'groups', groupId), {
-              aiItinerary: {
-                ...group.aiItinerary,
-                savedAt: serverTimestamp()
-              },
-              updatedAt: serverTimestamp()
-            }),
-            'updateDoc',
-            `groups/${groupId}`,
-            { saveItinerary: true }
-          );
-
-          NotificationSystem.show("Itinerary saved to cloud!", "success");
-          console.log('Itinerary saved to Firebase');
-        } catch (error) {
-          console.error('Error saving itinerary to Firebase:', error);
-          NotificationSystem.show("Failed to save itinerary. Please try again.", "error");
-        }
-      },
-
-      getGroupRecommendations: (group) => {
-        const allExperiences = ActivitySystem.getAllExperiences();
-        const userExperiences = DataLayer.load("userExperiences", []);
-        const userExperienceNames = userExperiences.map((exp) =>
-          exp.name.toLowerCase()
-        );
-
-        // Calculate group center for location-based scoring
-        const groupCenter = calculateGroupCenter(group);
-
-        const recommendations = [];
-
-        // Group experiences by name to avoid duplicates
-        const experienceGroups = {};
-        allExperiences.forEach((exp) => {
-          const key = exp.name.toLowerCase();
-          if (!experienceGroups[key]) {
-            experienceGroups[key] = [];
-          }
-          experienceGroups[key].push(exp);
-        });
-
-        Object.entries(experienceGroups).forEach(([name, experiences]) => {
-          let groupScore = 0;
-          let individualScores = [];
-          let totalWeight = 0;
-          let hasValidPredictions = false;
-
-          group.members.forEach((member) => {
-            let memberScore = 0;
-            let memberPredictions = 0;
-
-            experiences.forEach((exp) => {
-              // Skip demo user lookups - no longer using demo data
-              const ratingUser = null; // Only use Firebase user data going forward
-              if (false) { // Disabled demo prediction logic
-                const prediction = ActivitySystem.predictRating(
-                  member.adjustmentFactor,
-                  exp,
-                  ratingUser.adjustmentFactor,
-                  exp.rawScore
-                );
-                memberScore += prediction.prediction * prediction.confidence;
-                memberPredictions++;
-                hasValidPredictions = true;
-              }
-            });
-
-            if (memberPredictions > 0) {
-              const avgMemberScore = memberScore / memberPredictions;
-              individualScores.push({
-                member: member,
-                score: avgMemberScore,
-              });
-              groupScore += avgMemberScore * member.importance;
-              totalWeight += member.importance;
-            }
-          });
-
-          if (hasValidPredictions && totalWeight > 0) {
-            const finalGroupScore = groupScore / totalWeight;
-            const scoreVariance = GroupsSystem.calculateVariance(
-              individualScores.map((s) => s.score)
-            );
-            const confidence = Math.max(0.1, 1 - scoreVariance / 10);
-
-            // Calculate location score
-            let locationScore = 1.0; // Default score for experiences without coordinates
-            if (experiences[0].coordinates) {
-              const distance = calculateDistance(
-                groupCenter.lat, groupCenter.lng,
-                experiences[0].coordinates.lat, experiences[0].coordinates.lng
-              );
-              // Score based on distance: closer = higher score
-              // 0km = 1.0, 25km = 0.5, 50km+ = 0.1
-              locationScore = Math.max(0.1, 1 - (distance / 50));
-            }
-
-            // Combine personality score with location score (70% personality, 30% location)
-            const combinedScore = (finalGroupScore * 0.7) + (locationScore * 0.3);
-
-            recommendations.push({
-              experience: experiences[0],
-              groupScore: combinedScore,
-              confidence: confidence,
-              individualScores: individualScores,
-              variance: scoreVariance,
-              locationScore: locationScore,
-              distanceFromGroup: experiences[0].coordinates ?
-                calculateDistance(groupCenter.lat, groupCenter.lng,
-                  experiences[0].coordinates.lat, experiences[0].coordinates.lng) : null
-            });
-          }
-        });
-
-        return recommendations.sort(
-          (a, b) => b.groupScore * b.confidence - a.groupScore * a.confidence
-        );
-      },
-
-      calculateVariance: (scores) => {
-        if (scores.length === 0) return 0;
-        const mean =
-          scores.reduce((sum, score) => sum + score, 0) / scores.length;
-        const variance =
-          scores.reduce((sum, score) => sum + Math.pow(score - mean, 2), 0) /
-          scores.length;
-        return Math.sqrt(variance);
-      },
-
-      displayGroups: () => {
-        const groups = DataLayer.load("groups", []);
-        const groupsContent = document.getElementById("groups-content");
-
-        // Store which groups are currently expanded
-        const expandedGroups = new Set();
-        groups.forEach(group => {
-          const groupContent = document.getElementById(`group-content-${group.id}`);
-          if (groupContent && groupContent.style.maxHeight !== "0px" && groupContent.style.maxHeight !== "") {
-            expandedGroups.add(group.id);
-          }
-        });
-
-        // Update group usage display
-        const usage = GroupsSystem.getGroupUsage();
-        const usageText = document.getElementById("group-usage-text");
-        console.log("Usage text element found:", !!usageText, "Usage:", usage);
-        if (usageText) {
-          usageText.textContent = `${usage.current}/${usage.limit}`;
-          console.log("Updated usage text to:", `${usage.current}/${usage.limit}`);
-
-          // Change color based on usage
-          if (usage.isPremium) {
-            usageText.style.background = "var(--primary-color)";
-            usageText.style.color = "white";
-          } else if (usage.current >= usage.limit) {
-            usageText.style.background = "#f44336";
-          } else if (usage.current >= usage.limit * 0.8) {
-            usageText.style.background = "#FF9800";
-          } else {
-            usageText.style.background = "var(--primary-color)";
-          }
-        } else {
-          console.log("Usage text element not found!");
-        }
-
-        // Update premium status display
-        const premiumStatusText = document.getElementById("premium-status-text");
-        if (premiumStatusText) {
-          if (usage.isPremium) {
-            premiumStatusText.innerHTML = "Premium - Unlimited Groups";
-          } else {
-            premiumStatusText.innerHTML = '<a href="#" onclick="showPremiumUpgradeModal()" style="color: var(--secondary-color); text-decoration: none;">Upgrade to Premium for unlimited groups</a>';
-          }
-        }
-
-        // Update create button state
-        const createBtn = document.getElementById("create-group-btn");
-        if (createBtn) {
-          if (!usage.canCreate) {
-            createBtn.style.background = "#f44336";
-            createBtn.style.cursor = "not-allowed";
-            createBtn.onclick = () => {
-              NotificationSystem.show(
-                `You've reached your monthly limit of ${usage.current}/${usage.limit} groups. Upgrade to Premium for unlimited groups!`,
-                "warning"
-              );
-            };
-          } else {
-            createBtn.style.background = "";
-            createBtn.style.cursor = "pointer";
-            createBtn.onclick = () => showCreateGroupModal().catch(error => {
-              console.error('Error showing create group modal:', error);
-              NotificationSystem.show('Error loading friends. Please try again.', 'error');
-            });
-          }
-        }
-
-        if (groups.length === 0) {
-          groupsContent.innerHTML = `
-      <div class="empty-state">
-        <h3>No groups yet</h3>
-        <p>Create your first group to start planning activities with friends!</p>
-      </div>
-    `;
-          return;
-        }
-
-        // Render groups loaded so far (server-side pagination via Load More)
-        groupsContent.innerHTML = groups
-          .map((group) => {
-            const currentUser = DataLayer.load("currentUser");
-            const recommendations =
-              GroupsSystem.getGroupRecommendations(group);
-            const topRecommendations = recommendations.slice(0, 3);
-
-            // Initialize votes if not exists
-            if (!group.votes) group.votes = {};
-
-            // Find most voted activity
-            let mostVoted = null;
-            let maxVotes = 0;
-            Object.entries(group.votes).forEach(([activityName, votes]) => {
-              if (votes.length > maxVotes) {
-                maxVotes = votes.length;
-                mostVoted = activityName;
-              }
-            });
-
-            return `
-        <div class="group-card" data-group-id="${group.id}" style="
-          border: 1px solid #eee; 
-          border-radius: 16px; 
-          margin-bottom: 1.5rem; 
-          background: white;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-          overflow: hidden;
-          transition: all 0.2s ease;
-        " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'" 
-           onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.05)'">
-          
-          <!-- Collapsible Header -->
-          <div class="group-header" onclick="GroupsSystem.toggleGroupExpansion('${group.id}')" style="
-            padding: 1.5rem; 
-            cursor: pointer; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center;
-            background: var(--secondary-gradient);
-            color: white;
-            border-radius: 15px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-          ">
-            <div style="flex: 1;">
-              <h3 style="margin: 0; font-size: 1.4rem; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.1);">${group.name}</h3>
-              <p style="margin: 0.5rem 0 0 0; opacity: 0.95; font-size: 1rem; line-height: 1.4;">${group.description}</p>
-              <div style="display: flex; gap: 1.5rem; margin-top: 0.8rem; font-size: 0.9rem; opacity: 0.9;">
-                <span style="display: flex; align-items: center; gap: 0.3rem;"><i class="fas fa-users"></i> ${group.members.length} members</span>
-                <span style="display: flex; align-items: center; gap: 0.3rem; cursor: help;" 
-                      title="${formatFullDate(group.createdAt)}">
-                  <i class="fas fa-calendar"></i> ${new Date(group.createdAt).toLocaleDateString()}
-                </span>
-              </div>
-            </div>
-            <div style="display: flex; gap: 0.5rem; align-items: center;">
-              <i class="fas fa-chevron-down" id="expand-icon-${group.id}" style="
-                transition: transform 0.2s ease; 
-                font-size: 1.2rem; 
-                opacity: 0.9;
-                padding: 0.5rem;
-                border-radius: 50%;
-                background: rgba(255,255,255,0.5);
-              "></i>
-            </div>
-          </div>
-
-          <!-- Expandable Content -->
-          <div class="group-content" id="group-content-${group.id}" style="
-            max-height: 0; 
-            overflow: hidden; 
-            transition: max-height 0.3s ease;
-            background: white;
-          ">
-            <div style="padding: 1.5rem;">
-              
-              <!-- Action Buttons -->
-              <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
-                ${(() => {
-                // Check if all group members have premium access
-                const allMembersHavePremium = group.members.every(member => {
-                  if (member.userId === currentUser.id) {
-                    return currentUser.isPremium;
-                  } else {
-                    // Demo users removed - Firebase only
-                    return false;
-                  }
-                });
-
-                // Check if any members have premium access
-                const anyMembersHavePremium = group.members.some(member => {
-                  if (member.userId === currentUser.id) {
-                    return currentUser.isPremium;
-                  } else {
-                    // Demo users removed - Firebase only
-                    return false;
-                  }
-                });
-
-                if (!anyMembersHavePremium) {
-                  return `<button class="btn btn-secondary" onclick="showPremiumUpgradeModal()" style="background: var(--warning-color); color: var(--inverted-text-color);">
-                      <i class="fas fa-crown"></i> Get Premium for AI Trip Planner
-                    </button>`;
-                } else if (!allMembersHavePremium) {
-                  return "";
-                } else if (AI_PREMIUM_ENABLED) {
-                  return `<button class="btn" style="background: var(--primary-gradient); color: var(--inverted-text-color);" onclick="showAIPremiumModal('${group.id}')">
-                      <i class="fa-solid fa-crown"></i> AI Trip Planner
-                    </button>`;
-                } else {
-                  return "";
-                }
-              })()}
-                <button class="btn btn-info" onclick="showGroupLocationRecommendations('${group.id}')" style="background: var(--info-color);">
-                  <i class="fas fa-map-marker-alt"></i> Find Places Near Group
-                </button>
-                ${GroupsSystem.isGroupAdmin(group.id) ? `
-                  <button class="btn btn-secondary" onclick="GroupsSystem.editGroup('${group.id}')">
-                  <i class="fas fa-edit"></i> Edit Group
-                </button>
-                  <button class="btn btn-danger" onclick="GroupsSystem.deleteGroup('${group.id}')">
-                    <i class="fas fa-trash"></i> Delete Group
-                </button>
-                ` : ''}
-              </div>
-
-              <!-- Members Section -->
-              <div style="margin-bottom: 1.5rem;">
-                <h4 style="margin-bottom: 1rem; color: var(--primary-color);">
-                  <i class="fas fa-users"></i> Group Members
-                </h4>
-                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                  ${group.members
-                .map(
-                  (member) => `
-                    <div style="
-                      display: flex; 
-                      align-items: center; 
-                      gap: 0.5rem; 
-                      padding: 0.5rem 0.8rem; 
-                      background: #f8f9fa; 
-                      border-radius: 20px; 
-                      font-size: 0.9rem;
-                      border: 1px solid #e9ecef;
-                    ">
-                      <div style="
-                        width: 25px; 
-                        height: 25px; 
-                        border-radius: 50%; 
-                        background: var(--secondary-color); 
-                        color: white; 
-                        display: flex; 
-                        align-items: center; 
-                        justify-content: center; 
-                        font-size: 0.8rem;
-                      ">${member.avatar}</div>
-                      <span style="font-weight: 500;">${addCrownToPremiumUser(member.displayName, member.userId)}</span>
-                      <span style="color: #666; font-size: 0.8rem;">(${member.personalityType})</span>
-                    </div>
-                  `
-                )
-                .join("")}
-                </div>
-              </div>
-
-              <!-- Group Scheduling Section -->
-              ${(() => {
-                // Check if any members have premium access
-                const anyMembersHavePremium = group.members.some(member => {
-                  if (member.userId === currentUser.id) {
-                    return currentUser.isPremium;
-                  } else {
-                    // Demo users removed - Firebase only
-                    return false;
-                  }
-                });
-
-                // Only show scheduling section if at least one member has premium
-                if (anyMembersHavePremium) {
-                  return `<div id="scheduling-placeholder-${group.id}" style="margin-top: 2rem; padding: 1.5rem; background: linear-gradient(135deg, rgba(74, 144, 226, 0.05) 0%, rgba(160, 200, 240, 0.05) 100%); border-radius: 15px; border: 2px solid rgba(74, 144, 226, 0.2);">
-                    <div style="text-align: center; color: #666;">
-                      <i class="fas fa-spinner fa-spin" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
-                      <p>Loading scheduling information...</p>
-                    </div>
-                  </div>`;
-                } else {
-                  return "";
-                }
-              })()}
-
-              <!-- AI Itinerary Section -->
-              ${renderAIItinerary(group)}
-
-              <!-- Recommendations Section -->
-              ${topRecommendations.length > 0 && !group.aiItinerary
-                ? `
-                <div style="margin-top: 1.5rem;">
-                  <h4 style="margin-bottom: 1rem; color: var(--primary-color);">
-                    <i class="fas fa-star"></i> Top Recommendations
-                  </h4>
-                  <div class="activity-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;">
-                    ${topRecommendations
-                  .map((rec) => {
-                    const activityName = rec.experience.name;
-                    const votes = group.votes[activityName] || [];
-                    const currentUserId = DataLayer.load("currentUser").id;
-                    const hasVoted = votes.includes(currentUserId);
-                    const isMostVoted =
-                      mostVoted === activityName && maxVotes > 0;
-
-                    return `
-                        <div class="activity-card ${isMostVoted ? "most-voted" : ""
-                      }" style="
-                          border: 1px solid #eee; 
-                          border-radius: 12px; 
-                          padding: 1.5rem; 
-                          background: white;
-                          box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-                          transition: all 0.2s ease;
-                          ${isMostVoted ? 'border: 2px solid var(--secondary-color);' : ''}
-                        " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'" 
-                           onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.05)'">
-                          
-                          <div style="background: var(--secondary-gradient); color: white; padding: 0.8rem; margin: -1.5rem -1.5rem 1rem -1.5rem; border-radius: 12px 12px 0 0;">
-                            <div style="font-weight: bold; font-size: 1.1rem;">Combined Score: ${rec.groupScore.toFixed(1)}/10</div>
-                            <div style="font-size: 0.9rem; opacity: 0.9;">Confidence: ${(rec.confidence * 100).toFixed(0)}%</div>
-                          </div>
-                          
-                          <div style="font-weight: bold; font-size: 1.1rem; margin-bottom: 0.5rem;">${rec.experience.name}</div>
-                          <div style="color: #666; margin-bottom: 0.5rem;">
-                            ${rec.experience.category} • ${rec.experience.location}
-                            ${rec.distanceFromGroup ? ` • <i class="fas fa-map-marker-alt"></i> ${rec.distanceFromGroup.toFixed(1)}km away` : ''}
-                          </div>
-                          ${rec.experience.description
-                        ? `<p style="font-size: 0.9rem; color: #666; margin: 0.5rem 0; line-height: 1.4;">${rec.experience.description}</p>`
-                        : ""
-                      }
-
-                          <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #eee;">
-                            <strong style="font-size: 0.9rem;">Individual Predictions:</strong>
-                            ${rec.individualScores
-                        .map(
-                          (score) => `
-                              <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-top: 0.3rem;">
-                                <span>${addCrownToPremiumUser(score.member.displayName, score.member.userId)}</span>
-                                <span style="font-weight: bold; color: ${score.score >= 7
-                              ? "#4CAF50"
-                              : score.score >= 5
-                                ? "#FF9800"
-                                : "#f44336"
-                            }">${score.score.toFixed(1)}/10</span>
-                              </div>
-                            `
-                        )
-                        .join("")}
-                            <div style="margin-top: 0.5rem; font-size: 0.85rem;">
-                              Group Compatibility: 
-                              <span style="font-weight: bold; color: ${rec.variance <= 1.5
-                        ? "#4CAF50"
-                        : rec.variance <= 3
-                          ? "#FF9800"
-                          : "#f44336"
-                      }">
-                                ${rec.variance <= 1.5
-                        ? "High"
-                        : rec.variance <= 3
-                          ? "Medium"
-                          : "Low"
-                      }
-                              </span>
-                            </div>
-                            
-                            <!-- Voting section -->
-                            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #eee;">
-                              <button class="vote-button ${hasVoted ? "voted" : ""
-                      }" 
-                                      onclick="GroupsSystem.voteForActivity(${group.id}, '${activityName.replace(/'/g, "\\'")}')" style="
-                                background: ${hasVoted ? 'var(--success-color)' : 'var(--primary-color)'}; 
-                                color: white; 
-                                border: none; 
-                                padding: 0.5rem 1rem; 
-                                border-radius: 6px; 
-                                cursor: pointer; 
-                                font-size: 0.9rem;
-                                transition: all 0.2s ease;
-                              ">
-                                ${hasVoted ? "✓ Voted" : "Vote for this"}
-                              </button>
-                              <div class="vote-count" style="margin-top: 0.5rem; font-size: 0.85rem; color: #666;">
-                                ${votes.length} vote${votes.length !== 1 ? "s" : ""}
-                                ${votes.length > 0
-                        ? `(${votes
-                          .map((userId) => {
-                            const member = group.members.find(
-                              (m) => m.userId === userId
-                            );
-                            return member ? addCrownToPremiumUser(member.displayName, member.userId) : "Unknown";
-                          })
-                          .join(", ")})`
-                        : ""
-                      }
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      `;
-                  })
-                  .join("")}
-                  </div>
-                </div>
-              `
-                : '<p style="color: #666; text-align: center; padding: 2rem;">No recommendations available yet. More community data needed!</p>'
-              }
-            </div>
-          </div>
-        </div>
-      `;
-          })
-          .join("");
-
-        // Load more control for groups
-        if (GroupsSystem.store && GroupsSystem.store.hasMore) {
-          groupsContent.innerHTML += `
-            <div style=\"display:flex; justify-content:center; margin:16px 0;\">
-              <button class=\"btn btn-secondary\" onclick=\"(async()=>{await GroupsSystem.loadNextPage(); GroupsSystem.displayGroups();})()\">Load More Groups</button>
-            </div>
-          `;
-        }
-
-        // Load scheduling sections asynchronously after groups are rendered
-        setTimeout(() => {
-          groups.forEach(group => {
-            const placeholder = document.getElementById(`scheduling-placeholder-${group.id}`);
-            if (placeholder) {
-              renderGroupScheduling(group).then(schedulingHtml => {
-                placeholder.outerHTML = schedulingHtml;
-
-
-              }).catch(error => {
-                console.error('Error rendering group scheduling:', error);
-                placeholder.innerHTML = '<p style="color: #666; text-align: center;">Unable to load scheduling information.</p>';
-              });
-            }
-          });
-
-          // Restore expanded state for groups that were expanded before
-          setTimeout(() => {
-            expandedGroups.forEach(groupId => {
-              const groupContent = document.getElementById(`group-content-${groupId}`);
-              const expandIcon = document.getElementById(`expand-icon-${groupId}`);
-              if (groupContent && expandIcon) {
-                groupContent.style.maxHeight = groupContent.scrollHeight + "px";
-                expandIcon.style.transform = "rotate(180deg)";
-              }
-            });
-          }, 200); // Wait a bit longer for scheduling to load
-        }, 100);
-      },
-    };
-
-    //GroupsSystem object
-    GroupsSystem.voteForActivity = async function (groupId, activityName) {
-      console.log('Voting for activity:', activityName, 'in group:', groupId);
-      const groups = DataLayer.load("groups", []);
-      const group = groups.find((g) => g.id === groupId);
-      if (!group) {
-        console.error('Group not found:', groupId);
-        return;
-      }
-
-      // Initialize votes if not exists
-      if (!group.votes) group.votes = {};
-
-      const currentUserId = DataLayer.load("currentUser").id;
-
-      // Remove user's vote from all other activities first
-      Object.entries(group.votes).forEach(([activity, votes]) => {
-        if (activity !== activityName) { // Only remove from other activities, not the current one
-          const voteIndex = votes.indexOf(currentUserId);
-          if (voteIndex > -1) {
-            votes.splice(voteIndex, 1);
-          }
-        }
-      });
-
-      // Initialize the current activity's votes array if it doesn't exist
-      if (!group.votes[activityName]) group.votes[activityName] = [];
-
-      // Toggle vote for the current activity (add if not voted, remove if already voted)
-      const currentVoteIndex = group.votes[activityName].indexOf(currentUserId);
-      if (currentVoteIndex > -1) {
-        // Remove vote if already voted
-        group.votes[activityName].splice(currentVoteIndex, 1);
-      } else {
-        // Add vote if not voted
-        group.votes[activityName].push(currentUserId);
-      }
-
-      // Update groups data
-      DataLayer.save("groups", groups);
-
-      // Save to Firebase
-      try {
-        const { doc, updateDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-        await wrapWrite(
-          updateDoc(doc(authManager.db, 'groups', groupId), {
-            votes: group.votes,
-            updatedAt: serverTimestamp()
-          }),
-          'updateDoc',
-          `groups/${groupId}`,
-          { votesUpdated: true }
-        );
-        console.log('Votes saved to Firebase');
-      } catch (error) {
-        console.error('Error saving votes to Firebase:', error);
-      }
-
-      // Update only the specific group's content instead of refreshing everything
-      console.log('Updating group content for:', groupId);
-      GroupsSystem.updateGroupContent(groupId);
-    };
-
-    GroupsSystem.updateGroupContent = async function (groupId) {
-      const groups = DataLayer.load("groups", []);
-      const group = groups.find((g) => g.id === groupId);
-      if (!group) return;
-
-      // Get the current group content element
-      const groupContent = document.getElementById(`group-content-${groupId}`);
-      if (!groupContent) return;
-
-      // Check if the group is currently expanded
-      const isExpanded = groupContent.style.maxHeight !== "0px" && groupContent.style.maxHeight !== "";
-
-      // Generate the new content for this specific group
-      const recommendations = GroupsSystem.getGroupRecommendations(group);
-      const recommendationsHtml = recommendations
-        .slice(0, 3)
-        .map((rec) => {
-          const activityName = rec.experience.name;
-          const votes = group.votes && group.votes[activityName] ? group.votes[activityName] : [];
-          const hasVoted = votes.includes(DataLayer.load("currentUser").id);
-          const maxVotes = Math.max(...Object.values(group.votes || {}).map(v => v.length));
-          const mostVoted = Object.entries(group.votes || {}).find(([name, votes]) => votes.length === maxVotes)?.[0];
-          const isMostVoted = mostVoted === activityName && maxVotes > 0;
-
-          return `
-            <div class="activity-card ${isMostVoted ? "most-voted" : ""}" style="
-              border: 1px solid #eee; 
-              border-radius: 12px; 
-              padding: 1.5rem; 
-              background: white;
-              box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-              transition: all 0.2s ease;
-              ${isMostVoted ? 'border: 2px solid var(--secondary-color);' : ''}
-            " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'" 
-               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.05)'">
-              
-              <div style="background: var(--secondary-gradient); color: white; padding: 0.8rem; margin: -1.5rem -1.5rem 1rem -1.5rem; border-radius: 12px 12px 0 0;">
-                <div style="font-weight: bold; font-size: 1.1rem;">Combined Score: ${rec.groupScore.toFixed(1)}/10</div>
-                <div style="font-size: 0.9rem; opacity: 0.9;">Confidence: ${(rec.confidence * 100).toFixed(0)}%</div>
-              </div>
-              
-              <div style="font-weight: bold; font-size: 1.1rem; margin-bottom: 0.5rem;">${rec.experience.name}</div>
-              <div style="color: #666; margin-bottom: 0.5rem;">
-                ${rec.experience.category} • ${rec.experience.location}
-                ${rec.distanceFromGroup ? ` • <i class="fas fa-map-marker-alt"></i> ${rec.distanceFromGroup.toFixed(1)}km away` : ''}
-              </div>
-              ${rec.experience.description
-              ? `<p style="font-size: 0.9rem; color: #666; margin: 0.5rem 0; line-height: 1.4;">${rec.experience.description}</p>`
-              : ""
-            }
-
-              <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #eee;">
-                <strong style="font-size: 0.9rem;">Individual Predictions:</strong>
-                ${rec.individualScores
-              .map(
-                (score) => `
-                  <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-top: 0.3rem;">
-                                                    <span>${addCrownToPremiumUser(score.member.displayName, score.member.userId)}</span>
-                    <span style="font-weight: bold; color: ${score.score >= 7
-                    ? "#4CAF50"
-                    : score.score >= 5
-                      ? "#FF9800"
-                      : "#f44336"
-                  }">${score.score.toFixed(1)}/10</span>
-                  </div>
-                `
-              )
-              .join("")}
-                <div style="margin-top: 0.5rem; font-size: 0.85rem;">
-                  Group Compatibility: 
-                  <span style="font-weight: bold; color: ${rec.variance <= 1.5
-              ? "#4CAF50"
-              : rec.variance <= 3
-                ? "#FF9800"
-                : "#f44336"
-            }">
-                    ${rec.variance <= 1.5
-              ? "High"
-              : rec.variance <= 3
-                ? "Medium"
-                : "Low"
-            }
-                  </span>
-                </div>
-                
-                <!-- Voting section -->
-                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #eee;">
-                  <button class="vote-button ${hasVoted ? "voted" : ""}" 
-                          onclick="GroupsSystem.voteForActivity(${group.id}, '${activityName.replace(/'/g, "\\'")}')" style="
-                    background: ${hasVoted ? 'var(--success-color)' : 'var(--primary-color)'}; 
-                    color: white; 
-                    border: none; 
-                    padding: 0.5rem 1rem; 
-                    border-radius: 6px; 
-                    cursor: pointer; 
-                    font-size: 0.9rem;
-                    transition: all 0.2s ease;
-                  ">
-                    ${hasVoted ? "✓ Voted" : "Vote for this"}
-                  </button>
-                  <div class="vote-count" style="margin-top: 0.5rem; font-size: 0.85rem; color: #666;">
-                    ${votes.length} vote${votes.length !== 1 ? "s" : ""}
-                    ${votes.length > 0
-              ? `(${votes
-                .map((userId) => {
-                  const member = group.members.find(
-                    (m) => m.userId === userId
-                  );
-                  return member ? addCrownToPremiumUser(member.displayName, member.userId) : "Unknown";
-                })
-                .join(", ")})`
-              : ""
-            }
-                  </div>
-                </div>
-              </div>
-            </div>
-          `;
-        })
-        .join("");
-
-      // Find the recommendations container within this group
-      const recommendationsContainer = groupContent.querySelector('.activity-grid');
-      if (recommendationsContainer) {
-        recommendationsContainer.innerHTML = recommendationsHtml;
-      }
-
-      // Update AI itinerary section if it exists
-      const aiItinerarySection = groupContent.querySelector('.ai-itinerary-section');
-      if (aiItinerarySection && group.aiItinerary) {
-        aiItinerarySection.innerHTML = renderAIItinerary(group);
-      }
-
-      // Update group scheduling section if it exists
-      const groupSchedulingSection = groupContent.querySelector('.group-scheduling-section');
-      if (groupSchedulingSection) {
-        // Render the scheduling section asynchronously
-        renderGroupScheduling(group).then(schedulingHtml => {
-          groupSchedulingSection.innerHTML = schedulingHtml;
-
-          // After updating the scheduling section, recalculate the height if expanded
-          if (isExpanded) {
-            // Use requestAnimationFrame to ensure DOM updates are complete
-            requestAnimationFrame(() => {
-              groupContent.style.maxHeight = groupContent.scrollHeight + "px";
-            });
-          }
-        }).catch(error => {
-          console.error('Error rendering group scheduling:', error);
-          groupSchedulingSection.innerHTML = '<p style="color: #666;">Unable to load scheduling information.</p>';
-
-          // Even if there's an error, still recalculate height if expanded
-          if (isExpanded) {
-            requestAnimationFrame(() => {
-              groupContent.style.maxHeight = groupContent.scrollHeight + "px";
-            });
-          }
-        });
-      } else {
-        // If no scheduling section to update, still recalculate height if expanded
-        if (isExpanded) {
-          requestAnimationFrame(() => {
-            groupContent.style.maxHeight = groupContent.scrollHeight + "px";
-          });
-        }
-      }
-    };
-
-    GroupsSystem.toggleGroupExpansion = function (groupId) {
-      const content = document.getElementById(`group-content-${groupId}`);
-      const icon = document.getElementById(`expand-icon-${groupId}`);
-
-      if (content.style.maxHeight === "0px" || content.style.maxHeight === "") {
-        // Expand
-        content.style.maxHeight = content.scrollHeight + "px";
-        icon.style.transform = "rotate(180deg)";
-      } else {
-        // Collapse
-        content.style.maxHeight = "0px";
-        icon.style.transform = "rotate(0deg)";
-      }
-    };
-
-    GroupsSystem.editGroup = async function (groupId) {
-      const groups = DataLayer.load("groups", []);
-      const group = groups.find((g) => g.id === groupId);
-      if (!group) return;
-
-      const friends = await FriendsSystem.getFriends();
-      const currentMembers = group.members.filter(
-        (m) => m.userId !== DataLayer.load("currentUser").id
-      );
-
-      const modalHtml = `
-    <div id="edit-group-modal" class="modal" onclick="handleEditModalBackdropClick(event)">
-      <div class="modal-content" onclick="event.stopPropagation()">
-        <button class="modal-close" onclick="closeEditModal()">&times;</button>
-        <div class="modal-header">
-          <h2>Edit Group</h2>
-        </div>
-        <div class="modal-body">
-          <form id="edit-group-form" onsubmit="handleEditGroup(event, ${groupId})">
-            <div class="form-group">
-              <label for="edit-group-name">Group Name *</label>
-              <input type="text" id="edit-group-name" class="form-control" value="${group.name
-        }" required>
-            </div>
-            <div class="form-group">
-              <label for="edit-group-description">Description</label>
-              <textarea id="edit-group-description" class="form-control">${group.description
-        }</textarea>
-            </div>
-            <div class="form-group">
-              <label>Current Members</label>
-              <div style="margin-bottom: 1rem;">
-                ${currentMembers
-          .map(
-            (member) => `
-                  <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem; padding: 0.5rem; border: 1px solid #eee; border-radius: 8px;">
-                    <input type="checkbox" id="keep-member-${member.userId}" checked>
-                    <div class="feed-avatar" style="width: 30px; height: 30px; font-size: 0.8rem;">${member.avatar}</div>
-                    <span>${addCrownToPremiumUser(member.displayName, member.userId)} (${member.personalityType})</span>
-                  </div>
-                `
-          )
-          .join("")}
-              </div>
-              <label>Add New Members</label>
-              ${friends
-          .filter(
-            (friend) => !group.members.some((m) => m.userId === friend.id)
-          )
-          .map(
-            (friend) => `
-                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem; padding: 0.5rem; border: 1px solid #eee; border-radius: 8px;">
-                  <input type="checkbox" id="add-member-${friend.id}">
-                  <div class="feed-avatar" style="width: 30px; height: 30px; font-size: 0.8rem;">${friend.avatar}</div>
-                  <span>${addCrownToPremiumUser(friend.displayName, friend.id)} (${friend.personalityType})</span>
-                </div>
-              `
-          )
-          .join("")}
-            </div>
-            <div style="text-align: center; margin-top: 2rem;">
-              <button type="submit" class="btn">Save Changes</button>
-              <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  `;
-
-      document.body.insertAdjacentHTML("beforeend", modalHtml);
-      // Prevent body scrolling when modal is open
-      document.body.classList.add('modal-open');
-    };
 
 
     async function handleCreateGroup(event) {
@@ -9416,11 +6131,9 @@ Only return the JSON, no additional text.`;
       ActivitySystem.ratingQuestions.forEach((question) => {
         let value = parseInt(document.getElementById(`edit-${question.id}`).value);
 
-        if (question.reverse) {
-          value = 11 - value; // Reverse score for overwhelming
-        }
         responses[question.id] = value;
-        rawScore += value * question.weight;
+
+        rawScore += (!question.reverse) ? value * question.weight : (11 - value) * question.weight;
       });
 
       experience.responses = responses;
@@ -9465,8 +6178,9 @@ Only return the JSON, no additional text.`;
         }
 
         // Refresh all UI components
-        // updateDashboard();
-        // updateProfile();
+        updateDashboard();
+        updateProfile();
+        
 
         // Update feed if it exists
         if (typeof FeedSystem !== 'undefined' && FeedSystem.displayFeed) {
@@ -9483,6 +6197,7 @@ Only return the JSON, no additional text.`;
             console.log('🔍 Fresh data before modal refresh:', freshData);
 
             showExperiencesModal();
+            
           }, 200);
         }
 
@@ -9500,7 +6215,7 @@ Only return the JSON, no additional text.`;
       };
 
       // Update Firebase if user is authenticated
-      if (currentFirebaseUser && authManager && experience.id) {
+      if (getCurrentUser() && authManager && experience.id) {
         try {
           const { doc, updateDoc, collection, query, where, getDocs, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
 
@@ -9508,11 +6223,11 @@ Only return the JSON, no additional text.`;
           const experiencesCollection = collection(authManager.db, 'experiences');
           const experienceQuery = query(
             experiencesCollection,
-            where('userId', '==', currentFirebaseUser.uid),
+            where('userId', '==', getCurrentUser().uid),
             where('id', '==', experience.id)
           );
 
-          const experienceSnapshot = await wrapRead(getDocs(experienceQuery), 'getDocs', 'experiences', { userId: currentFirebaseUser.uid, id: experience.id });
+          const experienceSnapshot = await wrapRead(getDocs(experienceQuery), 'getDocs', 'experiences', { userId: getCurrentUser().uid, id: experience.id });
 
           if (!experienceSnapshot.empty) {
             const experienceDoc = experienceSnapshot.docs[0];
@@ -9538,12 +6253,12 @@ Only return the JSON, no additional text.`;
             // If we can't find by ID, try to find by other properties
             const fallbackQuery = query(
               experiencesCollection,
-              where('userId', '==', currentFirebaseUser.uid),
+              where('userId', '==', getCurrentUser().uid),
               where('name', '==', experience.name),
               where('category', '==', experience.category)
             );
 
-            const fallbackSnapshot = await wrapRead(getDocs(fallbackQuery), 'getDocs', 'experiences', { userId: currentFirebaseUser.uid, name: experience.name });
+            const fallbackSnapshot = await wrapRead(getDocs(fallbackQuery), 'getDocs', 'experiences', { userId: getCurrentUser().uid, name: experience.name });
             if (!fallbackSnapshot.empty) {
               const experienceDoc = fallbackSnapshot.docs[0];
               await wrapWrite(
@@ -9616,7 +6331,7 @@ Only return the JSON, no additional text.`;
         DataLayer.save("userExperiences", userExperiences);
 
         // Delete from Firebase if user is authenticated and experience has Firebase ID
-        if (currentFirebaseUser && authManager && experienceToDelete.id) {
+        if (getCurrentUser() && authManager && experienceToDelete.id) {
           try {
             const { doc, deleteDoc, collection, query, where, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
 
@@ -9624,7 +6339,7 @@ Only return the JSON, no additional text.`;
             const experiencesCollection = collection(authManager.db, 'experiences');
             const experienceQuery = query(
               experiencesCollection,
-              where('userId', '==', currentFirebaseUser.uid),
+              where('userId', '==', getCurrentUser().uid),
               where('id', '==', experienceToDelete.id)
             );
 
@@ -9643,7 +6358,7 @@ Only return the JSON, no additional text.`;
               // If we can't find by ID, try to find by other properties
               const fallbackQuery = query(
                 experiencesCollection,
-                where('userId', '==', currentFirebaseUser.uid),
+                where('userId', '==', getCurrentUser().uid),
                 where('name', '==', experienceToDelete.name),
                 where('category', '==', experienceToDelete.category)
               );
@@ -9922,23 +6637,7 @@ Only return the JSON, no additional text.`;
       }
     }
 
-    const fadeOutStyle = document.createElement("style");
-    fadeOutStyle.textContent = `
-  @keyframes fadeOut {
-    from { opacity: 1; }
-    to { opacity: 0; }
-  }
-`;
-    document.head.appendChild(fadeOutStyle);
-    function closeModal() {
-      const modal = document.getElementById("group-modal");
-      if (modal) {
-        modal.remove();
-      }
-      // Re-enable body scrolling
-      document.body.classList.remove('modal-open');
-    }
-
+    
     // Recommendation System
     const RecommendationSystem = {
       displayRecommendations: () => {
@@ -10408,7 +7107,7 @@ Only return the JSON, no additional text.`;
                 </div>
               </div>
               <div style="text-align: right; margin-left: 1rem;">
-                <div style="font-weight: bold; font-size: 1.3rem; color: var(--secondary-color);">${exp.adjustedScore
+                <div style="font-weight: bold; font-size: 1.3rem; color: var(--secondary-color);">${exp.rawScore.toFixed(1)
                 }/10</div>
 
               </div>
@@ -10465,154 +7164,16 @@ Only return the JSON, no additional text.`;
   `;
     }
 
-    // Manage navigation visibility based on authentication
-    function updateNavigationVisibility() {
-      const nav = document.querySelector('nav');
-      if (nav) {
-        if (currentFirebaseUser) {
-          nav.style.display = 'flex';
-        } else {
-          nav.style.display = 'none';
-        }
-      }
-    }
+    
 
     // UI Management
-    function showPage(pageId) {
-      console.log('📱 showPage() called with pageId:', pageId);
-      // Check authentication for protected pages
-      const protectedPages = ['dashboard', 'assessment', 'activities', 'feed', 'groups', 'friends', 'profile'];
-      if (protectedPages.includes(pageId) && !currentFirebaseUser) {
-        // Don't redirect if we're already on an auth page
-        const currentPage = document.querySelector('.page:not(.hidden)');
-        if (currentPage && ['login', 'register'].includes(currentPage.id)) {
-          return;
-        }
-        showPage('login');
-        return;
-      }
-
-      // Hide all pages
-      document.querySelectorAll(".page").forEach((page) => {
-        page.classList.add("hidden");
-      });
-
-      // Update active navigation
-      document.querySelectorAll(".nav-links a").forEach((link) => {
-        link.classList.remove("active");
-      });
-      const navElement = document.getElementById(`nav-${pageId}`);
-      if (navElement) {
-        navElement.classList.add("active");
-      }
-
-      // Show selected page
-      document.getElementById(pageId).classList.remove("hidden");
-
-      // Update navigation visibility
-      updateNavigationVisibility();
-
-      // Page-specific initialization
-      switch (pageId) {
-        case "login":
-          // Reset forms (check if they exist first)
-          const loginForm = document.getElementById('login-form');
-          const registerForm = document.getElementById('register-form');
-
-          if (loginForm) loginForm.reset();
-          if (registerForm) registerForm.reset();
-
-          showLoginForm();
-          break;
-        case "dashboard":
-          updateOnPageVisit('dashboard');
-          break;
-        case "assessment":
-          PersonalityAssessment.init();
-          break;
-        case "activities":
-          if (!DataLayer.exists("personalityScore")) {
-            NotificationSystem.show(
-              "Please complete the personality assessment first!",
-              "warning"
-            );
-            showPage("assessment");
-            return;
-          }
-          // Initialize location functionality immediately
-          setTimeout(() => {
-            initializeLocationAutocomplete();
-            // Auto-get current location when page opens
-            autoFillCurrentLocation();
-          }, 500);
-          break;
-        case "feed":
-          console.log('📱 Feed page selected, calling updateOnPageVisit');
-          updateOnPageVisit('feed');
-          break;
-        case "groups":
-          updateOnPageVisit('groups');
-          // Also update usage display immediately
-          setTimeout(() => {
-            const usage = GroupsSystem.getGroupUsage();
-            const usageText = document.getElementById("group-usage-text");
-            const premiumStatusText = document.getElementById("premium-status-text");
-
-            if (usageText) {
-              usageText.textContent = `${usage.current}/${usage.limit}`;
-              if (usage.isPremium) {
-                usageText.style.background = "var(--primary-color)";
-                usageText.style.color = "white";
-              } else {
-                usageText.style.background = "var(--primary-color)";
-                usageText.style.color = "white";
-              }
-            }
-
-            if (premiumStatusText) {
-              if (usage.isPremium) {
-                premiumStatusText.innerHTML = "Premium - Unlimited Groups";
-              } else {
-                premiumStatusText.innerHTML = '<a href="#" onclick="showPremiumUpgradeModal()" style="color: var(--secondary-color); text-decoration: none;">Upgrade to Premium for unlimited groups</a>';
-              }
-            }
-          }, 50);
-          break;
-
-        case "friends":
-          updateOnPageVisit('friends');
-          // Initialize friends system only when tab is clicked (optimized loading)
-          if (typeof FriendsDiscoverySystem !== 'undefined') {
-            FriendsDiscoverySystem.init();
-          }
-          break;
-
-        case "profile":
-          updateOnPageVisit('profile');
-          break;
-      }
-    }
-
-    function nextQuestion() {
-      PersonalityAssessment.currentQuestion++;
-
-      if (
-        PersonalityAssessment.currentQuestion >=
-        PersonalityAssessment.questions.length
-      ) {
-        PersonalityAssessment.showResults();
-      } else {
-        PersonalityAssessment.displayQuestion();
-        document.getElementById("next-btn").disabled = true;
-      }
-    }
-
+  
     async function completeAssessment() {
       // Ensure personality data is properly loaded from Firebase if user is authenticated
-      if (currentFirebaseUser && authManager) {
+      if (getCurrentUser() && authManager) {
         try {
           const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-          const userDoc = await getDoc(doc(authManager.db, 'users', currentFirebaseUser.uid));
+          const userDoc = await getDoc(doc(authManager.db, 'users', getCurrentUser().uid));
 
           if (userDoc.exists()) {
             const userData = userDoc.data();
@@ -11921,24 +8482,7 @@ Only return the JSON, no additional text.`;
       }
     });
 
-    // Enhanced activity submission with notifications
-    const EnhancedActivitySystem = {
-      submitWithNotification: (event) => {
-        try {
-          ActivitySystem.submitNewExperience(event);
-          NotificationSystem.show(
-            "Experience added successfully!",
-            "success"
-          );
-        } catch (error) {
-          console.error("Failed to submit experience:", error);
-          NotificationSystem.show(
-            "Failed to add experience. Please try again.",
-            "error"
-          );
-        }
-      },
-    };
+    
 
     // Error handling wrapper
     function safeExecute(fn, errorMessage = "An error occurred") {
@@ -11974,73 +8518,10 @@ Only return the JSON, no additional text.`;
       link.click();
     }
 
-    // Firebase Authentication System
-    let authManager = null;
-    let userManager = null;
-    let friendsManager = null;
-    let currentFirebaseUser = null;
 
-    // Initialize Firebase Authentication
-    async function initializeFirebaseAuth() {
-      try {
-        // Import Firebase modules
-        const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
-        const { getAuth, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
-        const { getFirestore } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-
-        // Import Firebase configuration
-        const { firebaseConfig } = await import('./firebase-config.js');
-
-        // Check if Firebase is properly configured
-        if (!firebaseConfig.apiKey) {
-          console.warn('Firebase not configured. Please update firebase-config.js with your Firebase project details.');
-          NotificationSystem.show('Firebase not configured. Please check the console for setup instructions.', 'warning');
-          return false;
-        }
-
-        console.log('Firebase config loaded:', {
-          projectId: firebaseConfig.projectId,
-          authDomain: firebaseConfig.authDomain,
-          hasApiKey: !!firebaseConfig.apiKey
-        });
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        // Set up auth state listener
-        onAuthStateChanged(auth, async (user) => {
-          if (user) {
-            currentFirebaseUser = user;
-            console.log('User signed in:', user.uid);
-            await loadUserProfile(user.uid);
-            // Removed legacy handler system; activity tracking handles presence
-            setupActivityTracking(); // Start tracking user activity
-            showPage('dashboard');
-            updateNavigationVisibility();
-          } else {
-            currentFirebaseUser = null;
-            console.log('User signed out');
-            showPage('login');
-            updateNavigationVisibility();
-          }
-        });
-
-        // Initialize managers
-        authManager = { auth, db };
-        userManager = { db };
-        friendsManager = { db };
-
-
-        console.log('Firebase Auth initialized successfully');
-        return true;
-      } catch (error) {
-        console.error('Error initializing Firebase Auth:', error);
-        NotificationSystem.show('Failed to initialize Firebase. Please check your configuration.', 'error');
-        return false;
-      }
-    }
+    import {setCurrentUser,getCurrentUser} from './src/js/back-end/firebase-config.js';
+    
+    
 
     // Handle user login
     async function handleLogin(event) {
@@ -12356,7 +8837,7 @@ Only return the JSON, no additional text.`;
 
     // Track user activity
     function trackUserActivity() {
-      if (!currentFirebaseUser) return;
+      if (!getCurrentUser()) return;
 
       const now = Date.now();
       lastActivityTime = now;
@@ -12438,7 +8919,7 @@ Only return the JSON, no additional text.`;
       // Avoid costly network waits by using a short, best-effort write.
       const handleFastOffline = () => {
         try {
-          if (!currentFirebaseUser || !authManager) return;
+          if (!getCurrentUser()|| !authManager) return;
           // Fire-and-forget status update (no throttling)
           updateUserStatus('offline', false, true);
         } catch (_) { }
@@ -12454,45 +8935,7 @@ Only return the JSON, no additional text.`;
       }, 60000);
     }
 
-    // Load user profile from Firebase
-    async function loadUserProfile(userId) {
-      try {
-        const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-        const userDoc = await wrapRead(getDoc(doc(authManager.db, 'users', userId)), 'getDoc', `users/${userId}`, {});
-
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-
-          // Save user data to local storage for compatibility
-          DataLayer.save('currentUser', {
-            id: userData.id,
-            username: userData.username,
-            displayName: userData.displayName,
-            email: userData.email,
-            bio: userData.bio,
-            avatar: userData.avatar,
-            adjustmentFactor: userData.adjustmentFactor,
-            personalityType: userData.personalityType,
-            isPremium: userData.isPremium,
-            location: userData.location,
-            isOnline: userData.isOnline
-          });
-
-          // Load personality data if available
-          if (userData.adjustmentFactor !== undefined) {
-            DataLayer.save('personalityScore', { adjustmentFactor: userData.adjustmentFactor });
-            DataLayer.save('personalityType', { type: userData.personalityType });
-          }
-
-          console.log('User profile loaded:', userData);
-        } else {
-          console.log('No user profile found for:', userId);
-        }
-      } catch (error) {
-        console.error('Error loading user profile:', error);
-      }
-    }
-
+   
     // Form switching functions
     window.showRegisterForm = function () {
       document.getElementById('login-form-container').style.display = 'none';
@@ -13090,101 +9533,6 @@ Only return the JSON, no additional text.`;
     let lastUserStatusUIUpdate = 0;
     const USER_STATUS_UI_MIN_INTERVAL = 2000; // 2s between UI refreshes
 
-    // --- Firebase Write Logger (local-only) ---
-    const FirebaseWriteLogger = (() => {
-      const STORAGE_KEY = 'FIREBASE_WRITE_LOGS';
-      const MAX_ENTRIES = 1000;
-      let buffer = [];
-
-      function load() {
-        try {
-          const raw = localStorage.getItem(STORAGE_KEY);
-          buffer = raw ? JSON.parse(raw) : [];
-          if (!Array.isArray(buffer)) buffer = [];
-        } catch (_) {
-          buffer = [];
-        }
-      }
-
-      function persist() {
-        try {
-          if (buffer.length > MAX_ENTRIES) {
-            buffer = buffer.slice(buffer.length - MAX_ENTRIES);
-          }
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(buffer));
-        } catch (_) {
-          // ignore storage failures
-        }
-      }
-
-      load();
-
-      return {
-        log(action, path, meta = {}, resultId = null, error = null) {
-          const entry = {
-            ts: new Date().toISOString(),
-            action, // addDoc | updateDoc | deleteDoc | setDoc
-            path,   // e.g., users/uid or friendRequests
-            meta: (() => { try { return JSON.parse(JSON.stringify(meta)); } catch { return {}; } })(),
-            resultId,
-            ok: !error,
-            error: error ? { message: String(error?.message || error), code: error?.code || null } : null,
-          };
-          buffer.push(entry);
-          persist();
-          return entry;
-        },
-        exportAsText() {
-          const lines = buffer.map(e => {
-            return `[${e.ts}] ${e.ok ? 'OK' : 'ERR'} ${e.action} ${e.path} ${e.resultId ? `id=${e.resultId}` : ''} ${e.error ? `error=${e.error.message}` : ''} meta=${JSON.stringify(e.meta)}`.trim();
-          });
-          const blob = new Blob([lines.join('\n') + '\n'], { type: 'text/plain' });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `firebase-writes-${new Date().toISOString().replace(/[:.]/g, '-')}.txt`;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-          URL.revokeObjectURL(url);
-        },
-        clear() {
-          buffer = [];
-          persist();
-        },
-        getAll() { return [...buffer]; }
-      };
-    })();
-
-    async function wrapWrite(promise, action, path, meta) {
-      const start = Date.now();
-      try {
-        const result = await promise;
-        const durationMs = Date.now() - start;
-        const resultId = result?.id || null;
-        FirebaseWriteLogger.log(action, path, { ...meta, durationMs }, resultId, null);
-        return result;
-      } catch (error) {
-        const durationMs = Date.now() - start;
-        FirebaseWriteLogger.log(action, path, { ...meta, durationMs }, null, error);
-        throw error;
-      }
-    }
-
-    async function wrapRead(promise, action, path, meta) {
-      const start = Date.now();
-      try {
-        const result = await promise;
-        const durationMs = Date.now() - start;
-        const size = (result?.size !== undefined) ? result.size : (Array.isArray(result?.docs) ? result.docs.length : undefined);
-        FirebaseWriteLogger.log(action, path, { ...meta, durationMs, size }, null, null);
-        return result;
-      } catch (error) {
-        const durationMs = Date.now() - start;
-        FirebaseWriteLogger.log(action, path, { ...meta, durationMs }, null, error);
-        throw error;
-      }
-    }
 
     // Comprehensive Data Strategy
     const DataStrategy = {
@@ -13226,7 +9574,7 @@ Only return the JSON, no additional text.`;
     // Enhanced initialization with comprehensive data strategy
     let _initRealtimeInFlight = false;
     async function initializeRealtimeSystem() {
-      if (!currentFirebaseUser || !authManager) return;
+      if (!getCurrentUser()|| !authManager) return;
       if (_initRealtimeInFlight) return; // cooldown: skip duplicate inits
       _initRealtimeInFlight = true;
 
@@ -13299,7 +9647,7 @@ Only return the JSON, no additional text.`;
 
         const groupsQuery = query(
           collection(authManager.db, 'groups'),
-          where('members', 'array-contains', currentFirebaseUser.uid)
+          where('members', 'array-contains', getCurrentUser().uid)
         );
 
         const snapshot = await getDocs(groupsQuery);
@@ -13330,7 +9678,7 @@ Only return the JSON, no additional text.`;
 
         const experiencesQuery = query(
           collection(authManager.db, 'experiences'),
-          where('userId', '==', currentFirebaseUser.uid)
+          where('userId', '==', getCurrentUser().uid)
         );
 
         const snapshot = await getDocs(experiencesQuery);
@@ -13369,7 +9717,7 @@ Only return the JSON, no additional text.`;
 
         const requestsQuery = query(
           collection(authManager.db, 'friendRequests'),
-          where('toUserId', '==', currentFirebaseUser.uid),
+          where('toUserId', '==', getCurrentUser().uid),
           where('status', '==', 'pending')
         );
 
@@ -13449,7 +9797,7 @@ Only return the JSON, no additional text.`;
 
     // Enhanced page visit function with intelligent data loading
     async function updateOnPageVisit(pageName) {
-      if (!currentFirebaseUser || !authManager) return;
+      if (!getCurrentUser() || !authManager) return;
 
       console.log(`📄 Page visit: ${pageName} - Loading relevant data...`);
 
@@ -13516,12 +9864,12 @@ Only return the JSON, no additional text.`;
 
       try {
         const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-        const userDoc = await wrapRead(getDoc(doc(authManager.db, 'users', currentFirebaseUser.uid)), 'getDoc', `users/${currentFirebaseUser.uid}`, { source: 'dashboard' });
+        const userDoc = await wrapRead(getDoc(doc(authManager.db, 'users', getCurrentUser().uid)), 'getDoc', `users/${getCurrentUser().uid}`, { source: 'dashboard' });
 
         if (userDoc.exists()) {
           const userData = userDoc.data();
           const profileData = {
-            id: currentFirebaseUser.uid,
+            id: getCurrentUser().uid,
             username: userData.username,
             displayName: userData.displayName,
             email: userData.email,
@@ -13570,7 +9918,7 @@ Only return the JSON, no additional text.`;
 
     // Real-time friend request listeners
     async function initializeFriendRequestListeners(collection, query, where, onSnapshot) {
-      if (!currentFirebaseUser || !authManager) return;
+      if (!getCurrentUser() || !authManager) return;
 
       // Prevent duplicate initialization
       if (realtimeListeners.friendRequests) {
@@ -13582,7 +9930,7 @@ Only return the JSON, no additional text.`;
         // Listen for incoming friend requests
         const incomingRequestsQuery = query(
           collection(authManager.db, 'friendRequests'),
-          where('toUserId', '==', currentFirebaseUser.uid),
+          where('toUserId', '==', getCurrentUser().uid),
           where('status', '==', 'pending')
         );
 
@@ -13644,7 +9992,7 @@ Only return the JSON, no additional text.`;
         // Listen for friend request status changes (accepted/rejected)
         const outgoingRequestsQuery = query(
           collection(authManager.db, 'friendRequests'),
-          where('fromUserId', '==', currentFirebaseUser.uid)
+          where('fromUserId', '==', getCurrentUser().uid)
         );
 
         realtimeListeners.outgoingRequests = onSnapshot(outgoingRequestsQuery, (snapshot) => {
@@ -13697,12 +10045,12 @@ Only return the JSON, no additional text.`;
         // Listen for new friendships (when requests are accepted by recipient)
         const friendsQuery = query(
           collection(authManager.db, 'friends'),
-          where('user1Id', '==', currentFirebaseUser.uid)
+          where('user1Id', '==', getCurrentUser().uid)
         );
 
         const friendsQuery2 = query(
           collection(authManager.db, 'friends'),
-          where('user2Id', '==', currentFirebaseUser.uid)
+          where('user2Id', '==', getCurrentUser().uid)
         );
 
         // Listen to both friendship queries
@@ -13794,7 +10142,7 @@ Only return the JSON, no additional text.`;
 
     // Real-time group update listeners
     async function initializeGroupUpdateListeners(collection, query, where, onSnapshot, doc, docOnSnapshot) {
-      if (!currentFirebaseUser || !authManager) return;
+      if (!getCurrentUser() || !authManager) return;
 
       // Prevent duplicate initialization
       if (realtimeListeners.groups) {
@@ -13806,7 +10154,7 @@ Only return the JSON, no additional text.`;
         // Listen for groups where current user is a member
         const userGroupsQuery = query(
           collection(authManager.db, 'groups'),
-          where('members', 'array-contains', currentFirebaseUser.uid)
+          where('members', 'array-contains', getCurrentUser().uid)
         );
 
         realtimeListeners.groups = onSnapshot(userGroupsQuery, (snapshot) => {
@@ -13821,7 +10169,7 @@ Only return the JSON, no additional text.`;
               console.log('New group detected:', groupData.name);
 
               // Show notification for new group if user didn't create it
-              if (groupData.adminId !== currentFirebaseUser.uid) {
+              if (groupData.adminId !== getCurrentUser().uid) {
                 NotificationSystem.show(`You've been added to group: ${groupData.name}!`, 'success');
               }
             } else if (change.type === 'modified') {
@@ -13908,7 +10256,7 @@ Only return the JSON, no additional text.`;
 
     // Location scheduler: checks every 10 minutes and updates Firebase if moved ≥ 50m
     async function startLocationScheduler() {
-      if (!currentFirebaseUser || !authManager) return;
+      if (!getCurrentUser() || !authManager) return;
       if (locationSchedulerStarted) return;
 
       locationSchedulerStarted = true;
@@ -13989,7 +10337,7 @@ Only return the JSON, no additional text.`;
 
     // Update user status in Firebase
     async function updateUserStatus(status, isActive, forceUpdate = false) {
-      if (!currentFirebaseUser || !authManager || isUpdatingStatus) return;
+      if (!getCurrentUser() || !authManager || isUpdatingStatus) return;
 
       isUpdatingStatus = true;
 
@@ -14017,7 +10365,7 @@ Only return the JSON, no additional text.`;
         const { doc, updateDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
 
         await wrapWrite(
-          updateDoc(doc(authManager.db, 'users', currentFirebaseUser.uid), {
+          updateDoc(doc(authManager.db, 'users', getCurrentUser().uid), {
             status: status,
             isOnline: isOnline,
             isActive: isActive,
@@ -14025,7 +10373,7 @@ Only return the JSON, no additional text.`;
             lastStatusUpdate: serverTimestamp()
           }),
           'updateDoc',
-          `users/${currentFirebaseUser.uid}`,
+          `users/${getCurrentUser().uid}`,
           { status, isOnline, isActive }
         );
 
@@ -14044,7 +10392,7 @@ Only return the JSON, no additional text.`;
     // Update user location in Firebase
     async function updateUserLocation(location) {
       console.log('updateUserLocation', location);
-      if (!currentFirebaseUser || !authManager || !location) return;
+      if (!getCurrentUser() || !authManager || !location) return;
 
       // Validate location object
       if (!location.lat || !location.lng ||
@@ -14058,7 +10406,7 @@ Only return the JSON, no additional text.`;
         const { doc, updateDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
 
         await wrapWrite(
-          updateDoc(doc(authManager.db, 'users', currentFirebaseUser.uid), {
+          updateDoc(doc(authManager.db, 'users', getCurrentUser().uid), {
             location: {
               lat: location.lat,
               lng: location.lng,
@@ -14067,7 +10415,7 @@ Only return the JSON, no additional text.`;
             lastLocationUpdate: serverTimestamp()
           }),
           'updateDoc',
-          `users/${currentFirebaseUser.uid}`,
+          `users/${getCurrentUser().uid}`,
           { location }
         );
 
@@ -14135,7 +10483,7 @@ Only return the JSON, no additional text.`;
     }
     // Initialize real-time user status listeners (per-user doc listeners for minimal reads)
     async function initializeUserStatusListeners() {
-      if (!currentFirebaseUser || !authManager) return;
+      if (!getCurrentUser() || !authManager) return;
       if (isUserStatusInitInFlight) return;
       isUserStatusInitInFlight = true;
 
@@ -14167,7 +10515,7 @@ Only return the JSON, no additional text.`;
         const { doc, onSnapshot } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
 
         idsToWatch.forEach(userId => {
-          if (!userId || userId === currentFirebaseUser.uid) return;
+          if (!userId || userId === getCurrentUser().uid) return;
           const userDocRef = doc(authManager.db, 'users', userId);
           const unsub = onSnapshot(userDocRef, (docSnap) => {
             if (!docSnap.exists()) return;
@@ -14229,104 +10577,7 @@ Only return the JSON, no additional text.`;
     }
 
     // Page-specific update functions
-    async function updateOnPageVisit(pageName) {
-      if (!currentFirebaseUser || !authManager) return;
-
-      try {
-        const { collection, query, where, getDocs, getDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-
-        switch (pageName) {
-          case 'dashboard':
-            // Update user profile and experiences for dashboard
-            const userDoc = await getDoc(doc(authManager.db, 'users', currentFirebaseUser.uid));
-            if (userDoc.exists()) {
-              const userData = userDoc.data();
-              const currentUser = DataLayer.load('currentUser') || {};
-              const updatedUser = { ...currentUser, ...userData, id: currentFirebaseUser.uid };
-              DataLayer.save('currentUser', updatedUser);
-            }
-
-            // Load experiences
-            const experiencesCollection = collection(authManager.db, 'experiences');
-            const experiencesQuery = query(experiencesCollection, where('userId', '==', currentFirebaseUser.uid));
-            const experiencesSnapshot = await getDocs(experiencesQuery);
-
-            const userExperiences = [];
-            experiencesSnapshot.forEach((doc) => {
-              const experienceData = doc.data();
-              userExperiences.push({
-                id: experienceData.id || doc.id, // Preserve original ID if it exists, otherwise use Firebase doc ID
-                firebaseId: doc.id, // Store Firebase document ID separately
-                ...experienceData,
-                timestamp: experienceData.createdAt?.toDate?.() || new Date()
-              });
-            });
-            DataLayer.save('userExperiences', userExperiences);
-
-            updateDashboard();
-            break;
-
-          case 'feed':
-            console.log('🔄 updateOnPageVisit: feed case - initializing FeedSystem');
-            // Use paginated feed loader with caching
-            await FeedSystem.resetAndLoad();
-            // Initialize real-time system for friendship features
-            initializeRealtimeSystem();
-            break;
-
-          case 'community':
-            // Delegate to FriendsDiscoverySystem.init which single-flights loads
-            if (typeof FriendsDiscoverySystem !== 'undefined') {
-              await FriendsDiscoverySystem.init();
-            }
-            // Initialize real-time system for friendship features
-            initializeRealtimeSystem();
-            break;
-
-          case 'groups':
-            // Update groups from Firebase
-            if (typeof GroupsSystem !== 'undefined') {
-              await GroupsSystem.loadGroupsFromFirebase();
-              GroupsSystem.displayGroups();
-            }
-            break;
-
-          case 'profile':
-            // Update user profile and experiences for profile page
-            const profileUserDoc = await wrapRead(getDoc(doc(authManager.db, 'users', currentFirebaseUser.uid)), 'getDoc', `users/${currentFirebaseUser.uid}`, { source: 'profile' });
-            if (profileUserDoc.exists()) {
-              const userData = profileUserDoc.data();
-              const currentUser = DataLayer.load('currentUser') || {};
-              const updatedUser = { ...currentUser, ...userData, id: currentFirebaseUser.uid };
-              DataLayer.save('currentUser', updatedUser);
-            }
-
-            const profileExperiencesCollection = collection(authManager.db, 'experiences');
-            const profileExperiencesQuery = query(profileExperiencesCollection, where('userId', '==', currentFirebaseUser.uid));
-            const profileExperiencesSnapshot = await wrapRead(getDocs(profileExperiencesQuery), 'getDocs', 'experiences', { userId: currentFirebaseUser.uid, source: 'profile' });
-
-            const profileUserExperiences = [];
-            profileExperiencesSnapshot.forEach((doc) => {
-              const experienceData = doc.data();
-              profileUserExperiences.push({
-                id: experienceData.id || doc.id, // Preserve original ID if it exists, otherwise use Firebase doc ID
-                firebaseId: doc.id, // Store Firebase document ID separately
-                ...experienceData,
-                timestamp: experienceData.createdAt?.toDate?.() || new Date()
-              });
-            });
-            DataLayer.save('userExperiences', profileUserExperiences);
-
-            updateProfile();
-            break;
-        }
-
-        console.log(`Page-specific update completed for ${pageName}`);
-      } catch (error) {
-        console.error(`Error in page-specific update for ${pageName}:`, error);
-      }
-    }
-
+    
     // Show register form (duplicate removed)
     // function showRegisterForm() {
     //   document.getElementById('login-form-container').style.display = 'none';
@@ -14422,10 +10673,10 @@ Only return the JSON, no additional text.`;
         DataLayer.save('currentUser', updatedUser);
 
         // Update Firebase if authenticated
-        if (currentFirebaseUser && authManager) {
+        if (getCurrentUser() && authManager) {
           const { doc, updateDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
 
-          await updateDoc(doc(authManager.db, 'users', currentFirebaseUser.uid), {
+          await updateDoc(doc(authManager.db, 'users', getCurrentUser().uid), {
             displayName,
             username,
             bio: bio || null,
@@ -14459,7 +10710,7 @@ Only return the JSON, no additional text.`;
 
       // Initialize the system - Only called when friendship tab is clicked
       async init() {
-        if (!currentFirebaseUser) {
+        if (!getCurrentUser()) {
           NotificationSystem.show('Please sign in to view friends.', 'warning');
           return;
         }
@@ -14638,7 +10889,7 @@ Only return the JSON, no additional text.`;
           this.allUsers = [];
           snapshot.forEach((docSnap) => {
             const userData = docSnap.data();
-            if (docSnap.id !== currentFirebaseUser.uid) {
+            if (docSnap.id !== getCurrentUser().uid) {
               this.allUsers.push({
                 id: docSnap.id,
                 displayName: userData.displayName || 'Unknown User',
@@ -14673,7 +10924,7 @@ Only return the JSON, no additional text.`;
 
       async loadMoreUsers() {
         if (!this._usersHasMore || this._usersLoadingMore) return;
-        if (!currentFirebaseUser || !authManager) return;
+        if (!getCurrentUser() || !authManager) return;
         this._usersLoadingMore = true;
         try {
           const { collection, query, orderBy, limit, startAfter, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
@@ -14686,7 +10937,7 @@ Only return the JSON, no additional text.`;
           const page = [];
           snapshot.forEach((docSnap) => {
             const userData = docSnap.data();
-            if (docSnap.id !== currentFirebaseUser.uid) {
+            if (docSnap.id !== getCurrentUser().uid) {
               page.push({
                 id: docSnap.id,
                 displayName: userData.displayName || 'Unknown User',
@@ -14739,8 +10990,8 @@ Only return the JSON, no additional text.`;
 
           const friendsCollection = collection(authManager.db, 'friends');
           const queries = [
-            query(friendsCollection, where('user1Id', '==', currentFirebaseUser.uid)),
-            query(friendsCollection, where('user2Id', '==', currentFirebaseUser.uid))
+            query(friendsCollection, where('user1Id', '==', getCurrentUser().uid)),
+            query(friendsCollection, where('user2Id', '==', getCurrentUser().uid))
           ];
 
           this.currentFriends = [];
@@ -14751,7 +11002,7 @@ Only return the JSON, no additional text.`;
 
             for (const docSnap of querySnapshot.docs) {
               const friendshipData = docSnap.data();
-              const friendId = friendshipData.user1Id === currentFirebaseUser.uid
+              const friendId = friendshipData.user1Id === getCurrentUser().uid
                 ? friendshipData.user2Id
                 : friendshipData.user1Id;
 
@@ -14798,7 +11049,7 @@ Only return the JSON, no additional text.`;
           const { collection, query, where, getDocs, getDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
 
           const requestsCollection = collection(authManager.db, 'friendRequests');
-          const requestsQuery = query(requestsCollection, where('toUserId', '==', currentFirebaseUser.uid), where('status', '==', 'pending'));
+          const requestsQuery = query(requestsCollection, where('toUserId', '==', getCurrentUser().uid), where('status', '==', 'pending'));
           const querySnapshot = await getDocs(requestsQuery);
 
           this.friendRequests = [];
@@ -14831,7 +11082,7 @@ Only return the JSON, no additional text.`;
           const { collection, query, where, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
 
           const requestsCollection = collection(authManager.db, 'friendRequests');
-          const requestsQuery = query(requestsCollection, where('fromUserId', '==', currentFirebaseUser.uid), where('status', '==', 'pending'));
+          const requestsQuery = query(requestsCollection, where('fromUserId', '==', getCurrentUser().uid), where('status', '==', 'pending'));
           const querySnapshot = await getDocs(requestsQuery);
 
           this.pendingRequests = [];
@@ -15175,7 +11426,7 @@ Only return the JSON, no additional text.`;
 
       // Send friend request
       async sendFriendRequest(userId) {
-        if (!currentFirebaseUser) {
+        if (!getCurrentUser()) {
           NotificationSystem.show('Please sign in to send friend requests.', 'warning');
           return;
         }
@@ -15189,7 +11440,7 @@ Only return the JSON, no additional text.`;
           const { collection, addDoc, serverTimestamp, query, where, getDocs, limit } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
 
           const requestData = {
-            fromUserId: currentFirebaseUser.uid,
+            fromUserId: getCurrentUser().uid,
             toUserId: userId,
             status: 'pending',
             createdAt: serverTimestamp()
@@ -15200,7 +11451,7 @@ Only return the JSON, no additional text.`;
           const fiveMinutesMs = 5 * 60 * 1000;
 
           // Outgoing: only filter by fromUserId (single field), then narrow in-memory
-          const outgoingQ = query(requestsCollection, where('fromUserId', '==', currentFirebaseUser.uid), limit(20));
+          const outgoingQ = query(requestsCollection, where('fromUserId', '==', getCurrentUser().uid), limit(20));
           const outgoingSnap = await getDocs(outgoingQ);
 
           // Incoming: only filter by fromUserId of the other user (single field), then narrow in-memory
@@ -15222,7 +11473,7 @@ Only return the JSON, no additional text.`;
             return latestRejected > 0 && (now - latestRejected) < fiveMinutesMs;
           };
 
-          const blocked = hasBlocking(outgoingSnap, userId) || hasBlocking(incomingSnap, currentFirebaseUser.uid);
+          const blocked = hasBlocking(outgoingSnap, userId) || hasBlocking(incomingSnap, getCurrentUser().uid);
 
           if (blocked) {
             this.setCooldown(userId, fiveMinutesMs);
@@ -15266,7 +11517,7 @@ Only return the JSON, no additional text.`;
           const { collection, query, where, getDocs, deleteDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
           const requestsCollection = collection(authManager.db, 'friendRequests');
           // Find pending requests from me to this user
-          const q = query(requestsCollection, where('fromUserId', '==', currentFirebaseUser.uid), where('toUserId', '==', userId), where('status', '==', 'pending'));
+          const q = query(requestsCollection, where('fromUserId', '==', getCurrentUser().uid), where('toUserId', '==', userId), where('status', '==', 'pending'));
           const snapshot = await getDocs(q);
           for (const d of snapshot.docs) {
             await deleteDoc(doc(authManager.db, 'friendRequests', d.id));
@@ -15300,7 +11551,7 @@ Only return the JSON, no additional text.`;
 
           // Find the request
           const requestsCollection = collection(authManager.db, 'friendRequests');
-          const requestQuery = query(requestsCollection, where('fromUserId', '==', userId), where('toUserId', '==', currentFirebaseUser.uid));
+          const requestQuery = query(requestsCollection, where('fromUserId', '==', userId), where('toUserId', '==', getCurrentUser().uid));
           const requestSnapshot = await getDocs(requestQuery);
 
           if (!requestSnapshot.empty) {
@@ -15372,7 +11623,7 @@ Only return the JSON, no additional text.`;
           const { collection, query, where, getDocs, updateDoc, doc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
 
           const requestsCollection = collection(authManager.db, 'friendRequests');
-          const requestQuery = query(requestsCollection, where('fromUserId', '==', userId), where('toUserId', '==', currentFirebaseUser.uid));
+          const requestQuery = query(requestsCollection, where('fromUserId', '==', userId), where('toUserId', '==', getCurrentUser().uid));
           const requestSnapshot = await getDocs(requestQuery);
 
           if (!requestSnapshot.empty) {
@@ -15409,8 +11660,8 @@ Only return the JSON, no additional text.`;
 
           const friendsCollection = collection(authManager.db, 'friends');
           const queries = [
-            query(friendsCollection, where('user1Id', '==', currentFirebaseUser.uid), where('user2Id', '==', userId)),
-            query(friendsCollection, where('user1Id', '==', userId), where('user2Id', '==', currentFirebaseUser.uid))
+            query(friendsCollection, where('user1Id', '==', getCurrentUser().uid), where('user2Id', '==', userId)),
+            query(friendsCollection, where('user1Id', '==', userId), where('user2Id', '==', getCurrentUser().uid))
           ];
 
           for (const q of queries) {
@@ -15517,7 +11768,7 @@ Only return the JSON, no additional text.`;
 
       // Check for new friend requests periodically
       startRequestCheck() {
-        if (currentFirebaseUser) {
+        if (getCurrentUser()) {
           // Check immediately on login
           setTimeout(async () => {
             await this.loadFriendRequests();
@@ -15534,13 +11785,13 @@ Only return the JSON, no additional text.`;
 
     // Comprehensive Firebase update function
     async function updateFromFirebase() {
-      if (!currentFirebaseUser || !authManager) return;
+      if (!getCurrentUser() || !authManager) return;
 
       try {
         const { collection, query, where, getDocs, getDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
 
         // Update user profile from Firebase
-        const userDoc = await getDoc(doc(authManager.db, 'users', currentFirebaseUser.uid));
+        const userDoc = await getDoc(doc(authManager.db, 'users', getCurrentUser().uid));
         if (userDoc.exists()) {
           const userData = userDoc.data();
           const currentUser = DataLayer.load('currentUser') || {};
@@ -15549,7 +11800,7 @@ Only return the JSON, no additional text.`;
           const updatedUser = {
             ...currentUser,
             ...userData,
-            id: currentFirebaseUser.uid
+            id: getCurrentUser().uid
           };
 
           DataLayer.save('currentUser', updatedUser);
@@ -15558,7 +11809,7 @@ Only return the JSON, no additional text.`;
 
         // Load experiences from Firebase
         const experiencesCollection = collection(authManager.db, 'experiences');
-        const experiencesQuery = query(experiencesCollection, where('userId', '==', currentFirebaseUser.uid));
+        const experiencesQuery = query(experiencesCollection, where('userId', '==', getCurrentUser().uid));
         const experiencesSnapshot = await getDocs(experiencesQuery);
 
         const userExperiences = [];
@@ -15604,7 +11855,7 @@ Only return the JSON, no additional text.`;
     // Enhanced Friends System with Firebase
     const FirebaseFriendsSystem = {
       async addFriend(userId) {
-        if (!currentFirebaseUser) {
+        if (!getCurrentUser()) {
           NotificationSystem.show('Please sign in to add friends.', 'warning');
           return false;
         }
@@ -15614,7 +11865,7 @@ Only return the JSON, no additional text.`;
 
           // Create friend request
           const requestData = {
-            fromUserId: currentFirebaseUser.uid,
+            fromUserId: getCurrentUser().uid,
             toUserId: userId,
             status: 'pending',
             createdAt: serverTimestamp()
@@ -15632,15 +11883,15 @@ Only return the JSON, no additional text.`;
       },
 
       async getFriends() {
-        if (!currentFirebaseUser) return [];
+        if (!getCurrentUser()) return [];
 
         try {
           const { collection, query, where, getDocs, getDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
 
           const friendsCollection = collection(authManager.db, 'friends');
           const queries = [
-            query(friendsCollection, where('user1Id', '==', currentFirebaseUser.uid)),
-            query(friendsCollection, where('user2Id', '==', currentFirebaseUser.uid))
+            query(friendsCollection, where('user1Id', '==', getCurrentUser().uid)),
+            query(friendsCollection, where('user2Id', '==', getCurrentUser().uid))
           ];
 
           const friends = [];
@@ -15651,7 +11902,7 @@ Only return the JSON, no additional text.`;
 
             for (const docSnap of querySnapshot.docs) {
               const friendshipData = docSnap.data();
-              const friendId = friendshipData.user1Id === currentFirebaseUser.uid
+              const friendId = friendshipData.user1Id === getCurrentUser().uid
                 ? friendshipData.user2Id
                 : friendshipData.user1Id;
 
@@ -15677,15 +11928,15 @@ Only return the JSON, no additional text.`;
       },
 
       async isFriend(userId) {
-        if (!currentFirebaseUser) return false;
+        if (!getCurrentUser()) return false;
 
         try {
           const { collection, query, where, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
 
           const friendsCollection = collection(authManager.db, 'friends');
           const queries = [
-            query(friendsCollection, where('user1Id', '==', currentFirebaseUser.uid), where('user2Id', '==', userId)),
-            query(friendsCollection, where('user1Id', '==', userId), where('user2Id', '==', currentFirebaseUser.uid))
+            query(friendsCollection, where('user1Id', '==', getCurrentUser().uid), where('user2Id', '==', userId)),
+            query(friendsCollection, where('user1Id', '==', userId), where('user2Id', '==', getCurrentUser().uid))
           ];
 
           for (const q of queries) {
@@ -15726,36 +11977,10 @@ Only return the JSON, no additional text.`;
       }
     });
 
-    // Final initialization
-    console.log("Social Energy App initialized successfully!");
-    console.log("Use Alt+1-6 for quick navigation between pages");
-    console.log("Firebase app initialized:", {
-      users: "Firebase",
-      experiences: "Firebase",
-      features: [
-        "Personality Assessment",
-        "Activity Tracking",
-        "Social Feed",
-        "Group Planning",
-        "Personalized Recommendations",
-      ],
-    });
+    
 
-    // Test if login functions are accessible
-    console.log("Testing login functions accessibility:");
-    console.log("handleEmailContinue:", typeof window.handleEmailContinue);
-    console.log("handleGoogleSignIn:", typeof window.handleGoogleSignIn);
-    console.log("handleGitHubSignIn:", typeof window.handleGitHubSignIn);
-    console.log("handlePasswordContinue:", typeof window.handlePasswordContinue);
-
-    // Initialize Firebase Auth and show login page by default
-    initializeFirebaseAuth().then(() => {
-      // Show login page by default for unauthenticated users
-      if (!currentFirebaseUser) {
-        showPage('login');
-      }
-    });
   </script>
+  <script type="module" src="src/js/main.js"></script>
 </body>
 
 </html>

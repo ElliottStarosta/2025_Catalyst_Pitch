@@ -1,0 +1,152 @@
+.question-container {
+    margin-bottom: 2.5rem;
+    padding: 1.5rem;
+    border-radius: var(--border-radius-large);
+    background: var(--blue-bg);
+  }
+
+  .question-text {
+    font-size: 1.3rem;
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+    color: var(--text-color);
+    text-align: center;
+  }
+
+  .scale-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 1.5rem 0;
+  }
+
+  .scale-labels {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    font-size: 0.95rem;
+    color: var(--muted-text-color);
+    margin-bottom: 1rem;
+    font-weight: 500;
+  }
+
+  .radio-group {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .radio-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transition: var(--transition);
+    padding: 10px;
+    border-radius: 12px;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+  }
+
+  .radio-item:hover {
+    background: rgba(74, 144, 226, 0.1);
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-small);
+  }
+
+  .radio-item input[type="radio"] {
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--secondary-color);
+    border-radius: 50%;
+    position: relative;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+
+  .radio-item input[type="radio"]:checked {
+    background: var(--secondary-color);
+  }
+
+  .radio-item input[type="radio"]:checked::after {
+    content: "";
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--inverted-text-color);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .radio-item label {
+    margin-top: 0.8rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--secondary-color);
+  }
+
+  .progress-container {
+    margin: 2rem 0;
+    padding: 0 1rem;
+  }
+
+  .progress-bar {
+    width: 100%;
+    height: 10px;
+    background: rgba(74, 144, 226, 0.2);
+    border-radius: var(--border-radius-small);
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--secondary-gradient);
+    border-radius: var(--border-radius-small);
+    transition: width 0.5s ease;
+  }
+
+  .progress-info {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--muted-text-color);
+    font-weight: 500;
+  }
+
+  /* Results page */
+  .personality-result {
+    text-align: center;
+    padding: 2rem;
+  }
+
+  .personality-score {
+    font-size: 4rem;
+    font-weight: 800;
+    margin: 1.5rem 0;
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .personality-type {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+    font-weight: 700;
+    color: var(--text-color);
+  }
+
+  .personality-description {
+    max-width: 600px;
+    margin: 0 auto 2rem;
+    font-size: 1.1rem;
+    color: var(--muted-text-color);
+    line-height: 1.7;
+  }

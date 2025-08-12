@@ -1,0 +1,76 @@
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+    background: var(--blue-bg);
+    padding: 1.5rem;
+    border-radius: var(--border-radius-large);
+  }
+
+  .avatar {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: var(--secondary-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--inverted-text-color);
+    font-size: 1.8rem;
+    font-weight: 700;
+    box-shadow: var(--shadow-small);
+  }
+
+  .welcome-text {
+    font-size: 1.3rem;
+    color: var(--text-color);
+    font-weight: 500;
+  }
+
+  .welcome-text strong {
+    font-weight: 700;
+    color: var(--primary-color);
+  }
+
+  .form-group {
+    margin-bottom: 1.8rem;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 0.8rem;
+    font-weight: 600;
+    color: var(--text-color);
+  }
+
+  .form-control {
+    width: 100%;
+    padding: 14px 18px;
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius-medium);
+    font-size: 1rem;
+    transition: var(--transition);
+    background: var(--background-color);
+    color: var(--text-color);
+    font-family: inherit;
+  }
+
+  .form-control:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(31, 59, 115, 0.2);
+  }
+
+  .form-control::placeholder {
+    color: var(--muted-text-color);
+  }
+
+  .form-control select {
+    cursor: pointer;
+  }
+
+  textarea.form-control {
+    resize: vertical;
+    min-height: 120px;
+  }

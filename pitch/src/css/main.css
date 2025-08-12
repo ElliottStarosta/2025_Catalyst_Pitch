@@ -1,0 +1,13 @@
+@import "/src/css/general/style.css";
+@import "/src/css/general/modal.css";
+@import "/src/css/general/media.css";
+
+@import "/src/css/sections/dashboard/auth.css";
+@import "/src/css/sections/dashboard/cardsUI.css";
+@import "/src/css/sections/dashboard/navbar.css";
+
+@import "/src/css/sections/activity.css";
+@import "/src/css/sections/assesment.css";
+@import "/src/css/sections/feed.css";
+@import "/src/css/sections/profile.css";
+@import "/src/css/sections/AI.css";
