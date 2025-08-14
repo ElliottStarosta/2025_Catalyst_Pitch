@@ -1,15 +1,22 @@
-import {getCurrentUser} from './firebase-config';
-import DataLayer from './DataLayer';
+import {getCurrentUser} from '../firebase/firebase-config';
+import DataLayer from '../Data/DataLayer';
+import CacheSystem from '../Data/CacheSystem';
+import { wrapWrite, wrapRead } from '../Logging';
 
 const GroupsSystem = {
     // Group limits for non-premium users
-    AI_PREMIUM_ENABLED: DataLayer.load("currentUser").isPremium,
+    get AI_PREMIUM_ENABLED() {
+        const currentUser = DataLayer.load("currentUser");
+        console.log(DataLayer.load("currentUser"));
+        return currentUser?.isPremium || false;
+    },
     FREE_GROUP_LIMIT: import.meta.env.FREE_GROUP_LIMIT,
 
-    pageSize: import.meta.env.PAGINATION,
+    pageSize: import.meta.env.VITE_PAGINATION ?? 3,
     store: { items: [], hasMore: true, isLoading: false, cacheKey: 'GROUPS_PAGINATED' },
 
     init: async () => {
+      
       if (GroupsSystem._initInFlight) return;
       GroupsSystem._initInFlight = true;
       setTimeout(async () => {
@@ -23,6 +30,7 @@ const GroupsSystem = {
     },
 
     resetAndLoad: async () => {
+      
       GroupsSystem.store = { items: [], hasMore: true, isLoading: false, cacheKey: 'GROUPS_PAGINATED'};
       GroupsSystem._lastGroupDocSnap = null;
       const cached = CacheSystem.get(GroupsSystem.store.cacheKey, CacheSystem.CACHE_DURATIONS.GROUPS);
@@ -57,6 +65,7 @@ const GroupsSystem = {
           const data = docSnap.data();
           // Prefer embedded memberDetails if present to avoid extra reads
           let members = Array.isArray(data.memberDetails) && data.memberDetails.length > 0 ? data.memberDetails : null;
+
           if (!members) {
             // Fallback minimal members list (IDs only) to keep UI functional without extra reads
             members = (data.members || []).map(id => ({ userId: id, displayName: 'Member', personalityType: '', adjustmentFactor: 0, avatar: '?' }));
@@ -96,7 +105,7 @@ const GroupsSystem = {
 
     // Check if user can create more groups
     canCreateGroup: () => {
-      if (AI_PREMIUM_ENABLED) return true; // Premium users have unlimited groups
+      if (GroupsSystem.AI_PREMIUM_ENABLED) return true; // Premium users have unlimited groups
 
       const groups = DataLayer.load("groups", []);
       const currentMonth = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
@@ -113,6 +122,8 @@ const GroupsSystem = {
 
     // Get group usage info
     getGroupUsage: () => {
+      console.log("Getting group usage info...", DataLayer.load("currentUser"));
+      console.log("IS PREMIUM?", GroupsSystem.AI_PREMIUM_ENABLED);
       const groups = DataLayer.load("groups", []);
       const currentMonth = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
 
@@ -125,8 +136,8 @@ const GroupsSystem = {
 
       return {
         current: groupsThisMonth.length,
-        limit: AI_PREMIUM_ENABLED ? "∞" : GroupsSystem.FREE_GROUP_LIMIT,
-        isPremium: AI_PREMIUM_ENABLED,
+        limit: GroupsSystem.AI_PREMIUM_ENABLED ? "∞" : GroupsSystem.FREE_GROUP_LIMIT,
+        isPremium: GroupsSystem.AI_PREMIUM_ENABLED,
         canCreate: GroupsSystem.canCreateGroup()
       };
     },
@@ -731,7 +742,7 @@ const GroupsSystem = {
                   </button>`;
               } else if (!allMembersHavePremium) {
                 return "";
-              } else if (AI_PREMIUM_ENABLED) {
+              } else if (GroupsSystem.AI_PREMIUM_ENABLED) {
                 return `<button class="btn" style="background: var(--primary-gradient); color: var(--inverted-text-color);" onclick="showAIPremiumModal('${group.id}')">
                     <i class="fa-solid fa-crown"></i> AI Trip Planner
                   </button>`;
