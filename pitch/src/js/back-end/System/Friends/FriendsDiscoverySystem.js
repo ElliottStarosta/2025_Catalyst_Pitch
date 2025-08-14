@@ -1,10 +1,11 @@
 import { getCurrentUser } from "../../firebase/firebase-config";
 import { getAuthManager } from "../../firebase/initFirebase";
-import { wrapRead } from "../../Logging";
 import NotificationSystem from "../NotificationSystem";
 import CacheSystem from "../../Data/CacheSystem";
 import { additionalPresenceWatchIds, refreshUserStatusListeners } from "../../Listeners";
 import { addOnlineStatusIndicator } from "../../../front-end/UserIcons";
+import { wrapWrite, wrapRead } from "../../Logging";
+import FeedSystem from "../FeedSystem";
 
 const FriendsDiscoverySystem = {
   currentFilter: "all",
@@ -56,7 +57,7 @@ const FriendsDiscoverySystem = {
 
       // Load data with aggressive caching
       await this.loadAllUsersOptimized();
-      await this.loadCurrentFriendsOptimized();
+      await this.loadCurrentFriends();
       await this.loadFriendRequests();
       await this.loadPendingRequests();
 
@@ -188,8 +189,8 @@ const FriendsDiscoverySystem = {
     this._loadUsersInFlight = true;
     // Check cache first
     const cached = CacheSystem.get(
-      "ALL_USERS_PAGINATED",
-      CacheSystem.CACHE_DURATIONS.ALL_USERS_BASIC
+      "USERS",
+      CacheSystem.CACHE_DURATIONS.USERS
     );
     if (cached && Array.isArray(cached.items)) {
       this.allUsers = cached.items;
@@ -236,7 +237,7 @@ const FriendsDiscoverySystem = {
         snapshot.docs[snapshot.docs.length - 1]?.data()?.createdAt || null;
       this._usersHasMore = snapshot.size === 20;
 
-      CacheSystem.set("ALL_USERS_PAGINATED", {
+      CacheSystem.set("USERS", {
         items: this.allUsers,
         lastCursorValue: this._usersPageCursor,
         hasMore: this._usersHasMore,
@@ -291,7 +292,7 @@ const FriendsDiscoverySystem = {
         snapshot.docs[snapshot.docs.length - 1]?.data()?.createdAt ||
         this._usersPageCursor;
       this._usersHasMore = snapshot.size === 20;
-      CacheSystem.set("ALL_USERS_PAGINATED", {
+      CacheSystem.set("USERS", {
         items: this.allUsers,
         lastCursorValue: this._usersPageCursor,
         hasMore: this._usersHasMore,
@@ -310,7 +311,7 @@ const FriendsDiscoverySystem = {
   },
 
   // Load current friends with caching
-  async loadCurrentFriendsOptimized() {
+  async loadCurrentFriends() {
     // Check cache first
     const cachedFriends = CacheSystem.get(
       "FRIENDS",
@@ -389,10 +390,7 @@ const FriendsDiscoverySystem = {
     }
   },
 
-  // Legacy function for compatibility
-  async loadCurrentFriends() {
-    return this.loadCurrentFriendsOptimized();
-  },
+
 
   // Load friend requests
   async loadFriendRequests() {
@@ -511,7 +509,7 @@ const FriendsDiscoverySystem = {
       console.log("Switching to My Friends - refreshing friends data");
       // Force fresh friends data by invalidating cache
       CacheSystem.invalidateFriendsCache();
-      await this.loadCurrentFriendsOptimized();
+      await this.loadCurrentFriends();
       console.log(
         "Friends data refreshed:",
         this.currentFriends.length,
@@ -1091,6 +1089,12 @@ const FriendsDiscoverySystem = {
           { user1Id: requestData.fromUserId, user2Id: requestData.toUserId }
         );
 
+        await wrapWrite(
+          deleteDoc(doc(getAuthManager().db, "friendRequests", requestDoc.id)),
+          "deleteDoc",
+          `friendRequests/${requestDoc.id}`
+        );
+
         // Invalidate friend-related caches BEFORE reloading
         CacheSystem.invalidateFriendsCache();
 
@@ -1105,7 +1109,7 @@ const FriendsDiscoverySystem = {
         this.pendingRequests = [];
 
         // Force immediate fresh reload from Firebase (not cache)
-        await this.loadCurrentFriendsOptimized();
+        await this.loadCurrentFriends();
         await this.loadFriendRequests();
         await this.loadPendingRequests();
 
@@ -1115,7 +1119,7 @@ const FriendsDiscoverySystem = {
         // Delay refresh to ensure Firebase propagation
         setTimeout(async () => {
           console.log("Delayed refresh after friend acceptance");
-          await this.loadCurrentFriendsOptimized();
+          await this.loadCurrentFriends();
           this.displayUsers();
         }, 2000);
 
@@ -1219,7 +1223,7 @@ const FriendsDiscoverySystem = {
       NotificationSystem.show("Friend removed successfully!", "success");
 
       // Force immediate UI update
-      await this.loadCurrentFriendsOptimized();
+      await this.loadCurrentFriends();
       await this.loadFriendRequests();
       await this.loadPendingRequests();
       this.displayUsers();
@@ -1318,8 +1322,9 @@ const FriendsDiscoverySystem = {
     }
   },
 
-  // Check for new friend requests periodically
+  // Bootstrap the system
   startRequestCheck() {
+    console.log("Starting friend request check...");
     if (getCurrentUser()) {
       // Check immediately on login
       setTimeout(async () => {
@@ -1327,7 +1332,6 @@ const FriendsDiscoverySystem = {
         this.showFriendRequestNotification();
       }, 2000);
 
-      // Real-time friend request checking is now handled by initializeRealtimeSystem()
     }
   },
 };

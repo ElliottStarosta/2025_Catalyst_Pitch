@@ -5,33 +5,47 @@ import FriendsSystem from '../System/Friends/FriendsSystem';
 import { wrapRead } from '../Logging';
 import { updateDashboard } from '../../front-end/UIManagement';
 import { updateProfile } from '../../front-end/UIManagement';
+import FriendsDiscoverySystem from '../System/Friends/FriendsDiscoverySystem';
+import { FirebaseWriteLogger } from '../Logging';
 
 const CacheSystem = {
-    // Cache durations in milliseconds (optimized for 1000+ users)
-    CACHE_DURATIONS: {
-        FRIENDS: 600000,        // 10 minutes (increased from 5)
-        GROUPS: 900000,         // 15 minutes (increased from 10)
-        FRIEND_REQUESTS: 300000, // 5 minutes (increased from 2)
-        SIMILAR_USERS: 600000,  // 10 minutes (increased from 5)
-        USER_PROFILES: 1800000, // 30 minutes (increased from 15)
-        EXPERIENCES: 3600000,   // 60 minutes (increased from 30)
-        LOCATIONS: 600000,      // 10 minutes (increased from 5)
-        ACTIVITIES: 1800000,    // 30 minutes (new)
-        RECOMMENDATIONS: 900000, // 15 minutes (new)
-        FRIEND_STATUSES: 120000, // 2 minutes (short cache for status)
-        ALL_USERS_BASIC: 300000  // 5 minutes (basic user data)
+    // Change CACHE_DURATION to CACHE_DURATIONS to match usage throughout the codebase
+    CACHE_DURATIONS: {  // Changed from CACHE_DURATION to CACHE_DURATIONS
+        EXPERIENCES: 5 * 60 * 1000,     // 5 minutes for experiences
+        FRIENDS: 5 * 60 * 1000,         // 5 minutes for friends list
+        USERS: 15 * 60 * 1000,         // 15 minutes for user profiles
+        GROUPS: 5 * 60 * 1000,         // 5 minutes for groups
+        ACTIVITIES: 5 * 60 * 1000,     // 5 minutes for feed activities
+        USER_PROFILES: 30 * 60 * 1000  // 30 minutes for individual user profiles
     },
+    getAllCacheKeys: () => {
+    const keys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+        const fullKey = localStorage.key(i);
+        if (fullKey && fullKey.startsWith('cache_')) {
+            keys.push(fullKey.replace('cache_', '')); // Remove the prefix
+        }
+    }
+    return keys;
+},
 
-    isInvalidating: false, // Prevent invalidation loops
+    isInvalidating: false,
 
     // Get cached data with timestamp validation
     get: (key, duration = 300000) => {
-        const cache = DataLayer.load(`cache_${key}`, {});
-        const now = Date.now();
+        const cache = localStorage.getItem(`cache_${key}`);
+        if (!cache) return null;
 
-        if (cache.timestamp && (now - cache.timestamp) < duration && cache.data) {
-            console.log(`Using cached data for: ${key}`);
-            return cache.data;
+        try {
+            const parsed = JSON.parse(cache);
+            const now = Date.now();
+
+            if (parsed.timestamp && (now - parsed.timestamp) < duration) {
+                console.log(`Using cached data for: ${key}`);
+                return parsed.data;
+            }
+        } catch (e) {
+            console.error('Cache parse error:', e);
         }
 
         console.log(`Cache miss for: ${key}`);
@@ -40,16 +54,20 @@ const CacheSystem = {
 
     // Set cached data with timestamp
     set: (key, data) => {
-        DataLayer.save(`cache_${key}`, {
-            timestamp: Date.now(),
-            data: data
-        });
-        console.log(`Cached data for: ${key}`);
+        try {
+            localStorage.setItem(`cache_${key}`, JSON.stringify({
+                timestamp: Date.now(),
+                data: data
+            }));
+            console.log(`Cached data for: ${key}`);
+        } catch (e) {
+            console.error('Cache set error:', e);
+        }
     },
 
     // Clear specific cache
     clear: (key) => {
-        DataLayer.remove(`cache_${key}`);
+        localStorage.removeItem(`cache_${key}`);
         console.log(`Cleared cache for: ${key}`);
     },
 
@@ -60,15 +78,23 @@ const CacheSystem = {
         });
         console.log('Cleared all caches');
     },
+    invalidateCache: (key) => {
+        if (!CacheSystem.isInvalidating) {
+            CacheSystem.isInvalidating = true;
+            CacheSystem.clear(key);
+            CacheSystem.isInvalidating = false;
+            console.log(`Cache invalidated for: ${key}`);
+        }
+    },
 
     // Invalidate specific caches when data changes
     invalidateFriendsCache: () => {
         if (!CacheSystem.isInvalidating) {
             CacheSystem.isInvalidating = true;
-            CacheSystem.clear('FRIENDS');
-            CacheSystem.clear('SIMILAR_USERS'); // Friends list affects similar users
-            CacheSystem.clear('FRIEND_REQUESTS');
-            CacheSystem.clear('ALL_USERS_BASIC');
+            CacheSystem.invalidateCache('FRIENDS');
+            CacheSystem.invalidateCache('SIMILAR_USERS');
+            CacheSystem.invalidateCache('FRIEND_REQUESTS');
+            CacheSystem.invalidateCache('ALL_USERS_BASIC');
             // Reset friends system initialization flag
             if (typeof FriendsDiscoverySystem !== 'undefined') {
                 FriendsDiscoverySystem.isInitialized = false;
@@ -78,27 +104,18 @@ const CacheSystem = {
     },
     invalidateExperienceCache: () => {
         console.log("INVALIDATING EXPERIENCES");
-        if (!CacheSystem.isInvalidating) {
-            CacheSystem.isInvalidating = true;
-            CacheSystem.clear('EXPERIENCES');
-            console.log("THJE AFTER CLEARING: ",CacheSystem.get('EXPERIENCES', CacheSystem.CACHE_DURATIONS.EXPERIENCES));
-            CacheSystem.isInvalidating = false;
-        }
+        CacheSystem.invalidateCache('EXPERIENCES');
     },
 
     invalidateGroupsCache: () => {
-        if (!CacheSystem.isInvalidating) {
-            CacheSystem.isInvalidating = true;
-            CacheSystem.clear('GROUPS');
-            CacheSystem.isInvalidating = false;
-        }
+        CacheSystem.invalidateCache('GROUPS');
     },
 
     invalidateUserCache: () => {
         if (!CacheSystem.isInvalidating) {
             CacheSystem.isInvalidating = true;
-            CacheSystem.clear('SIMILAR_USERS');
-            CacheSystem.clear('USER_PROFILES');
+            CacheSystem.invalidateCache('SIMILAR_USERS');
+            CacheSystem.invalidateCache('USER_PROFILES');
             CacheSystem.isInvalidating = false;
         }
     },
@@ -153,12 +170,13 @@ const CacheSystem = {
         }
     }
 };
+window.CacheSystem = CacheSystem; 
 
 // Batch load all essential data with caching strategy
 export async function batchLoadEssentialData() {
 
     try {
-        const { collection, query, where, getDocs, getDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+        // const { collection, query, where, getDocs, getDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
 
         // Parallel loading of user data
         const loadPromises = [
@@ -304,7 +322,7 @@ export async function updateOnPageVisit(pageName) {
     console.log(`📄 Page visit: ${pageName} - Loading relevant data...`);
 
     try {
-        const { collection, query, where, getDocs, getDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+        // const { collection, query, where, getDocs, getDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
 
         switch (pageName) {
             case 'dashboard':

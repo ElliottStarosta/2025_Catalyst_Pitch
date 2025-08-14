@@ -13,7 +13,7 @@ const GroupsSystem = {
     FREE_GROUP_LIMIT: import.meta.env.FREE_GROUP_LIMIT,
 
     pageSize: import.meta.env.VITE_PAGINATION ?? 3,
-    store: { items: [], hasMore: true, isLoading: false, cacheKey: 'GROUPS_PAGINATED' },
+    store: { items: [], hasMore: true, isLoading: false, cacheKey: 'GROUPS' },
 
     init: async () => {
       
@@ -30,20 +30,23 @@ const GroupsSystem = {
     },
 
     resetAndLoad: async () => {
-      
-      GroupsSystem.store = { items: [], hasMore: true, isLoading: false, cacheKey: 'GROUPS_PAGINATED'};
+
+      GroupsSystem.store = { items: [], hasMore: true, isLoading: false, cacheKey: 'GROUPS' };
+
       GroupsSystem._lastGroupDocSnap = null;
+
       const cached = CacheSystem.get(GroupsSystem.store.cacheKey, CacheSystem.CACHE_DURATIONS.GROUPS);
+
       if (cached) {
         GroupsSystem.store = { ...GroupsSystem.store, ...cached };
-        DataLayer.save('groups', GroupsSystem.store.items);
-      } else {
-        await GroupsSystem.loadNextPage();
-      }
+        return;
+      } 
+      await GroupsSystem.loadNextPage();
     },
 
     loadNextPage: async () => {
       if (GroupsSystem.store.isLoading || !GroupsSystem.store.hasMore) return;
+
       if (!getCurrentUser() || !authManager) return;
       GroupsSystem.store.isLoading = true;
       try {
@@ -80,6 +83,7 @@ const GroupsSystem = {
         }
 
         GroupsSystem.store.items = [...GroupsSystem.store.items, ...page];
+
         GroupsSystem._lastGroupDocSnap = snapshot.docs[snapshot.docs.length - 1] || GroupsSystem._lastGroupDocSnap;
         GroupsSystem.store.hasMore = snapshot.size === GroupsSystem.pageSize;
 

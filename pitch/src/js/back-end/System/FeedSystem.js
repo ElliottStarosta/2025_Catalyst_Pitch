@@ -1,4 +1,4 @@
-import {getUserLocationWithFallback} from "./System/Location.js";
+import {getUserLocationWithFallback} from "../System/Location.js";
 import ActivitySystem from "./ActivitySystem.js";
 import FriendsDiscoverySystem from "./Friends/FriendsDiscoverySystem.js";
 
@@ -1234,3 +1234,5 @@ const FeedSystem = {
         `;
       },
     };
+
+  export default FeedSystem;

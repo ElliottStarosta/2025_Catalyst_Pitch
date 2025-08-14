@@ -15,6 +15,8 @@ import ActivitySystem, {updateSliderValue} from "./back-end/System/ActivitySyste
 
 import { getLocationBasedRecommendations } from "./back-end/System/RecommendationSystem.js";
 import FriendsSystem from "./back-end/System/Friends/FriendsSystem.js";
+import { FirebaseWriteLogger } from "./back-end/Logging.js";
+import CacheSystem from "./back-end/Data/CacheSystem.js";
 
 // Global
 window.toggleAIPremium = toggleAIPremium;
@@ -30,6 +32,8 @@ window.ActivitySystem = ActivitySystem;
 window.updateSliderValue = updateSliderValue;
 window.getLocationBasedRecommendations = getLocationBasedRecommendations;
 window.FriendsSystem = FriendsSystem;
+window.FirebaseWriteLogger = FirebaseWriteLogger;
+window.CacheSystem.getAllCacheKeys = CacheSystem.getAllCacheKeys;
 
 
 // Start up

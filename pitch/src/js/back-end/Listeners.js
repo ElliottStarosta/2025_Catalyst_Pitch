@@ -181,10 +181,14 @@ async function resumeRealtimeListeners() {
   console.log("▶️ Resuming real-time listeners with batch refresh");
 
   try {
+    // First cleanup existing listeners
+    cleanupRealtimeListeners();
+    
     await batchLoadEssentialData();
-    // Reset the initialization flag to allow fresh setup
-    realtimeListenersInitialized = false;
-    await initializeRealTimeListeners();
+    // Only initialize if not already initialized
+    if (!realtimeListenersInitialized) {
+      await initializeRealTimeListeners();
+    }
     areRealtimeListenersActive = true;
     startLocationScheduler();
   } catch (error) {
@@ -204,7 +208,7 @@ async function initializeFriendRequestListeners(
   if (!getCurrentUser() || !getAuthManager()) return;
 
   // Prevent duplicate initialization
-  if (realtimeListeners.friendRequests) return;
+  if (realtimeListeners.friendRequests || realtimeListeners.outgoingRequests) return;
 
   try {
     // Listen for incoming friend requests

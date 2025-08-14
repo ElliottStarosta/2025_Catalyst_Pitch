@@ -183,7 +183,7 @@ export function updateDashboard() {
     document.getElementById(
       "welcome-message"
     ).innerHTML = `Welcome back, <strong>${currentUser.displayName}</strong>! You're a ${personalityType.type}`;
-    CacheSystem.invalidateExperienceCache();
+    
     const userExperiences = DataLayer.load("userExperiences", []);
     const groups = DataLayer.load("groups", []);
 

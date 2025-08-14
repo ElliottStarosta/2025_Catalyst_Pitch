@@ -7,6 +7,7 @@ import NotificationSystem from "./NotificationSystem.js";
 import { wrapWrite } from "../Logging.js";
 import { getUserLocationWithFallback } from "./Location.js";
 import { showPage } from "../../front-end/UIManagement.js";
+import { updateDashboard } from "../../front-end/UIManagement.js";
 
 const ActivitySystem = {
   // Predefined activity categories
@@ -155,17 +156,10 @@ const ActivitySystem = {
 
       // Save experience locally
       DataLayer.push("userExperiences", experience);
-      CacheSystem.set('EXPERIENCES', DataLayer.load("userExperiences"));
-      console.log("Experience saved locally:", DataLayer.load("userExperiences"));
-        // Invalidate experience cache, reload, and update dashboard
-        CacheSystem.invalidateExperienceCache();
-        if (typeof loadUserExperiencesWithCache === 'function') {
-          loadUserExperiencesWithCache().then(() => {
-            if (typeof updateDashboard === 'function') updateDashboard();
-          });
-        } else {
-          if (typeof updateDashboard === 'function') updateDashboard();
-        }
+      CacheSystem.invalidateCache('EXPERIENCES');
+      
+      
+      
 
       // Save to Firebase if user is authenticated
       if (getCurrentUser() && getAuthManager()) {
@@ -201,6 +195,8 @@ const ActivitySystem = {
         };
         saveToFirebase();
       }
+      
+      updateDashboard();
 
       // Show success message
       NotificationSystem.show("Experience added successfully!", "success");
@@ -391,10 +387,13 @@ const ActivitySystem = {
 
   // Get all experiences for community feed (fallback to user's own)
   getAllExperiences: () => {
-    const all = DataLayer.load("allExperiences", null);
-    if (Array.isArray(all)) return all;
-    const userExperiences = DataLayer.load("userExperiences", []);
-    return userExperiences;
+    // Try cache first
+    const cached = CacheSystem.get("EXPERIENCES", CacheSystem.CACHE_DURATIONS.EXPERIENCES);
+    if (cached) return cached;
+
+    const experiences = DataLayer.load("userExperiences", []);
+    CacheSystem.set("EXPERIENCES", experiences);
+    return experiences;
   },
 
   // Activity Recommendation Engine

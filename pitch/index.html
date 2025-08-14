@@ -5752,7 +5752,7 @@ Only return the JSON, no additional text.`;
         // Update FriendsDiscoverySystem if it exists
         if (typeof FriendsDiscoverySystem !== 'undefined') {
           await FriendsDiscoverySystem.loadAllUsersOptimized();
-          await FriendsDiscoverySystem.loadCurrentFriendsOptimized();
+          await FriendsDiscoverySystem.loadCurrentFriends();
           await FriendsDiscoverySystem.loadFriendRequests();
           await FriendsDiscoverySystem.loadPendingRequests();
           FriendsDiscoverySystem.displayUsers();
@@ -5876,8 +5876,6 @@ Only return the JSON, no additional text.`;
         }
       }
     };
-
-   
 
 
   </script>

@@ -3,6 +3,8 @@ import FriendsDiscoverySystem from './FriendsDiscoverySystem';
 import { wrapWrite, wrapRead } from '../../Logging';
 import { getCurrentUser } from '../../firebase/firebase-config';
 import { getAuthManager } from '../../firebase/initFirebase';
+import CacheSystem from '../../Data/CacheSystem';
+import DataLayer from '../../Data/DataLayer';
 
 const FriendsSystem = {
     async addFriend(userId) {
@@ -175,6 +177,10 @@ const FriendsSystem = {
     async getFriends() {
       if (!getCurrentUser()) return [];
 
+      const cache = CacheSystem.get("FRIENDS",CacheSystem.CACHE_DURATIONS.FRIENDS);
+
+      if (cache) return cache;
+
       try {
         const { collection, query, where, getDocs, getDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
 
@@ -210,6 +216,8 @@ const FriendsSystem = {
           }
         }
 
+        DataLayer.save('friends',friends);
+        CacheSystem.set("FRIENDS", friends, CacheSystem.CACHE_DURATIONS.FRIENDS);
         return friends;
       } catch (error) {
         console.error('Error getting friends:', error);

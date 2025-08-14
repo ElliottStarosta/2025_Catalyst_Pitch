@@ -248,6 +248,11 @@
     background: var(--blue-bg);
     border-radius: var(--border-radius-medium);
     transition: var(--transition);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 150px;
   }
 
   .stat-card:hover {
